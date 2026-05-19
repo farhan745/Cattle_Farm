@@ -1,0 +1,43 @@
+@model IEnumerable<CattleFarm.Models.Farm>
+@{ ViewData["Title"] = "Farm Approvals"; }
+
+<div class="page-header">
+    <div><h1 class="page-title">✅ Farm Approvals</h1><p class="page-subtitle">@Model.Count() total farms — @Model.Count(f => f.ApprovalStatus == CattleFarm.Models.ApprovalStatus.Pending) pending</p></div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead><tr><th>Farm</th><th>Owner</th><th>Type</th><th>Location</th><th>Status</th><th>Registered</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var farm in Model)
+                {
+                    <tr>
+                        <td style="font-weight:600">@farm.Name</td>
+                        <td style="font-size:12px">@(farm.Owner?.FullName ?? "—")</td>
+                        <td><span class="badge badge-gray">@farm.FarmType</span></td>
+                        <td style="font-size:12px;color:var(--text-muted)">@farm.Location</td>
+                        <td>
+                            @{
+                                var apBadge = farm.ApprovalStatus switch { CattleFarm.Models.ApprovalStatus.Approved => "badge-success", CattleFarm.Models.ApprovalStatus.Rejected => "badge-danger", _ => "badge-warning" };
+                            }
+                            <span class="badge @apBadge">@farm.ApprovalStatus</span>
+                        </td>
+                        <td style="font-size:12px;color:var(--text-muted)">@farm.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a href="/Farm/Details/@farm.Id" class="btn btn-outline btn-sm">View</a>
+                                @if (farm.ApprovalStatus == CattleFarm.Models.ApprovalStatus.Pending)
+                                {
+                                    <form method="post" asp-action="ApproveFarm" asp-controller="Admin" style="display:inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@farm.Id" /><button type="submit" class="btn btn-primary btn-sm">Approve</button></form>
+                                    <form method="post" asp-action="RejectFarm" asp-controller="Admin" style="display:inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@farm.Id" /><button type="submit" class="btn btn-danger btn-sm">Reject</button></form>
+                                }
+                                <form method="post" asp-action="DeleteFarm" asp-controller="Admin" style="display:inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@farm.Id" /><button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('Delete this farm?')"><i class="bi bi-trash"></i></button></form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

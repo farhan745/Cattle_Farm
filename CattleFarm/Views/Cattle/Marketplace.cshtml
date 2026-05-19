@@ -1,0 +1,78 @@
+@model IEnumerable<CattleFarm.Models.Cattle>
+@{
+    ViewData["Title"] = "Cattle Marketplace";
+}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🏪 Cattle Marketplace</h1>
+        <p class="page-subtitle">Buy and sell healthy cattle from verified farms</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Cattle/Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> List My Cattle</a>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="card" style="margin-bottom:20px">
+    <div class="card-body" style="padding:14px">
+        <form method="get" style="display:flex;gap:12px;flex-wrap:wrap">
+            <div style="position:relative;flex:1;min-width:200px">
+                <input name="search" value="@ViewData["Search"]" placeholder="Search by breed, name..." class="form-control" style="padding-left:34px" />
+                <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+            </div>
+            <select name="breed" class="form-control" style="width:auto">
+                <option value="">All Breeds</option>
+                <option>Holstein Friesian</option><option>Sahiwal</option><option>Brahman</option><option>Jersey</option><option>Red Chittagong</option>
+            </select>
+            <select name="premium" class="form-control" style="width:auto">
+                <option value="">All Listings</option>
+                <option value="true">⭐ Premium Only</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state"><div class="empty-icon">🐄</div><h3>No cattle listed for sale</h3><p style="margin-top:8px">Be the first to <a href="/Cattle/Create">list your cattle</a></p></div>
+}
+else
+{
+    <div class="cattle-grid">
+        @foreach (var c in Model)
+        {
+            <div class="cattle-card" style="position:relative">
+                @if (c.IsPremiumListing)
+                { <div style="position:absolute;top:10px;left:10px;z-index:1"><span class="badge badge-warning">⭐ Premium</span></div> }
+                <div class="cattle-card-img" style="height:200px">
+                    @if (!string.IsNullOrEmpty(c.ImagePath)) { <img src="@c.ImagePath" alt="@c.Name" style="height:200px" /> }
+                    else { <span style="font-size:64px">🐄</span> }
+                </div>
+                <div class="cattle-card-body">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                        <div>
+                            <div class="cattle-card-title">@c.Name</div>
+                            <div class="cattle-card-meta">@c.Breed</div>
+                        </div>
+                        <span class="badge badge-success">@c.HealthStatus</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;font-size:12px">
+                        <div><span style="color:var(--text-muted)">Age:</span> <strong>@((DateTime.Now.Year - c.DateOfBirth.Year)) yrs</strong></div>
+                        <div><span style="color:var(--text-muted)">Weight:</span> <strong>@c.Weight kg</strong></div>
+                        <div><span style="color:var(--text-muted)">Gender:</span> <strong>@c.Gender</strong></div>
+                        <div><span style="color:var(--text-muted)">Farm:</span> <strong>@(c.Farm?.Name ?? "—")</strong></div>
+                    </div>
+                    <div style="margin-top:12px;padding:10px;background:var(--primary-light);border-radius:6px;text-align:center">
+                        <div style="font-size:22px;font-weight:800;color:var(--primary)">৳@c.SalePrice?.ToString("N0")</div>
+                        <div style="font-size:11px;color:var(--text-muted)">Negotiable price</div>
+                    </div>
+                </div>
+                <div class="cattle-card-footer">
+                    <a href="/Cattle/Details/@c.Id" class="btn btn-outline btn-sm">View Details</a>
+                    <a href="/Cattle/BuyCattle/@c.Id" class="btn btn-primary w-100" style="margin-top:8px">💰 Buy Now</a>
+                </div>
+            </div>
+        }
+    </div>
+}

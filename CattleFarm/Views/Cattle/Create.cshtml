@@ -1,0 +1,149 @@
+@model CattleFarm.ViewModels.CattleViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Cattle" : "Edit Cattle";
+    var isEdit = Model.Id > 0;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@(isEdit ? "✏️ Edit Cattle" : "➕ Add New Cattle")</h1>
+        <p class="page-subtitle">@(isEdit ? $"Editing record for {Model.Name}" : "Register a new cattle to your farm")</p>
+    </div>
+    <a href="/Cattle" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
+</div>
+
+<form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
+        <!-- Main Form -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <!-- Basic Info -->
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">📋 Basic Information</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group">
+                            <label class="form-label">Tag ID *</label>
+                            <input asp-for="TagId" class="form-control" placeholder="e.g. GF-001" />
+                            <span asp-validation-for="TagId" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cattle Name *</label>
+                            <input asp-for="Name" class="form-control" placeholder="e.g. Lali" />
+                            <span asp-validation-for="Name" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Breed *</label>
+                            <input asp-for="Breed" class="form-control" placeholder="e.g. Holstein Friesian" />
+                            <span asp-validation-for="Breed" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth *</label>
+                            <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            <span asp-validation-for="DateOfBirth" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Weight (kg) *</label>
+                            <input asp-for="Weight" class="form-control" type="number" step="0.1" placeholder="0.0" />
+                            <span asp-validation-for="Weight" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select asp-for="Gender" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.Gender>()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Health Status</label>
+                            <select asp-for="HealthStatus" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.HealthStatus>()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.CattleStatus>()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Farm *</label>
+                            <select asp-for="FarmId" class="form-control">
+                                <option value="">Select farm...</option>
+                                @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                                { <option value="@farm.Id" selected="@(farm.Id == Model.FarmId)">@farm.Name</option> }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Any additional details..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Info -->
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">💰 Financial Details</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group">
+                            <label class="form-label">Purchase Price (৳)</label>
+                            <input asp-for="PurchasePrice" class="form-control" type="number" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Purchase Date</label>
+                            <input asp-for="PurchaseDate" class="form-control" type="date" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sale Price (৳)</label>
+                            <input asp-for="SalePrice" class="form-control" type="number" step="0.01" id="salePriceInput" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sale Date</label>
+                            <input asp-for="SaleDate" class="form-control" type="date" />
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:24px;margin-top:8px">
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                            <input asp-for="IsListedForSale" type="checkbox" style="accent-color:var(--primary)" id="listedChk" onchange="toggleSaleFields()" />
+                            List for sale in marketplace
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                            <input asp-for="IsPremiumListing" type="checkbox" style="accent-color:var(--accent)" />
+                            ⭐ Premium listing
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Upload Sidebar -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">🖼️ Cattle Image</h3></div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+                    {
+                        <img id="imagePreview" src="@Model.ExistingImagePath" class="img-preview" style="width:100%;height:200px;border-radius:8px;object-fit:cover;margin-bottom:12px" alt="Current image" />
+                    }
+                    else
+                    {
+                        <div style="width:100%;height:200px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px" id="imagePlaceholder">🐄</div>
+                        <img id="imagePreview" style="display:none;width:100%;height:200px;object-fit:cover;border-radius:8px;margin-bottom:12px" />
+                    }
+                    <label class="img-upload-zone" for="imageInput">
+                        <div style="font-size:28px;margin-bottom:8px">📷</div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Click to upload image</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">JPG, PNG, WebP — max 5MB</div>
+                    </label>
+                    <input type="file" name="ImageFile" id="imageInput" accept="image/*" style="display:none" onchange="previewImage(this,'imagePreview');document.getElementById('imagePlaceholder')?.remove()" />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-@(isEdit ? "check-circle" : "plus-circle")"></i>
+                        @(isEdit ? "Save Changes" : "Add Cattle")
+                    </button>
+                    <a href="/Cattle" class="btn btn-outline w-100" style="margin-top:10px">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,119 @@
+@model CattleFarm.ViewModels.WorkerViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Hire Worker" : "Edit Worker";
+    var isEdit = Model.Id > 0;
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@(isEdit ? "✏️ Edit Worker" : "👷 Hire New Worker")</h1>
+        <p class="page-subtitle">@(isEdit ? $"Editing {Model.FullName}" : "Add a new team member to your farm")</p>
+    </div>
+    <a href="/Worker" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+    <input type="hidden" asp-for="ExistingImagePath" />
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+            <!-- Personal Info -->
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">👤 Personal Information</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Full Name *</label>
+                            <input asp-for="FullName" class="form-control" placeholder="Worker's full name" />
+                            <span asp-validation-for="FullName" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Role / Position *</label>
+                            <input asp-for="Role" class="form-control" placeholder="e.g. Milker, Caretaker" />
+                            <span asp-validation-for="Role" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Assigned Farm *</label>
+                            <select asp-for="FarmId" class="form-control">
+                                <option value="0">Select farm...</option>
+                                @foreach (var f in farms) { <option value="@f.Id">@f.Name</option> }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input asp-for="Phone" class="form-control" placeholder="+8801XXXXXXXXX" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="worker@email.com" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Info -->
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">💼 Professional Details</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group">
+                            <label class="form-label">Monthly Salary (৳)</label>
+                            <input asp-for="Salary" class="form-control" type="number" step="0.01" placeholder="0.00" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Experience (Years)</label>
+                            <input asp-for="ExperienceYears" class="form-control" type="number" min="0" placeholder="0" />
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Skills</label>
+                            <input asp-for="Skills" class="form-control" placeholder="e.g. Milking, Feeding, Health checks" />
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Notes</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Any additional notes..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                <input asp-for="IsAvailable" type="checkbox" style="accent-color:var(--primary);width:16px;height:16px" />
+                                <span class="form-label" style="margin:0">Mark as Available</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: image + submit -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">📷 Profile Photo</h3></div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+                    { <img id="workerPreview" src="@Model.ExistingImagePath" style="width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px" /> }
+                    else
+                    { <div id="workerPlaceholder" style="width:100%;height:220px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:12px">👷</div>
+                      <img id="workerPreview" style="display:none;width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px" /> }
+                    <label class="img-upload-zone" for="workerImg">
+                        <div style="font-size:22px">📷</div>
+                        <div style="font-size:13px;font-weight:600">Upload Photo</div>
+                        <div style="font-size:11px;color:var(--text-muted)">JPG, PNG — max 5MB</div>
+                    </label>
+                    <input type="file" name="ImageFile" id="workerImg" accept="image/*" style="display:none"
+                           onchange="previewImage(this,'workerPreview');document.getElementById('workerPlaceholder')?.remove()" />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-@(isEdit?"check-circle":"person-plus")"></i>
+                        @(isEdit ? "Save Changes" : "Hire Worker")
+                    </button>
+                    <a href="/Worker" class="btn btn-outline w-100" style="margin-top:10px">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

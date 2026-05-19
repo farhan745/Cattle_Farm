@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Payment Cancelled";
+    Layout = "_Layout";
+}
+
+<div style="max-width: 600px; margin: 40px auto; text-align: center;">
+    <div class="card" style="padding: 40px;">
+        <div style="font-size: 64px; color: var(--warning); margin-bottom: 20px;">
+            <i class="bi bi-exclamation-circle-fill"></i>
+        </div>
+        <h2 style="font-weight: 800; margin-bottom: 8px;">Payment Cancelled</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">The payment transaction was cancelled.</p>
+
+        @if (ViewBag.TransactionId != null)
+        {
+            <div style="background: var(--bg); border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 30px; border: 1px solid var(--border)">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted); font-size: 13px;">Transaction ID:</span>
+                    <span style="font-weight: 600; font-family: monospace;">@ViewBag.TransactionId</span>
+                </div>
+            </div>
+        }
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="/Cattle/Marketplace" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-shop"></i> Back to Marketplace
+            </a>
+            <a href="/Cattle" class="btn btn-outline w-100">
+                <i class="bi bi-list-task"></i> View Cattle List
+            </a>
+        </div>
+    </div>
+</div>

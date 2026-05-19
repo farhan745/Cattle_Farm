@@ -1,0 +1,131 @@
+@model CattleFarm.ViewModels.VaccinationViewModel
+@{
+    ViewData["Title"] = "Add Vaccination Record";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">➕ Add Vaccination Record</h1>
+        <p class="page-subtitle">Register a new vaccine dosage entry to herd records</p>
+    </div>
+    <a href="/Health/Vaccinations" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Schedule</a>
+</div>
+
+<form asp-action="AddVaccination" method="post" id="addVaccinationForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start">
+        <!-- Main Form Fields -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">🛡️ Vaccine & Dosage Details</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+                        <!-- Cattle -->
+                        <div class="form-group">
+                            <label class="form-label" for="cattleSelect">Select Cattle *</label>
+                            <select asp-for="CattleId" class="form-control" id="cattleSelect" required>
+                                <option value="">Select cattle...</option>
+                                @foreach (var cattle in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattles)
+                                {
+                                    <option value="@cattle.Id" selected="@(cattle.Id == Model.CattleId)">@cattle.Name (@cattle.TagId)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CattleId" class="form-error"></span>
+                        </div>
+
+                        <!-- Doctor -->
+                        <div class="form-group">
+                            <label class="form-label" for="doctorSelect">Veterinarian Doctor (Optional)</label>
+                            <select asp-for="DoctorId" class="form-control" id="doctorSelect">
+                                <option value="">Select doctor...</option>
+                                @foreach (var doctor in (IEnumerable<CattleFarm.Models.Doctor>)ViewBag.Doctors)
+                                {
+                                    <option value="@doctor.Id" selected="@(doctor.Id == Model.DoctorId)">@doctor.FullName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="DoctorId" class="form-error"></span>
+                        </div>
+
+                        <!-- Vaccine Name -->
+                        <div class="form-group">
+                            <label class="form-label" for="vaccineName">Vaccine Name *</label>
+                            <input asp-for="VaccineName" class="form-control" id="vaccineName" placeholder="e.g. Anthrax Spore Vaccine" required />
+                            <span asp-validation-for="VaccineName" class="form-error"></span>
+                        </div>
+
+                        <!-- Batch Number -->
+                        <div class="form-group">
+                            <label class="form-label" for="batchNumber">Batch Number / Serial</label>
+                            <input asp-for="BatchNumber" class="form-control" id="batchNumber" placeholder="e.g. BAT-2026-X99" />
+                            <span asp-validation-for="BatchNumber" class="form-error"></span>
+                        </div>
+
+                        <!-- Vaccination Date -->
+                        <div class="form-group">
+                            <label class="form-label" for="vacDate">Administration Date *</label>
+                            <input asp-for="VaccinationDate" type="date" class="form-control" id="vacDate" required />
+                            <span asp-validation-for="VaccinationDate" class="form-error"></span>
+                        </div>
+
+                        <!-- Next Due Date (Booster) -->
+                        <div class="form-group">
+                            <label class="form-label" for="dueDate">Next Due Date (Booster)</label>
+                            <input asp-for="NextDueDate" type="date" class="form-control" id="dueDate" />
+                            <span asp-validation-for="NextDueDate" class="form-error"></span>
+                        </div>
+
+                        <!-- Dose Number -->
+                        <div class="form-group">
+                            <label class="form-label" for="doseNumber">Dose Number *</label>
+                            <input asp-for="DoseNumber" type="number" class="form-control" id="doseNumber" min="1" max="10" required />
+                            <span asp-validation-for="DoseNumber" class="form-error"></span>
+                        </div>
+
+                        <!-- Administered By Text Field -->
+                        <div class="form-group">
+                            <label class="form-label" for="adminBy">Administered By (if not listed doctor)</label>
+                            <input asp-for="AdministeredBy" class="form-control" id="adminBy" placeholder="e.g. Senior Worker Salim" />
+                            <span asp-validation-for="AdministeredBy" class="form-error"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group" style="margin-top:16px">
+                        <label class="form-label" for="notes">Notes / Observations</label>
+                        <textarea asp-for="Notes" class="form-control" id="notes" rows="3" placeholder="Describe side effects, dosage quantity administered, manufacturer info, or health details..."></textarea>
+                        <span asp-validation-for="Notes" class="form-error"></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">⚡ Actions</h3></div>
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg" style="margin-bottom:12px">
+                        <i class="bi bi-check-circle"></i> Save Record
+                    </button>
+                    <a href="/Health/Vaccinations" class="btn btn-outline w-100">Cancel</a>
+                </div>
+            </div>
+
+            <!-- Guidelines Card -->
+            <div class="card" style="background:var(--primary-light);border:1px solid rgba(45,80,22,0.15)">
+                <div class="card-body">
+                    <h4 style="font-family:var(--font-heading);color:var(--primary);margin-bottom:8px;font-size:15px">📋 Vaccination Guidelines</h4>
+                    <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+                        Always record the vaccine batch number for supply traceability. If a booster is scheduled, set the booster date under "Next Due Date" so the system can raise overdue alerts automatically.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>

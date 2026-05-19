@@ -1,0 +1,43 @@
+@model IEnumerable<CattleFarm.Models.Doctor>
+@{
+    ViewData["Title"] = "Veterinarians";
+}
+<div class="page-header">
+    <div><h1 class="page-title">👨‍⚕️ Veterinarians</h1><p class="page-subtitle">Registered doctors and vet specialists</p></div>
+    <div class="page-actions">
+        @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
+        { <a href="/Doctor/Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Register Doctor</a> }
+    </div>
+</div>
+
+<div class="cattle-grid">
+    @foreach (var d in Model)
+    {
+        <div class="cattle-card">
+            <div style="padding:24px;text-align:center;background:linear-gradient(135deg,var(--primary-light),#fff)">
+                @if (!string.IsNullOrEmpty(d.ImagePath)) { <img src="@d.ImagePath" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary)" /> }
+                else { <div style="width:80px;height:80px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto;color:#fff">👨‍⚕️</div> }
+                <div style="margin-top:10px;font-size:15px;font-weight:700">Dr. @d.FullName</div>
+                <div style="font-size:12px;color:var(--primary);font-weight:600">@d.Specialization</div>
+                <span class="badge @(d.IsAvailable ? "badge-success" : "badge-gray")" style="margin-top:6px">@(d.IsAvailable ? "Available" : "Busy")</span>
+            </div>
+            <div class="cattle-card-body" style="padding-top:8px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+                    <div><div style="color:var(--text-muted)">Phone</div><div style="font-weight:600">@(d.Phone ?? "—")</div></div>
+                    <div><div style="color:var(--text-muted)">Fee</div><div style="font-weight:600;color:var(--primary)">৳@d.ConsultationFee/visit</div></div>
+                    <div><div style="color:var(--text-muted)">License</div><div style="font-weight:600">@(d.LicenseNumber ?? "—")</div></div>
+                    <div><div style="color:var(--text-muted)">Farm</div><div style="font-weight:600">@(d.Farm?.Name ?? "Independent")</div></div>
+                </div>
+            </div>
+            <div class="cattle-card-footer">
+                <a href="/Appointment/Create?doctorId=@d.Id" class="btn btn-primary btn-sm"><i class="bi bi-calendar-plus"></i> Book</a>
+                <div style="display:flex;gap:6px">
+                    <a href="/Doctor/Details/@d.Id" class="btn btn-outline btn-sm">Profile</a>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
+                    { <a href="/Doctor/Edit/@d.Id" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i></a> }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@if (!Model.Any()) { <div class="empty-state"><div class="empty-icon">👨‍⚕️</div><h3>No veterinarians registered</h3></div> }

@@ -1,0 +1,64 @@
+@model IEnumerable<CattleFarm.Models.AuditLog>
+@{
+    ViewData["Title"] = "Audit Logs";
+    int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
+    int totalPages  = (int)(ViewData["TotalPages"]  ?? 1);
+}
+<div class="page-header">
+    <div><h1 class="page-title">📋 Audit Logs</h1><p class="page-subtitle">Complete system activity and change history</p></div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:20px">
+    <div class="card-body" style="padding:14px">
+        <form method="get" style="display:flex;gap:12px;flex-wrap:wrap">
+            <input name="search" value="@ViewData["Search"]" placeholder="Search entity, action..." class="form-control" style="flex:1;min-width:180px" />
+            <select name="action" class="form-control" style="width:auto">
+                <option value="">All Actions</option>
+                <option value="Create" selected="@(ViewData["Action"]?.ToString()=="Create")">Create</option>
+                <option value="Update" selected="@(ViewData["Action"]?.ToString()=="Update")">Update</option>
+                <option value="Delete" selected="@(ViewData["Action"]?.ToString()=="Delete")">Delete</option>
+                <option value="Login"  selected="@(ViewData["Action"]?.ToString()=="Login")">Login</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/Admin/AuditLogs" class="btn btn-outline">Reset</a>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        @if (!Model.Any())
+        { <div class="empty-state" style="padding:40px"><div class="empty-icon">📋</div><h3>No audit logs</h3></div> }
+        else
+        {
+            <table class="data-table">
+                <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Entity</th><th>Entity ID</th><th>IP Address</th></tr></thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        var aBadge = log.Action switch { "Create" => "badge-success", "Delete" => "badge-danger", "Update" => "badge-info", "Login" => "badge-primary", _ => "badge-gray" };
+                        <tr>
+                            <td style="font-size:11px;white-space:nowrap;color:var(--text-muted)">@log.Timestamp.ToString("MMM dd, yyyy HH:mm:ss")</td>
+                            <td style="font-size:12px">@(log.User?.Username ?? $"UID:{log.UserId}")</td>
+                            <td><span class="badge @aBadge">@log.Action</span></td>
+                            <td style="font-weight:600;font-size:13px">@log.EntityName</td>
+                            <td style="font-size:12px;color:var(--text-muted)">#@log.EntityId</td>
+                            <td style="font-size:11px;color:var(--text-muted)">@(log.IPAddress ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+    @if (totalPages > 1)
+    {
+        <div class="card-footer">
+            <div class="pagination" style="padding:0">
+                @if (currentPage>1){<a href="?page=@(currentPage-1)&search=@ViewData["Search"]&action=@ViewData["Action"]" class="page-link"><i class="bi bi-chevron-left"></i></a>}
+                @for(int i=Math.Max(1,currentPage-2);i<=Math.Min(totalPages,currentPage+2);i++){<a href="?page=@i&search=@ViewData["Search"]&action=@ViewData["Action"]" class="page-link @(i==currentPage?"active":"")">@i</a>}
+                @if(currentPage<totalPages){<a href="?page=@(currentPage+1)&search=@ViewData["Search"]&action=@ViewData["Action"]" class="page-link"><i class="bi bi-chevron-right"></i></a>}
+            </div>
+        </div>
+    }
+</div>

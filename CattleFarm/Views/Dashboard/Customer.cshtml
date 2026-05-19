@@ -1,0 +1,43 @@
+@model CattleFarm.ViewModels.CustomerDashboardViewModel
+@{ ViewData["Title"] = "Customer Dashboard"; }
+<div class="page-header">
+    <div><h1 class="page-title">🛒 My Account</h1><p class="page-subtitle">Your orders and the marketplace</p></div>
+    <a href="/Product" class="btn btn-primary"><i class="bi bi-shop"></i> Browse Products</a>
+</div>
+<div class="stat-grid">
+    <div class="stat-card blue"><div class="stat-icon blue">🛒</div><div><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Total Orders</div></div></div>
+    <div class="stat-card green"><div class="stat-icon green">💰</div><div><div class="stat-value">৳@Model.TotalSpent.ToString("N0")</div><div class="stat-label">Total Spent</div></div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">📦 Recent Orders</h3><a href="/Order" class="btn btn-ghost btn-sm">View all</a></div>
+        <div class="table-wrapper">
+            @if (!Model.RecentOrders.Any()) { <div class="empty-state" style="padding:30px"><div class="empty-icon">🛒</div><p>No orders yet</p></div> }
+            else {
+                <table class="data-table"><thead><tr><th>Order</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+                @foreach (var o in Model.RecentOrders)
+                {
+                    <tr>
+                        <td><a href="/Order/Details/@o.Id" style="font-weight:600">#@o.Id</a></td>
+                        <td>@o.OrderDate.ToString("MMM dd")</td>
+                        <td>৳@o.TotalAmount.ToString("N0")</td>
+                        <td><span class="badge @(o.OrderStatus == CattleFarm.Models.OrderStatus.Delivered ? "badge-success" : "badge-info")">@o.OrderStatus</span></td>
+                    </tr>
+                }
+                </tbody></table>
+            }
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">⭐ Featured Products</h3><a href="/Product" class="btn btn-ghost btn-sm">Browse all</a></div>
+        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px">
+            @foreach (var p in Model.FeaturedProducts.Take(4))
+            {
+                <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                    <div style="height:80px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px">@(p.Category == CattleFarm.Models.ProductCategory.Milk ? "🥛" : p.Category == CattleFarm.Models.ProductCategory.Beef ? "🥩" : "📦")</div>
+                    <div style="padding:8px"><div style="font-size:12px;font-weight:600">@p.Name</div><div style="font-size:11px;color:var(--primary);font-weight:700">৳@p.Price</div></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

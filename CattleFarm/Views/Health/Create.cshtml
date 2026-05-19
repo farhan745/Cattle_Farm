@@ -1,0 +1,75 @@
+@model CattleFarm.ViewModels.HealthRecordViewModel
+@{
+    ViewData["Title"] = "Add Health Record";
+    var cattles = (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattles;
+    var doctors = (IEnumerable<CattleFarm.Models.Doctor>)ViewBag.Doctors;
+}
+<div class="page-header">
+    <div><h1 class="page-title">🏥 Add Health Record</h1><p class="page-subtitle">Record a new health observation for a cattle</p></div>
+    <a href="/Health" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:760px;margin:0 auto">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">🩺 Health Observation</h3></div>
+            <div class="card-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Cattle *</label>
+                        <select asp-for="CattleId" class="form-control" required>
+                            <option value="0">Select cattle...</option>
+                            @foreach (var c in cattles) { <option value="@c.Id">@c.Name (@c.TagId)</option> }
+                        </select>
+                        <span asp-validation-for="CattleId" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Attending Doctor</label>
+                        <select asp-for="DoctorId" class="form-control">
+                            <option value="">No doctor assigned</option>
+                            @foreach (var d in doctors) { <option value="@d.Id">Dr. @d.FullName</option> }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Record Date *</label>
+                        <input asp-for="RecordDate" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Health Status</label>
+                        <select asp-for="HealthStatus" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.HealthStatus>()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Risk Level</label>
+                        <select asp-for="RiskLevel" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.RiskLevel>()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Temperature (°C)</label>
+                        <input asp-for="Temperature" class="form-control" type="number" step="0.1" placeholder="38.5" />
+                        <div class="form-hint">Normal range: 38.0 – 39.5°C</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Weight (kg)</label>
+                        <input asp-for="Weight" class="form-control" type="number" step="0.1" placeholder="0.0" />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Symptoms Observed</label>
+                        <input asp-for="Symptoms" class="form-control" placeholder="e.g. Lethargy, reduced milk, coughing..." />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Clinical Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Detailed examination findings..."></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Vet Recommendation</label>
+                        <textarea asp-for="VetRecommendation" class="form-control" rows="2" placeholder="Treatment plan, medication, follow-up..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer" style="display:flex;gap:12px;justify-content:flex-end">
+                <a href="/Health" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-heart-pulse"></i> Save Health Record</button>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,71 @@
+@model CattleFarm.ViewModels.AppointmentViewModel
+@{
+    ViewData["Title"] = "Book Appointment";
+    var cattles = (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattles;
+    var doctors = (IEnumerable<CattleFarm.Models.Doctor>)ViewBag.Doctors;
+    var farms   = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+}
+<div class="page-header">
+    <div><h1 class="page-title">📅 Book Appointment</h1><p class="page-subtitle">Schedule a veterinary visit for your cattle</p></div>
+    <a href="/Appointment" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:680px;margin:0 auto">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">📋 Appointment Details</h3></div>
+            <div class="card-body">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> @Html.ValidationSummary(true)</div>
+                }
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Farm *</label>
+                        <select asp-for="FarmId" class="form-control" required>
+                            <option value="0">Select farm...</option>
+                            @foreach (var f in farms) { <option value="@f.Id">@f.Name</option> }
+                        </select>
+                        <span asp-validation-for="FarmId" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cattle *</label>
+                        <select asp-for="CattleId" class="form-control" required>
+                            <option value="0">Select cattle...</option>
+                            @foreach (var c in cattles) { <option value="@c.Id">@c.Name (@c.TagId)</option> }
+                        </select>
+                        <span asp-validation-for="CattleId" class="form-error"></span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Veterinarian *</label>
+                        <select asp-for="DoctorId" class="form-control" required>
+                            <option value="0">Select doctor...</option>
+                            @foreach (var d in doctors) { <option value="@d.Id">Dr. @d.FullName — @d.Specialization (৳@d.ConsultationFee)</option> }
+                        </select>
+                        <span asp-validation-for="DoctorId" class="form-error"></span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Scheduled Date &amp; Time *</label>
+                        <input asp-for="ScheduledAt" class="form-control" type="datetime-local"
+                               value="@Model.ScheduledAt.ToString("yyyy-MM-ddTHH:mm")" />
+                        <span asp-validation-for="ScheduledAt" class="form-error"></span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Reason for Visit *</label>
+                        <input asp-for="Reason" class="form-control" placeholder="e.g. Routine checkup, Vaccination, Illness" required />
+                        <span asp-validation-for="Reason" class="form-error"></span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Symptoms, observations, or special instructions..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer" style="display:flex;gap:12px;justify-content:flex-end">
+                <a href="/Appointment" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-calendar-check"></i> Book Appointment</button>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,14 @@
+SmartCattleFarm Project Workspace Notes
+=======================================
+
+Projects included in this workspace:
+
+1. CattleFarm (CattleFarm/CattleFarm.csproj)
+   - ASP.NET Core MVC 10.0 Web Application
+   - Features cattle tracking, breeding logs, milk production records, order/payment flows, and worker management.
+
+2. SQL Server Scripts (SQL Server Scripts1/SQL Server Scripts1.ssmssqlproj)
+   - SQL Server Management Studio project for database scripting and management.
+
+Solution:
+- CattleFarm.slnx (Visual Studio Solution XML format)

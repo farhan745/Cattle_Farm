@@ -1,0 +1,96 @@
+@model IEnumerable<CattleFarm.Models.Product>
+@{
+    ViewData["Title"] = "Products";
+    int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
+    int totalPages  = (int)(ViewData["TotalPages"]  ?? 1);
+}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📦 Products &amp; Services</h1>
+        <p class="page-subtitle">Farm products, inventory, and marketplace listings</p>
+    </div>
+    <div class="page-actions">
+        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+        {
+            <a href="/Product/Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add Product</a>
+        }
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom:20px">
+    <div class="card-body" style="padding:14px">
+        <form method="get" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <div style="position:relative;flex:1;min-width:200px">
+                <input name="search" value="@ViewData["Search"]" placeholder="Search products..." class="form-control" style="padding-left:34px" />
+                <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+            </div>
+            <select name="category" class="form-control" style="width:auto" asp-items="Html.GetEnumSelectList<CattleFarm.Models.ProductCategory>()">
+                <option value="">All Categories</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/Product" class="btn btn-outline">Reset</a>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state"><div class="empty-icon">📦</div><h3>No products found</h3></div>
+}
+else
+{
+    <div class="cattle-grid">
+        @foreach (var p in Model)
+        {
+            <div class="cattle-card">
+                <div class="cattle-card-img" style="height:160px;font-size:48px">
+                    @if (!string.IsNullOrEmpty(p.ImagePath)) { <img src="@p.ImagePath" alt="@p.Name" style="height:160px" /> }
+                    else
+                    {
+                        <span>@(p.Category switch { CattleFarm.Models.ProductCategory.Milk => "🥛", CattleFarm.Models.ProductCategory.Beef => "🥩", CattleFarm.Models.ProductCategory.Manure => "♻️", CattleFarm.Models.ProductCategory.BreedingService => "🐄", _ => "📦" })</span>
+                    }
+                </div>
+                <div class="cattle-card-body">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                        <div>
+                            <div class="cattle-card-title">@p.Name</div>
+                            <div class="cattle-card-meta">@p.Farm?.Name</div>
+                        </div>
+                        <div>
+                            @if (p.IsFeatured) { <span class="badge badge-warning">⭐</span> }
+                            <span class="badge @(p.IsAvailable ? "badge-success" : "badge-gray")">@(p.IsAvailable ? "In Stock" : "Out")</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+                        <div style="font-size:20px;font-weight:800;color:var(--primary)">৳@p.Price.ToString("N0")<span style="font-size:12px;font-weight:400;color:var(--text-muted)"> / @p.Unit</span></div>
+                        <div style="font-size:12px;color:@(p.StockQuantity <= p.MinStockLevel ? "var(--danger)" : "var(--text-muted)")">
+                            Stock: @p.StockQuantity @p.Unit
+                            @if (p.StockQuantity <= p.MinStockLevel) { <span>⚠ Low</span> }
+                        </div>
+                    </div>
+                </div>
+                <div class="cattle-card-footer">
+                    <span class="badge badge-gray">@p.Category</span>
+                    <div style="display:flex;gap:6px">
+                        <a href="/Order/Create?farmId=@p.FarmId&productId=@p.Id" class="btn btn-primary btn-sm">Order</a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+                        {
+                            <a href="/Product/Edit/@p.Id" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i></a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="pagination">
+            @if (currentPage > 1) { <a href="?page=@(currentPage-1)&search=@ViewData["Search"]" class="page-link"><i class="bi bi-chevron-left"></i></a> }
+            @for (int i = Math.Max(1,currentPage-2); i <= Math.Min(totalPages,currentPage+2); i++)
+            { <a href="?page=@i&search=@ViewData["Search"]" class="page-link @(i==currentPage?"active":"")">@i</a> }
+            @if (currentPage < totalPages) { <a href="?page=@(currentPage+1)&search=@ViewData["Search"]" class="page-link"><i class="bi bi-chevron-right"></i></a> }
+        </div>
+    }
+}

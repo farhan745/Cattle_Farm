@@ -1,0 +1,164 @@
+@model CattleFarm.ViewModels.MilkProductionViewModel
+@{
+    ViewData["Title"] = "Log Milk Yield";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🥛 Log Milk Yield</h1>
+        <p class="page-subtitle">Record daily morning and evening yield for a cattle</p>
+    </div>
+    <a href="/MilkProduction" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Logs</a>
+</div>
+
+<form asp-action="Create" method="post" id="logMilkForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start">
+        <!-- Main Form Details -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">📋 Production Details</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        
+                        <!-- Farm Dropdown -->
+                        <div class="form-group">
+                            <label class="form-label" for="farmSelect">Select Farm *</label>
+                            <select asp-for="FarmId" class="form-control" id="farmSelect" required onchange="filterCattleByFarm(this.value)">
+                                <option value="">Select a farm...</option>
+                                @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                                {
+                                    <option value="@farm.Id">@farm.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="FarmId" class="form-error"></span>
+                        </div>
+
+                        <!-- Cattle Dropdown -->
+                        <div class="form-group">
+                            <label class="form-label" for="cattleSelect">Select Cattle *</label>
+                            <select asp-for="CattleId" class="form-control" id="cattleSelect" required>
+                                <option value="">Select cattle...</option>
+                                @foreach (var cattle in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattles)
+                                {
+                                    <option value="@cattle.Id" data-farm-id="@cattle.FarmId">@cattle.Name (@cattle.TagId)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CattleId" class="form-error"></span>
+                        </div>
+
+                        <!-- Log Date -->
+                        <div class="form-group">
+                            <label class="form-label" for="logDate">Record Date *</label>
+                            <input asp-for="Date" type="date" class="form-control" id="logDate" required />
+                            <span asp-validation-for="Date" class="form-error"></span>
+                        </div>
+
+                        <!-- Blank filler for spacing -->
+                        <div></div>
+
+                        <!-- Morning Yield -->
+                        <div class="form-group">
+                            <label class="form-label" for="morningYield">Morning Yield (Liters)</label>
+                            <div class="input-group">
+                                <input asp-for="MorningYieldLiters" type="number" step="0.1" class="form-control" id="morningYield" placeholder="0.0" min="0" max="200" required />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="background:#FAF8F4;border:1px solid var(--border);border-left:none;padding:0 12px;display:flex;align-items:center;font-weight:600;font-size:12px">L</span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="MorningYieldLiters" class="form-error"></span>
+                        </div>
+
+                        <!-- Evening Yield -->
+                        <div class="form-group">
+                            <label class="form-label" for="eveningYield">Evening Yield (Liters)</label>
+                            <div class="input-group">
+                                <input asp-for="EveningYieldLiters" type="number" step="0.1" class="form-control" id="eveningYield" placeholder="0.0" min="0" max="200" required />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="background:#FAF8F4;border:1px solid var(--border);border-left:none;padding:0 12px;display:flex;align-items:center;font-weight:600;font-size:12px">L</span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="EveningYieldLiters" class="form-error"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group" style="margin-top:16px">
+                        <label class="form-label" for="logNotes">Notes / Remarks</label>
+                        <textarea asp-for="Notes" class="form-control" id="logNotes" rows="3" placeholder="Optional notes about quality, feed, or cattle conditions..."></textarea>
+                        <span asp-validation-for="Notes" class="form-error"></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">⚡ Actions</h3></div>
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg" style="margin-bottom:12px">
+                        <i class="bi bi-check-circle"></i> Save Record
+                    </button>
+                    <a href="/MilkProduction" class="btn btn-outline w-100">Cancel</a>
+                </div>
+            </div>
+
+            <!-- Helpful Tips Card -->
+            <div class="card" style="background:var(--primary-light);border:1px solid rgba(45,80,22,0.15)">
+                <div class="card-body">
+                    <h4 style="font-family:var(--font-heading);color:var(--primary);margin-bottom:8px;font-size:15px">💡 Farmer's Tip</h4>
+                    <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+                        Keeping precise daily yield data helps analyze the herd health trends, optimize feeds, and forecast future revenue. Average premium Holstein Friesian yield is 25-30 liters daily.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function filterCattleByFarm(farmId) {
+            const cattleSelect = document.getElementById('cattleSelect');
+            const options = cattleSelect.options;
+            
+            // Clear current selection
+            cattleSelect.value = "";
+
+            if (!farmId) {
+                // Show all options if no farm selected
+                for (let i = 0; i < options.length; i++) {
+                    options[i].style.display = "";
+                }
+                return;
+            }
+
+            // Show options belonging to selected farm, hide others
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                const optFarmId = opt.getAttribute('data-farm-id');
+                if (opt.value === "") {
+                    opt.style.display = ""; // Always keep placeholder
+                } else if (optFarmId === farmId) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                }
+            }
+        }
+
+        // Run on load to apply initial filtering if edit or pre-selected
+        window.addEventListener('DOMContentLoaded', () => {
+            const farmSelect = document.getElementById('farmSelect');
+            if (farmSelect.value) {
+                filterCattleByFarm(farmSelect.value);
+            }
+        });
+    </script>
+}

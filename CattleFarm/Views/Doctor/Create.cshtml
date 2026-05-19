@@ -1,0 +1,104 @@
+@model CattleFarm.ViewModels.DoctorViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Register Doctor" : "Edit Doctor";
+    var isEdit = Model.Id > 0;
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@(isEdit ? "✏️ Edit Doctor" : "👨‍⚕️ Register Veterinarian")</h1>
+        <p class="page-subtitle">@(isEdit ? $"Editing Dr. {Model.FullName}" : "Add a new vet to your platform")</p>
+    </div>
+    <a href="/Doctor" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+    <input type="hidden" asp-for="ExistingImagePath" />
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">🩺 Doctor Information</h3></div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Full Name *</label>
+                            <input asp-for="FullName" class="form-control" placeholder="Dr. Full Name" />
+                            <span asp-validation-for="FullName" class="form-error"></span>
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Specialization *</label>
+                            <input asp-for="Specialization" class="form-control" placeholder="e.g. Bovine Medicine, Reproduction" />
+                            <span asp-validation-for="Specialization" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">License Number</label>
+                            <input asp-for="LicenseNumber" class="form-control" placeholder="VET-XXXXX" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Consultation Fee (৳)</label>
+                            <input asp-for="ConsultationFee" class="form-control" type="number" step="0.01" placeholder="0.00" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input asp-for="Phone" class="form-control" placeholder="+8801XXXXXXXXX" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" type="email" placeholder="doctor@email.com" />
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Assigned Farm (optional)</label>
+                            <select asp-for="FarmId" class="form-control">
+                                <option value="">Independent / Freelance</option>
+                                @foreach (var f in farms) { <option value="@f.Id">@f.Name</option> }
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Notes</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Additional qualifications or notes..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                <input asp-for="IsAvailable" type="checkbox" style="accent-color:var(--primary);width:16px;height:16px" />
+                                <span class="form-label" style="margin:0">Currently Available</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">📷 Profile Photo</h3></div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+                    { <img id="docPreview" src="@Model.ExistingImagePath" style="width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px" /> }
+                    else
+                    { <div id="docPlaceholder" style="width:100%;height:220px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:12px">👨‍⚕️</div>
+                      <img id="docPreview" style="display:none;width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px" /> }
+                    <label class="img-upload-zone" for="docImg">
+                        <div style="font-size:22px">📷</div>
+                        <div style="font-size:13px;font-weight:600">Upload Photo</div>
+                        <div style="font-size:11px;color:var(--text-muted)">JPG, PNG — max 5MB</div>
+                    </label>
+                    <input type="file" name="ImageFile" id="docImg" accept="image/*" style="display:none"
+                           onchange="previewImage(this,'docPreview');document.getElementById('docPlaceholder')?.remove()" />
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-@(isEdit?"check-circle":"person-plus")"></i>
+                        @(isEdit ? "Save Changes" : "Register Doctor")
+                    </button>
+                    <a href="/Doctor" class="btn btn-outline w-100" style="margin-top:10px">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

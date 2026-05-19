@@ -1,0 +1,101 @@
+@model IEnumerable<CattleFarm.Models.User>
+@{
+    ViewData["Title"] = "User Management";
+    int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
+    int totalPages  = (int)(ViewData["TotalPages"]  ?? 1);
+}
+<div class="page-header">
+    <div><h1 class="page-title">👥 User Management</h1><p class="page-subtitle">@Model.Count() registered users across all roles</p></div>
+</div>
+
+<!-- Search -->
+<div class="card" style="margin-bottom:20px">
+    <div class="card-body" style="padding:14px">
+        <form method="get" style="display:flex;gap:12px">
+            <div style="position:relative;flex:1">
+                <input name="search" value="@ViewData["Search"]" placeholder="Search by name, email, username..." class="form-control" style="padding-left:34px" />
+                <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+            </div>
+            <select name="role" class="form-control" style="width:auto">
+                <option value="">All Roles</option>
+                @foreach (var r in new[]{"Admin","Owner","Manager","Worker","Doctor","User"})
+                { <option value="@r" selected="@(ViewData["Role"]?.ToString()==r)">@r</option> }
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/Admin/Users" class="btn btn-outline">Reset</a>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        @if (!Model.Any())
+        { <div class="empty-state" style="padding:40px"><div class="empty-icon">👥</div><h3>No users found</h3></div> }
+        else
+        {
+            <table class="data-table">
+                <thead><tr><th>User</th><th>Role</th><th>Email</th><th>Phone</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        var roleBadge = u.Role switch { "Admin" => "badge-danger", "Owner" => "badge-warning", "Doctor" => "badge-info", "Worker" => "badge-primary", "Manager" => "badge-accent", _ => "badge-gray" };
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    @if (!string.IsNullOrEmpty(u.ProfileImagePath))
+                                    { <img src="@u.ProfileImagePath" style="width:34px;height:34px;border-radius:50%;object-fit:cover" /> }
+                                    else
+                                    { <div style="width:34px;height:34px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);font-size:13px">@u.FullName.FirstOrDefault()</div> }
+                                    <div>
+                                        <div style="font-weight:600;font-size:13px">@u.FullName</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">@@@u.Username</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge @roleBadge">@u.Role</span></td>
+                            <td style="font-size:12px">@u.Email</td>
+                            <td style="font-size:12px;color:var(--text-muted)">@(u.PhoneNumber ?? "—")</td>
+                            <td>
+                                <span class="badge @(u.IsActive ? "badge-success" : "badge-gray")">@(u.IsActive ? "Active" : "Inactive")</span>
+                                @if (u.IsEmailVerified) { <span class="badge badge-info" style="margin-left:4px" title="Email verified">✓</span> }
+                            </td>
+                            <td style="font-size:11px;color:var(--text-muted)">@u.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <div style="display:flex;gap:6px">
+                                    <!-- Change Role inline -->
+                                    <form method="post" asp-action="ChangeRole" asp-controller="Admin" style="display:flex;gap:6px">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="UserId" value="@u.Id" />
+                                        <select name="NewRole" class="form-control" style="font-size:11px;padding:3px 6px;height:auto">
+                                            @foreach (var r in new[]{"Admin","Owner","Manager","Worker","Doctor","User"})
+                                            { <option value="@r" selected="@(u.Role==r)">@r</option> }
+                                        </select>
+                                        <button type="submit" class="btn btn-outline btn-sm" title="Update role"><i class="bi bi-check2"></i></button>
+                                    </form>
+                                    <!-- Toggle Active -->
+                                    <form method="post" asp-action="ToggleActive" asp-controller="Admin">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@u.Id" />
+                                        <button type="submit" class="btn btn-ghost btn-sm" title="@(u.IsActive ? "Deactivate" : "Activate")">
+                                            <i class="bi bi-@(u.IsActive ? "person-x" : "person-check")"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+    @if (totalPages > 1)
+    {
+        <div class="card-footer">
+            <div class="pagination" style="padding:0">
+                @if (currentPage>1){<a href="?page=@(currentPage-1)&search=@ViewData["Search"]&role=@ViewData["Role"]" class="page-link"><i class="bi bi-chevron-left"></i></a>}
+                @for(int i=Math.Max(1,currentPage-2);i<=Math.Min(totalPages,currentPage+2);i++){<a href="?page=@i&search=@ViewData["Search"]&role=@ViewData["Role"]" class="page-link @(i==currentPage?"active":"")">@i</a>}
+                @if(currentPage<totalPages){<a href="?page=@(currentPage+1)&search=@ViewData["Search"]&role=@ViewData["Role"]" class="page-link"><i class="bi bi-chevron-right"></i></a>}
+            </div>
+        </div>
+    }
+</div>

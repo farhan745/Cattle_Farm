@@ -1,0 +1,40 @@
+@model IEnumerable<CattleFarm.Models.Farm>
+@{ ViewData["Title"] = "Select Your Farm"; }
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px">
+    <div style="width:100%;max-width:900px">
+        <div style="text-align:center;margin-bottom:40px">
+            <div style="font-size:48px;margin-bottom:12px">🏡</div>
+            <h1 style="font-size:28px;font-weight:800;color:var(--text-primary)">Select Your Farm</h1>
+            <p style="color:var(--text-secondary);margin-top:8px">You manage @Model.Count() farms. Choose one to view its dashboard.</p>
+        </div>
+        <div class="cattle-grid">
+            @foreach (var farm in Model)
+            {
+                <a href="/Dashboard?farmId=@farm.Id" style="text-decoration:none">
+                    <div class="cattle-card" style="cursor:pointer">
+                        <div class="cattle-card-img" style="height:140px">
+                            @if (!string.IsNullOrEmpty(farm.ImagePath)) { <img src="@farm.ImagePath" alt="@farm.Name" style="height:140px" /> }
+                            else { <span style="font-size:48px">🏡</span> }
+                        </div>
+                        <div class="cattle-card-body">
+                            <div class="cattle-card-title">@farm.Name</div>
+                            <div class="cattle-card-meta">📍 @farm.Location</div>
+                            <div style="display:flex;gap:12px;margin-top:10px;font-size:12px;color:var(--text-secondary)">
+                                <span>🐄 @farm.Cattles.Count cattle</span>
+                                <span>📐 @farm.SizeInAcres acres</span>
+                            </div>
+                        </div>
+                        <div class="cattle-card-footer">
+                            <span class="badge @(farm.ApprovalStatus == CattleFarm.Models.ApprovalStatus.Approved ? "badge-success" : "badge-warning")">@farm.ApprovalStatus</span>
+                            <span class="btn btn-primary btn-sm">Open Dashboard →</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+        <div style="text-align:center;margin-top:32px">
+            <a href="/Farm/Create" class="btn btn-outline btn-lg"><i class="bi bi-plus-circle"></i> Register New Farm</a>
+        </div>
+    </div>
+</div>

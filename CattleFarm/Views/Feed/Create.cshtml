@@ -1,0 +1,103 @@
+@model CattleFarm.ViewModels.FeedViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Feed Record" : "Edit Feed Record";
+    var isEdit = Model.Id != 0;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+        <p class="page-subtitle">Log feed consumption and track feed costs per animal or entire herd</p>
+    </div>
+    <a href="/Feed" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card animate-in" style="max-width:680px">
+    <div class="card-body">
+        <form method="post" asp-action="@(isEdit ? "Edit" : "Create")">
+            @Html.AntiForgeryToken()
+            @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="form-group">
+                    <label class="form-label">Farm</label>
+                    <select asp-for="FarmId" class="form-control">
+                        <option value="">Select farm...</option>
+                        @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                        {
+                            <option value="@farm.Id" selected="@(Model.FarmId == farm.Id)">@farm.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="FarmId" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cattle (optional)</label>
+                    <select asp-for="CattleId" class="form-control">
+                        <option value="0">Entire Herd</option>
+                        @foreach (var c in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattle)
+                        {
+                            <option value="@c.Id" selected="@(Model.CattleId == c.Id)">@c.Name (@c.TagId)</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Feed Type</label>
+                    <select asp-for="FeedType" class="form-control">
+                        @foreach (var ft in Enum.GetValues<CattleFarm.Models.FeedType>())
+                        { <option value="@ft">@ft</option> }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Feed Name / Brand</label>
+                    <input asp-for="FeedName" class="form-control" placeholder="e.g. Premium Hay Mix" />
+                    <span asp-validation-for="FeedName" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity (kg)</label>
+                    <input asp-for="QuantityKg" type="number" step="0.1" class="form-control" placeholder="0.0" id="qty" oninput="calcTotal()" />
+                    <span asp-validation-for="QuantityKg" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cost per kg (BDT)</label>
+                    <input asp-for="CostPerKg" type="number" step="0.01" class="form-control" placeholder="0.00" id="cpk" oninput="calcTotal()" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input asp-for="Date" type="date" class="form-control" />
+                    <span asp-validation-for="Date" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Supplier</label>
+                    <input asp-for="Supplier" class="form-control" placeholder="Supplier name" />
+                </div>
+            </div>
+
+            <div class="card" style="background:var(--bg);padding:14px;border-radius:var(--radius-sm);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;color:var(--text-secondary)">Estimated Total Cost:</span>
+                <span id="totalCost" style="font-size:20px;font-weight:800;color:var(--danger)">৳0.00</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Storage location, quality notes..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:8px">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg"></i> @(isEdit ? "Save Changes" : "Add Record")
+                </button>
+                <a href="/Feed" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function calcTotal() {
+    const qty = parseFloat(document.getElementById('qty').value) || 0;
+    const cpk = parseFloat(document.getElementById('cpk').value) || 0;
+    document.getElementById('totalCost').textContent = '৳' + (qty * cpk).toLocaleString('en-US', { minimumFractionDigits: 2 });
+}
+</script>
+}

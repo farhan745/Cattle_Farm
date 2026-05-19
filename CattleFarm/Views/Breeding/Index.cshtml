@@ -1,0 +1,118 @@
+@model IEnumerable<CattleFarm.Models.Breeding>
+@{
+    ViewData["Title"] = "Breeding Records";
+    int currentPage = (int)ViewData["CurrentPage"]!;
+    int totalPages  = (int)ViewData["TotalPages"]!;
+    int totalCount  = (int)ViewData["TotalCount"]!;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Breeding Records</h1>
+        <p class="page-subtitle">@totalCount record(s) — calving schedules, outcomes, and sire tracking</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Breeding/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Record</a>
+    </div>
+</div>
+
+<div class="card animate-in">
+    <div class="card-header">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <form method="get" style="display:flex;gap:8px;flex-wrap:wrap">
+                <select name="farmId" class="form-control" style="width:auto" onchange="this.form.submit()">
+                    <option value="">All Farms</option>
+                    @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                    {
+                        <option value="@farm.Id" selected="@(ViewData["FarmId"]?.ToString() == farm.Id.ToString())">@farm.Name</option>
+                    }
+                </select>
+                <select name="outcome" class="form-control" style="width:auto" onchange="this.form.submit()">
+                    <option value="">All Outcomes</option>
+                    @foreach (var o in Enum.GetValues<CattleFarm.Models.BreedingOutcome>())
+                    {
+                        <option value="@((int)o)" selected="@(ViewData["Outcome"]?.ToString() == ((int)o).ToString())">@o</option>
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cattle</th>
+                    <th>Breeding Date</th>
+                    <th>Method</th>
+                    <th>Expected Calving</th>
+                    <th>Outcome</th>
+                    <th>Cost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    var outcomeBadge = b.Outcome switch {
+                        CattleFarm.Models.BreedingOutcome.Successful   => "badge-success",
+                        CattleFarm.Models.BreedingOutcome.Unsuccessful => "badge-danger",
+                        CattleFarm.Models.BreedingOutcome.Miscarried   => "badge-warning",
+                        _ => "badge-gray"
+                    };
+                    <tr>
+                        <td>
+                            <span style="font-weight:600">@(b.Cattle?.Name ?? "N/A")</span>
+                            <div style="font-size:11px;color:var(--text-muted)"><code>@(b.Cattle?.TagId)</code></div>
+                        </td>
+                        <td>@b.BreedingDate.ToString("MMM dd, yyyy")</td>
+                        <td><span class="badge badge-info">@b.Method</span></td>
+                        <td>
+                            @if (b.ExpectedCalvingDate.HasValue)
+                            {
+                                var daysLeft = (b.ExpectedCalvingDate.Value - DateTime.Today).Days;
+                                <span>@b.ExpectedCalvingDate.Value.ToString("MMM dd, yyyy")</span>
+                                if (b.Outcome == CattleFarm.Models.BreedingOutcome.Pending && daysLeft >= 0)
+                                {
+                                    <div style="font-size:11px;color:var(--accent)">@daysLeft day(s) remaining</div>
+                                }
+                            }
+                            else { <span style="color:var(--text-muted)">—</span> }
+                        </td>
+                        <td><span class="badge @outcomeBadge">@b.Outcome</span></td>
+                        <td>@(b.Cost.HasValue ? $"৳{b.Cost:N0}" : "—")</td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a href="/Breeding/Details/@b.Id" class="btn btn-ghost btn-sm" title="View"><i class="bi bi-eye"></i></a>
+                                <a href="/Breeding/Edit/@b.Id" class="btn btn-outline btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="/Breeding/Delete/@b.Id" style="display:inline" onsubmit="return confirm('Delete this breeding record?')">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-danger btn-sm" title="Delete"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="7" class="empty-state" style="text-align:center;padding:40px">
+                        <i class="bi bi-diagram-2" style="font-size:32px;opacity:.3"></i>
+                        <div style="margin-top:8px;color:var(--text-muted)">No breeding records found.</div>
+                    </td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (totalPages > 1)
+    {
+        <div class="card-footer">
+            <div class="pagination" style="padding:0">
+                @if (currentPage > 1) { <a href="?page=@(currentPage-1)" class="page-link"><i class="bi bi-chevron-left"></i></a> }
+                @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                {
+                    <a href="?page=@i" class="page-link @(i == currentPage ? "active" : "")">@i</a>
+                }
+                @if (currentPage < totalPages) { <a href="?page=@(currentPage+1)" class="page-link"><i class="bi bi-chevron-right"></i></a> }
+            </div>
+        </div>
+    }
+</div>

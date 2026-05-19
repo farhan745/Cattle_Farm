@@ -1,0 +1,42 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Password Reset Successful";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Reset — Smart Cattle Farm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .success-icon { font-size:72px; animation:bounceIn .6s ease both; }
+        @@keyframes bounceIn { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+    </style>
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-card" style="text-align:center;padding:56px 40px;animation:fadeInUp .5s ease both">
+        <div class="success-icon">✅</div>
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#1C3A2A;margin:20px 0 8px">
+            Password Reset Successful!
+        </h1>
+        <p style="color:#6B6B66;font-size:15px;line-height:1.7;margin-bottom:32px">
+            Your password has been updated. You can now log in with your new password.
+        </p>
+        <p style="font-size:13px;color:#9CA3AF;margin-bottom:24px">
+            Redirecting to login in <strong id="countdown">5</strong> seconds...
+        </p>
+        <a href="/Account/Login" class="btn btn-primary btn-lg" style="padding:14px 40px">
+            <i class="bi bi-box-arrow-in-right"></i> Go to Login
+        </a>
+    </div>
+</div>
+<script>
+let n = 5;
+const el = document.getElementById('countdown');
+const t = setInterval(() => { n--; el.textContent = n; if (n <= 0) { clearInterval(t); window.location.href = '/Account/Login'; } }, 1000);
+</script>
+</body>
+</html>

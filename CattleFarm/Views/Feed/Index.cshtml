@@ -1,0 +1,111 @@
+@model IEnumerable<CattleFarm.Models.FeedRecord>
+@{
+    ViewData["Title"] = "Feed Management";
+    int currentPage = (int)ViewData["CurrentPage"]!;
+    int totalPages  = (int)ViewData["TotalPages"]!;
+    int totalCount  = (int)ViewData["TotalCount"]!;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Feed Management</h1>
+        <p class="page-subtitle">@totalCount record(s) — daily feed tracking and cost analysis</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Feed/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Feed Record</a>
+    </div>
+</div>
+
+<div class="card animate-in">
+    <div class="card-header">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <form method="get" style="display:flex;gap:8px;flex-wrap:wrap">
+                <select name="farmId" class="form-control" style="width:auto" onchange="this.form.submit()">
+                    <option value="">All Farms</option>
+                    @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                    {
+                        <option value="@farm.Id" selected="@(ViewData["FarmId"]?.ToString() == farm.Id.ToString())">@farm.Name</option>
+                    }
+                </select>
+                <select name="feedType" class="form-control" style="width:auto" onchange="this.form.submit()">
+                    <option value="">All Types</option>
+                    @foreach (var ft in Enum.GetValues<CattleFarm.Models.FeedType>())
+                    {
+                        <option value="@((int)ft)" selected="@(ViewData["FeedType"]?.ToString() == ((int)ft).ToString())">@ft</option>
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Feed Name</th>
+                    <th>Type</th>
+                    <th>Cattle</th>
+                    <th style="text-align:right">Qty (kg)</th>
+                    <th style="text-align:right">Cost/kg</th>
+                    <th style="text-align:right">Total Cost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in Model)
+                {
+                    <tr>
+                        <td style="white-space:nowrap">@f.Date.ToString("MMM dd, yyyy")</td>
+                        <td><span style="font-weight:600">@f.FeedName</span>
+                            @if (!string.IsNullOrEmpty(f.Supplier))
+                            { <div style="font-size:11px;color:var(--text-muted)">@f.Supplier</div> }
+                        </td>
+                        <td><span class="badge badge-primary">@f.FeedType</span></td>
+                        <td>
+                            @if (f.Cattle != null)
+                            {
+                                @f.Cattle.Name
+                            }
+                            else
+                            {
+                                <span style="color:var(--text-muted)">All herd</span>
+                            }
+                        </td>
+                        <td style="text-align:right;font-weight:600">@f.QuantityKg.ToString("N1")</td>
+                        <td style="text-align:right">৳@f.CostPerKg.ToString("N2")</td>
+                        <td style="text-align:right;font-weight:700;color:var(--danger)">৳@f.TotalCost.ToString("N0")</td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a href="/Feed/Edit/@f.Id" class="btn btn-outline btn-sm"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="/Feed/Delete/@f.Id" style="display:inline" onsubmit="return confirm('Delete this feed record?')">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">
+                        <i class="bi bi-box2" style="font-size:32px;opacity:.3;display:block;margin-bottom:8px"></i>
+                        No feed records found.
+                    </td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (totalPages > 1)
+    {
+        <div class="card-footer">
+            <div class="pagination" style="padding:0">
+                @if (currentPage > 1) { <a href="?page=@(currentPage-1)" class="page-link"><i class="bi bi-chevron-left"></i></a> }
+                @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                {
+                    <a href="?page=@i" class="page-link @(i == currentPage ? "active" : "")">@i</a>
+                }
+                @if (currentPage < totalPages) { <a href="?page=@(currentPage+1)" class="page-link"><i class="bi bi-chevron-right"></i></a> }
+            </div>
+        </div>
+    }
+</div>

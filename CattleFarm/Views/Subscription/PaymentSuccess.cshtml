@@ -1,0 +1,41 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Payment Successful";
+}
+<div style="text-align:center;padding:80px 20px">
+    <div style="font-size:80px;margin-bottom:20px;animation:bounceIn .6s ease">✅</div>
+    <h1 style="font-size:36px;font-weight:800;color:#1C3A2A;margin-bottom:8px">Payment Successful!</h1>
+    <p style="font-size:16px;color:#6B6B66;max-width:480px;margin:0 auto 32px;line-height:1.7">
+        Your <strong>@ViewBag.PlanName</strong> subscription is now active. A confirmation email has been sent to your inbox.
+    </p>
+
+    <div class="card" style="max-width:440px;margin:0 auto 32px;text-align:left">
+        <div class="card-body" style="padding:28px">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;color:#1C3A2A">Transaction Details</h3>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E8E0D4">
+                <span style="color:#6B6B66;font-size:13px">Status</span>
+                <span class="badge badge-success">Confirmed ✓</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E8E0D4">
+                <span style="color:#6B6B66;font-size:13px">Plan</span>
+                <strong style="color:#1C3A2A;font-size:13px">@ViewBag.PlanName</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E8E0D4">
+                <span style="color:#6B6B66;font-size:13px">Amount Paid</span>
+                <strong style="color:#C8761A;font-size:15px">৳@ViewBag.Amount</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0">
+                <span style="color:#6B6B66;font-size:13px">Transaction ID</span>
+                <code style="font-size:11px;color:#3D3D3A">@ViewBag.TransactionId</code>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center">
+        <a href="/Subscription" class="btn btn-primary btn-lg"><i class="bi bi-star"></i> View My Plan</a>
+        <a href="/Dashboard" class="btn btn-outline btn-lg"><i class="bi bi-house"></i> Dashboard</a>
+    </div>
+</div>
+<style>
+@@keyframes bounceIn { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+</style>

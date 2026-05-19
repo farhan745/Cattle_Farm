@@ -1,0 +1,206 @@
+@{
+    ViewData["Title"] = "Reports & Analytics";
+    var farms  = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    var farm   = ViewBag.SelectedFarm as CattleFarm.Models.Farm;
+    decimal revenue  = ViewBag.Revenue  ?? 0m;
+    decimal expenses = ViewBag.Expenses ?? 0m;
+    decimal profit   = ViewBag.Profit   ?? 0m;
+    double milkTotal = ViewBag.MilkTotal ?? 0.0;
+    var trend        = ViewBag.Trend as IEnumerable<CattleFarm.ViewModels.MonthlyTrendItem> ?? Enumerable.Empty<CattleFarm.ViewModels.MonthlyTrendItem>();
+    var expBreakdown = ViewBag.ExpenseBreakdown as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var revBreakdown = ViewBag.RevenueBreakdown as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<div class="page-header animate-in">
+    <div>
+        <h1 class="page-title">Reports &amp; Analytics</h1>
+        <p class="page-subtitle">@(farm?.Name ?? "All Farms") &mdash; Financial and operational reporting</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card animate-in" style="margin-bottom:18px">
+    <div class="card-body" style="padding:14px 18px">
+        <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-group" style="margin:0">
+                <label class="form-label" style="margin-bottom:4px">Farm</label>
+                <select name="farmId" class="form-control" style="width:auto">
+                    @foreach (var f in farms)
+                    {
+                        <option value="@f.Id" selected="@(farm?.Id == f.Id)">@f.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label class="form-label" style="margin-bottom:4px">From</label>
+                <input type="date" name="from" class="form-control" value="@ViewBag.From" />
+            </div>
+            <div class="form-group" style="margin:0">
+                <label class="form-label" style="margin-bottom:4px">To</label>
+                <input type="date" name="to" class="form-control" value="@ViewBag.To" />
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Apply</button>
+        </form>
+    </div>
+</div>
+
+<!-- KPI Summary -->
+<div class="stat-grid animate-in">
+    <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-arrow-up-circle"></i></div>
+        <div>
+            <div class="stat-value">&#2547;@((revenue/1000).ToString("F0"))K</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon red"><i class="bi bi-arrow-down-circle"></i></div>
+        <div>
+            <div class="stat-value">&#2547;@((expenses/1000).ToString("F0"))K</div>
+            <div class="stat-label">Total Expenses</div>
+        </div>
+    </div>
+    <div class="stat-card @(profit >= 0 ? "green" : "red")">
+        <div class="stat-icon @(profit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+            <div class="stat-value">&#2547;@((Math.Abs(profit)/1000).ToString("F0"))K</div>
+            <div class="stat-label">Net Profit</div>
+            <div class="stat-change @(profit >= 0 ? "up" : "down")">@(profit >= 0 ? "Profitable" : "Net loss")</div>
+        </div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
+        <div>
+            <div class="stat-value">@milkTotal.ToString("F0")<span style="font-size:13px;font-weight:400"> L</span></div>
+            <div class="stat-label">Total Milk Yield</div>
+        </div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-icon teal"><i class="bi bi-collection"></i></div>
+        <div>
+            <div class="stat-value">@ViewBag.TotalCattle</div>
+            <div class="stat-label">Total Cattle</div>
+            <div class="stat-change up">@ViewBag.ActiveCattle active</div>
+        </div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-icon amber"><i class="bi bi-percent"></i></div>
+        <div>
+            <div class="stat-value">@(expenses > 0 ? ((profit / expenses) * 100).ToString("F1") : "0.0")%</div>
+            <div class="stat-label">ROI</div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue vs Expense Trend -->
+<div class="card animate-in" style="margin-bottom:18px">
+    <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color:var(--primary)"></i> Revenue vs Expenses — Monthly Trend</h3>
+    </div>
+    <div class="card-body">
+        <div class="chart-container" style="height:260px">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Breakdown Row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px" class="animate-in">
+    <!-- Expense by Category -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--danger)"></i> Expense Breakdown</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center">
+            <div class="card-body" style="padding:14px">
+                <div class="chart-container" style="height:200px">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+            <div style="padding:14px">
+                @{decimal expTotal = expBreakdown.Any() ? expBreakdown.Sum(x => (decimal)x.Total) : 1m;}
+                @foreach (var item in expBreakdown.Take(6))
+                {
+                    var pct = expTotal > 0 ? ((decimal)item.Total / expTotal * 100) : 0;
+                    <div style="margin-bottom:8px">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+                            <span style="font-weight:600">@item.Category</span>
+                            <span style="color:var(--text-muted)">@pct.ToString("F0")%</span>
+                        </div>
+                        <div style="height:4px;background:var(--border);border-radius:2px">
+                            <div style="width:@pct.ToString("F0")%;height:100%;background:var(--danger);border-radius:2px;transition:width .4s"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by Source -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--success)"></i> Revenue Breakdown</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center">
+            <div class="card-body" style="padding:14px">
+                <div class="chart-container" style="height:200px">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+            <div style="padding:14px">
+                @{decimal revTotal = revBreakdown.Any() ? revBreakdown.Sum(x => (decimal)x.Total) : 1m;}
+                @foreach (var item in revBreakdown.Take(6))
+                {
+                    var pct = revTotal > 0 ? ((decimal)item.Total / revTotal * 100) : 0;
+                    <div style="margin-bottom:8px">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+                            <span style="font-weight:600">@item.Source</span>
+                            <span style="color:var(--text-muted)">@pct.ToString("F0")%</span>
+                        </div>
+                        <div style="height:4px;background:var(--border);border-radius:2px">
+                            <div style="width:@pct.ToString("F0")%;height:100%;background:var(--success);border-radius:2px;transition:width .4s"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Trend Chart
+const tLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Month)));
+const tRevenues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Revenue)));
+const tExpenses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Expense)));
+new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+        labels: tLabels,
+        datasets: [
+            { label: 'Revenue',  data: tRevenues, backgroundColor: 'rgba(22,163,74,.7)',  borderRadius: 4 },
+            { label: 'Expenses', data: tExpenses, backgroundColor: 'rgba(220,38,38,.6)', borderRadius: 4 }
+        ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } } }
+});
+
+// Expense donut
+const eLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(expBreakdown.Select(x => (string)x.Category).ToArray()));
+const eData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(expBreakdown.Select(x => (decimal)x.Total).ToArray()));
+new Chart(document.getElementById('expenseChart'), {
+    type: 'doughnut',
+    data: { labels: eLabels, datasets: [{ data: eData, backgroundColor: ['#dc2626','#d97706','#2563eb','#7c3aed','#0d9488','#94a3b8'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '60%' }
+});
+
+// Revenue donut
+const rLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revBreakdown.Select(x => (string)x.Source).ToArray()));
+const rData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revBreakdown.Select(x => (decimal)x.Total).ToArray()));
+new Chart(document.getElementById('revenueChart'), {
+    type: 'doughnut',
+    data: { labels: rLabels, datasets: [{ data: rData, backgroundColor: ['#16a34a','#0d9488','#2563eb','#d97706','#7c3aed','#94a3b8'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '60%' }
+});
+</script>
+}

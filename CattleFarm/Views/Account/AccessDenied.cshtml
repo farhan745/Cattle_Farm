@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <div class="card border-danger shadow-sm">
+            <div class="card-body py-5">
+                <div style="font-size: 4rem;">🚫</div>
+                <h2 class="card-title text-danger mt-3">Access Denied</h2>
+                <p class="card-text text-muted">
+                    You don't have permission to view this page.<br />
+                    This area is restricted to <strong>Admin</strong> users only.
+                </p>
+                <hr />
+                <a asp-controller="Cattle" asp-action="Index" class="btn btn-dark me-2" id="accessDeniedCattleBtn">
+                    <i class="bi bi-list-ul"></i> Go to Cattle List
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary" id="accessDeniedHomeBtn">
+                    <i class="bi bi-house"></i> Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

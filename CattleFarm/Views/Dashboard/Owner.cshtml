@@ -1,0 +1,385 @@
+@model CattleFarm.ViewModels.OwnerDashboardViewModel
+@{
+    ViewData["Title"] = "Farm Dashboard";
+    var activeColor = "#16a34a"; var sickColor = "#dc2626"; var soldColor = "#2563eb"; var decColor = "#94a3b8";
+}
+
+<div class="page-header animate-in">
+    <div>
+        <h1 class="page-title">@(Model.SelectedFarm?.Name ?? "Farm Dashboard")</h1>
+        <p class="page-subtitle">@DateTime.Now.ToString("dddd, MMMM dd, yyyy") &mdash; Operational overview</p>
+    </div>
+    <div class="page-actions">
+        @if (Model.Farms.Count > 1)
+        {
+            <select onchange="location.href='/Dashboard?farmId='+this.value" class="form-control" style="width:auto">
+                @foreach (var farm in Model.Farms)
+                {
+                    <option value="@farm.Id" selected="@(farm.Id == Model.SelectedFarm?.Id)">@farm.Name</option>
+                }
+            </select>
+        }
+        <a href="/Cattle/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Cattle</a>
+        <a href="/Financial" class="btn btn-outline"><i class="bi bi-bar-chart-line"></i> Financials</a>
+    </div>
+</div>
+
+<!-- KPI Row -->
+<div class="stat-grid animate-in">
+    <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-collection"></i></div>
+        <div>
+            <div class="stat-value">@Model.TotalCattle</div>
+            <div class="stat-label">Total Cattle</div>
+            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> @Model.ActiveCattle active</div>
+        </div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
+        <div>
+            <div class="stat-value">@Model.MilkTodayLiters.ToString("F1")<span style="font-size:13px;font-weight:400"> L</span></div>
+            <div class="stat-label">Milk Today</div>
+            <div class="stat-change up"><i class="bi bi-clock"></i> Today's yield</div>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-currency-dollar"></i></div>
+        <div>
+            <div class="stat-value">&#2547;@((Model.TotalRevenue / 1000).ToString("F0"))K</div>
+            <div class="stat-label">Revenue MTD</div>
+            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> This month</div>
+        </div>
+    </div>
+    <div class="stat-card @(Model.NetProfit >= 0 ? "green" : "red")">
+        <div class="stat-icon @(Model.NetProfit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+            <div class="stat-value">&#2547;@((Math.Abs(Model.NetProfit) / 1000).ToString("F0"))K</div>
+            <div class="stat-label">Net Profit MTD</div>
+            <div class="stat-change @(Model.NetProfit >= 0 ? "up" : "down")">
+                <i class="bi bi-arrow-@(Model.NetProfit >= 0 ? "up" : "down")-short"></i>
+                @(Model.NetProfit >= 0 ? "Profitable" : "Net loss")
+            </div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon red"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+            <div class="stat-value">@Model.HighRiskCount</div>
+            <div class="stat-label">High Risk Cattle</div>
+            <div class="stat-change @(Model.HighRiskCount > 0 ? "down" : "up")">
+                @(Model.HighRiskCount > 0 ? "Attention required" : "All healthy")
+            </div>
+        </div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-icon amber"><i class="bi bi-calendar-event"></i></div>
+        <div>
+            <div class="stat-value">@Model.VaccinationDueCount</div>
+            <div class="stat-label">Vaccination Due</div>
+            <div class="stat-change @(Model.VaccinationDueCount > 0 ? "down" : "up")">
+                @(Model.VaccinationDueCount > 0 ? "Scheduled soon" : "Up to date")
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row: Milk Line + Cattle Donut -->
+<div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:18px" class="chart-grid animate-in">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-droplet" style="color:var(--info)"></i> Milk Production — Last 7 Days</h3>
+            <a href="/MilkProduction" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="card-body">
+            <div class="chart-container" style="height:220px">
+                <canvas id="milkChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--accent)"></i> Herd Status</h3>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;align-items:center">
+            <div class="chart-container" style="height:180px;width:180px">
+                <canvas id="herdChart"></canvas>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;width:100%;font-size:12px">
+                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@activeColor;display:inline-block"></span> Active (@Model.ActiveCount)</div>
+                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@sickColor;display:inline-block"></span> Sick/At-Risk (@Model.SickCount)</div>
+                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@soldColor;display:inline-block"></span> Sold (@Model.SoldCount)</div>
+                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@decColor;display:inline-block"></span> Deceased (@Model.DeceasedCount)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue vs Expense Bar Chart -->
+<div class="card animate-in" style="margin-bottom:18px">
+    <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color:var(--primary)"></i> Revenue vs Expenses — Last 6 Months</h3>
+        <a href="/Financial" class="btn btn-outline btn-sm">View Details</a>
+    </div>
+    <div class="card-body">
+        <div class="chart-container" style="height:240px">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px" class="animate-in">
+    <!-- High Risk Cattle -->
+    <div class="card" style="border-left:3px solid var(--danger)">
+        <div class="card-header">
+            <h3 class="card-title" style="color:var(--danger)"><i class="bi bi-exclamation-triangle-fill"></i> High Risk Cattle</h3>
+            <a href="/Health?riskLevel=2" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        @if (Model.HighRiskCattle.Any())
+        {
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead><tr><th>Name</th><th>Tag</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in Model.HighRiskCattle.Take(5))
+                        {
+                            <tr>
+                                <td><span style="font-weight:600">@c.Name</span><div style="font-size:11px;color:var(--text-muted)">@c.Breed</div></td>
+                                <td><code style="font-size:11px">@c.TagId</code></td>
+                                <td>
+                                    @{
+                                        var hBadge = c.HealthStatus switch {
+                                            CattleFarm.Models.HealthStatus.Critical => "badge-danger",
+                                            CattleFarm.Models.HealthStatus.Sick     => "badge-warning",
+                                            CattleFarm.Models.HealthStatus.AtRisk   => "badge-warning",
+                                            _ => "badge-success"
+                                        };
+                                    }
+                                    <span class="badge @hBadge">@c.HealthStatus</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body empty-state" style="padding:24px">
+                <i class="bi bi-check-circle" style="font-size:28px;color:var(--success)"></i>
+                <h3 style="margin-top:8px">No high-risk cattle</h3>
+            </div>
+        }
+    </div>
+
+    <!-- Upcoming Vaccinations -->
+    <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="card-header">
+            <h3 class="card-title" style="color:var(--accent)"><i class="bi bi-calendar-check-fill"></i> Vaccination Schedule</h3>
+            <a href="/Health/Vaccinations" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        @if (Model.UpcomingVaccinations.Any())
+        {
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead><tr><th>Vaccine</th><th>Due Date</th></tr></thead>
+                    <tbody>
+                        @foreach (var v in Model.UpcomingVaccinations.Take(5))
+                        {
+                            var daysLeft = v.NextDueDate.HasValue ? (v.NextDueDate.Value - DateTime.Today).Days : 999;
+                            <tr>
+                                <td><span style="font-weight:600">@v.VaccineName</span></td>
+                                <td>
+                                    <span class="badge @(daysLeft <= 7 ? "badge-danger" : daysLeft <= 14 ? "badge-warning" : "badge-info")">
+                                        @v.NextDueDate?.ToString("MMM dd, yyyy")
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body empty-state" style="padding:24px">
+                <i class="bi bi-check-circle" style="font-size:28px;color:var(--success)"></i>
+                <h3 style="margin-top:8px">All vaccinations current</h3>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Top Producers Table -->
+<div class="card animate-in" style="margin-bottom:18px">
+    <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-trophy" style="color:var(--warning)"></i> Top Producing Cattle (30-day avg)</h3>
+        <a href="/MilkProduction" class="btn btn-outline btn-sm">Full Report</a>
+    </div>
+    @if (Model.TopProducers.Any())
+    {
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Tag ID</th>
+                        <th>Name</th>
+                        <th>Breed</th>
+                        <th style="text-align:right">Avg Daily (L)</th>
+                        <th>Health</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int rank = 1; }
+                    @foreach (var p in Model.TopProducers)
+                    {
+                        <tr>
+                            <td>
+                                <span style="font-weight:700;color:@(rank == 1 ? "#d97706" : rank == 2 ? "#94a3b8" : rank == 3 ? "#b45309" : "var(--text-muted)")">#@rank</span>
+                            </td>
+                            <td><code style="font-size:12px">@p.TagId</code></td>
+                            <td><span style="font-weight:600">@p.Name</span></td>
+                            <td style="color:var(--text-muted)">@p.Breed</td>
+                            <td style="text-align:right;font-weight:700;color:var(--primary)">@p.DailyAvgLiters.ToString("F1")</td>
+                            <td>
+                                @{
+                                    var hb2 = p.HealthStatus switch {
+                                        CattleFarm.Models.HealthStatus.Healthy  => "badge-success",
+                                        CattleFarm.Models.HealthStatus.AtRisk   => "badge-warning",
+                                        CattleFarm.Models.HealthStatus.Sick     => "badge-danger",
+                                        CattleFarm.Models.HealthStatus.Critical => "badge-danger",
+                                        _ => "badge-gray"
+                                    };
+                                }
+                                <span class="badge @hb2">@p.HealthStatus</span>
+                            </td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="card-body empty-state">
+            <i class="bi bi-droplet" style="font-size:32px"></i>
+            <h3>No milk production data for the past 30 days</h3>
+        </div>
+    }
+</div>
+
+<!-- Profitability Panel -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px" class="financial-grid animate-in">
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:22px">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Revenue MTD</div>
+            <div style="font-size:26px;font-weight:800;color:var(--success)">&#2547;@Model.TotalRevenue.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:22px">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Expenses MTD</div>
+            <div style="font-size:26px;font-weight:800;color:var(--danger)">&#2547;@Model.TotalExpenses.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:22px">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Net Profit MTD</div>
+            <div style="font-size:26px;font-weight:800;color:@(Model.NetProfit>=0?"var(--success)":"var(--danger)")">&#2547;@Model.NetProfit.ToString("N0")</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:22px">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Cost Per Litre</div>
+            <div style="font-size:26px;font-weight:800;color:var(--accent)">&#2547;@Model.CostPerLiter.ToString("N2")</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:22px">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Return on Investment</div>
+            <div style="font-size:26px;font-weight:800;color:@(Model.Roi>=0?"var(--success)":"var(--danger)")">@Model.Roi.ToString("F1")%</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:22px">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Workers</div>
+            <div style="font-size:26px;font-weight:800;color:var(--info)">@Model.TotalWorkers</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Milk Line Chart
+const milkLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MilkWeeklyTrend.Select(t => t.Day)));
+const milkData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MilkWeeklyTrend.Select(t => t.Liters)));
+new Chart(document.getElementById('milkChart'), {
+    type: 'line',
+    data: {
+        labels: milkLabels,
+        datasets: [{
+            label: 'Litres',
+            data: milkData,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37,99,235,.08)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#2563eb',
+            pointRadius: 4
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 } } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+    }
+});
+
+// Cattle Status Donut
+new Chart(document.getElementById('herdChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Active', 'Sick/At-Risk', 'Sold', 'Deceased'],
+        datasets: [{
+            data: [@Model.ActiveCount, @Model.SickCount, @Model.SoldCount, @Model.DeceasedCount],
+            backgroundColor: ['#16a34a','#dc2626','#2563eb','#94a3b8'],
+            borderWidth: 2, borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } } },
+        cutout: '65%'
+    }
+});
+
+// Revenue vs Expense Bar Chart
+const rLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Month)));
+const revenues  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Revenue)));
+const expenses  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Expense)));
+new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: rLabels,
+        datasets: [
+            { label: 'Revenue',  data: revenues, backgroundColor: 'rgba(22,163,74,.75)',  borderRadius: 4 },
+            { label: 'Expenses', data: expenses, backgroundColor: 'rgba(220,38,38,.65)', borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 } } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+    }
+});
+</script>
+}

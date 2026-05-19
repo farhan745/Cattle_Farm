@@ -1,0 +1,53 @@
+@model IEnumerable<CattleFarm.Models.HealthRecord>
+@{
+    ViewData["Title"] = "Health Records";
+    int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
+    int totalPages  = (int)(ViewData["TotalPages"]  ?? 1);
+}
+<div class="page-header">
+    <div><h1 class="page-title">🏥 Health Records</h1><p class="page-subtitle">Cattle health monitoring &amp; risk tracking</p></div>
+    <div class="page-actions">
+        <a href="/Health/Vaccinations" class="btn btn-outline"><i class="bi bi-shield-plus"></i> Vaccinations</a>
+        <a href="/Health/Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add Record</a>
+    </div>
+</div>
+
+<!-- Risk Summary Cards -->
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+    <div class="stat-card green"><div class="stat-icon green">✅</div><div><div class="stat-value">@Model.Count(h => h.RiskLevel == CattleFarm.Models.RiskLevel.Low)</div><div class="stat-label">Low Risk</div></div></div>
+    <div class="stat-card amber"><div class="stat-icon amber">⚠️</div><div><div class="stat-value">@Model.Count(h => h.RiskLevel == CattleFarm.Models.RiskLevel.Medium)</div><div class="stat-label">Medium Risk</div></div></div>
+    <div class="stat-card red"><div class="stat-icon red">🚨</div><div><div class="stat-value">@Model.Count(h => h.RiskLevel == CattleFarm.Models.RiskLevel.High)</div><div class="stat-label">High Risk</div></div></div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        @if (!Model.Any()) { <div class="empty-state" style="padding:40px"><div class="empty-icon">🏥</div><h3>No health records</h3></div> }
+        else {
+            <table class="data-table">
+                <thead><tr><th>Date</th><th>Cattle</th><th>Doctor</th><th>Health Status</th><th>Risk Level</th><th>Temp</th><th>Weight</th><th>Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var h in Model)
+                    {
+                        var riskBadge = h.RiskLevel switch { CattleFarm.Models.RiskLevel.Low => "badge-success", CattleFarm.Models.RiskLevel.Medium => "badge-warning", _ => "badge-danger" };
+                        var hBadge   = h.HealthStatus switch { CattleFarm.Models.HealthStatus.Healthy => "badge-success", CattleFarm.Models.HealthStatus.AtRisk => "badge-warning", _ => "badge-danger" };
+                        <tr>
+                            <td style="font-size:12px;white-space:nowrap">@h.RecordDate.ToString("MMM dd, yyyy")</td>
+                            <td><a href="/Cattle/Details/@h.CattleId" style="font-weight:600">@(h.Cattle?.Name ?? $"#{h.CattleId}")</a></td>
+                            <td style="font-size:12px">@(h.Doctor?.FullName ?? "—")</td>
+                            <td><span class="badge @hBadge">@h.HealthStatus</span></td>
+                            <td><span class="badge @riskBadge">@h.RiskLevel Risk</span></td>
+                            <td>@(h.Temperature.HasValue ? $"{h.Temperature}°C" : "—")</td>
+                            <td>@(h.Weight.HasValue ? $"{h.Weight} kg" : "—")</td>
+                            <td>
+                                <form method="post" asp-action="Delete">@Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@h.Id" />
+                                    <button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('Delete this record?')"><i class="bi bi-trash text-danger"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

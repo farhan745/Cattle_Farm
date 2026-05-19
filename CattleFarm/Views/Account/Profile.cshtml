@@ -1,0 +1,196 @@
+@model CattleFarm.Models.User
+@{
+    ViewData["Title"] = "My Profile";
+    var user = Model;
+    var initials = string.IsNullOrEmpty(user.FullName)
+        ? (user.Username.Length >= 2 ? user.Username.Substring(0, 2).ToUpper() : user.Username.ToUpper())
+        : string.Join("", user.FullName.Split(' ').Take(2).Select(w => w[0])).ToUpper();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👤 My Profile</h1>
+        <p class="page-subtitle">Manage your personal information and account settings</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start">
+
+    <!-- ── Avatar Card ── -->
+    <div class="card animate-in" style="text-align:center">
+        <div class="card-body" style="padding:40px 24px">
+            <!-- Avatar Circle with upload overlay -->
+            <div id="avatarWrap" style="position:relative;display:inline-block;cursor:pointer;margin-bottom:20px"
+                 onclick="document.getElementById('avatarInput').click()">
+                @if (!string.IsNullOrEmpty(user.ProfileImagePath))
+                {
+                    <img id="avatarImg" src="@user.ProfileImagePath" alt="Avatar"
+                         style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid var(--brand,#2D5A3D)" />
+                }
+                else
+                {
+                    <div id="avatarImg" style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#2D5A3D,#4A7C59);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;color:#fff;border:4px solid #2D5A3D;font-family:'Barlow Condensed',sans-serif">
+                        @initials
+                    </div>
+                }
+                <!-- Hover Overlay -->
+                <div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;pointer-events:none" id="avatarOverlay">
+                    <div style="color:#fff;font-size:12px;font-weight:600;text-align:center">
+                        <i class="bi bi-camera-fill" style="font-size:20px;display:block;margin-bottom:2px"></i>
+                        Change Photo
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="avatarInput" accept=".jpg,.jpeg,.png,.webp" style="display:none"
+                   onchange="uploadAvatar(this)" />
+
+            <div id="uploadSpinner" style="display:none;margin:8px 0">
+                <span style="font-size:13px;color:#6B6B66"><i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;display:inline-block"></i> Uploading...</span>
+            </div>
+
+            <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">@user.FullName</h3>
+            <p style="font-size:13px;color:#6B6B66;margin-bottom:4px">@@@user.Username</p>
+            <p style="font-size:12px;color:#6B6B66;margin-bottom:12px">@user.Email</p>
+
+            <!-- Subscription Badge -->
+            @{
+                var subBadge = user.SubscriptionType switch
+                {
+                    "Owner"      => ("Pro Plan", "badge-success"),
+                    "Member"     => ("Basic Plan", "badge-primary"),
+                    "Enterprise" => ("Enterprise", "badge-warning"),
+                    _            => ("Free Plan", "badge-gray")
+                };
+            }
+            <span class="badge @subBadge.Item2" style="font-size:12px;padding:6px 14px">
+                @(user.SubscriptionType == "Owner" ? "⭐" : "📋") @subBadge.Item1
+            </span>
+
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E8E0D4;font-size:12px;color:#9CA3AF">
+                Member since @user.CreatedAt.ToString("MMMM yyyy")
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Profile Form ── -->
+    <div class="card animate-in">
+        <div class="card-header">
+            <h3 class="card-title">✏️ Edit Profile</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-action="Profile" asp-controller="Account">
+                @Html.AntiForgeryToken()
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Full Name</label>
+                        <input name="fullName" class="form-control" value="@user.FullName" placeholder="Your full name" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input class="form-control" value="@user.Username" disabled style="background:#F2EDE4;color:#9CA3AF" />
+                        <div class="form-hint">Username cannot be changed.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-control" value="@user.Email" disabled style="background:#F2EDE4;color:#9CA3AF" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input name="phone" class="form-control" value="@user.PhoneNumber" placeholder="+8801XXXXXXXXX" type="tel" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <input class="form-control" value="@user.Role" disabled style="background:#F2EDE4;color:#9CA3AF" />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-control" rows="2" placeholder="Your address...">@user.Address</textarea>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:8px">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check2"></i> Save Changes
+                    </button>
+                    <a href="/Subscription" class="btn btn-outline">
+                        <i class="bi bi-star"></i> Upgrade Plan
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<style>
+@@keyframes spin { to { transform: rotate(360deg); } }
+#avatarWrap:hover #avatarOverlay { opacity:1; }
+</style>
+
+<script>
+async function uploadAvatar(input) {
+    if (!input.files[0]) return;
+    const file = input.files[0];
+
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('File must be under 5MB', 'error'); return;
+    }
+
+    const spinner = document.getElementById('uploadSpinner');
+    spinner.style.display = 'block';
+
+    const form = new FormData();
+    form.append('avatar', file);
+
+    try {
+        const res  = await fetch('/Account/UploadAvatar', {
+            method: 'POST',
+            body: form,
+            headers: { 'RequestVerificationToken': document.querySelector('meta[name="antiforgery"]')?.content
+                       || document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Replace avatar preview instantly
+            const wrap = document.getElementById('avatarWrap');
+            const existing = document.getElementById('avatarImg');
+            const img = document.createElement('img');
+            img.id = 'avatarImg';
+            img.src = data.url;
+            img.alt = 'Avatar';
+            img.style = 'width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #2D5A3D';
+            wrap.replaceChild(img, existing);
+
+            // Update navbar avatar if present
+            const navAvatar = document.getElementById('navAvatar');
+            if (navAvatar) navAvatar.src = data.url;
+
+            showToast('Profile photo updated! ✓', 'success');
+        } else {
+            showToast(data.error || 'Upload failed. Try again.', 'error');
+        }
+    } catch { showToast('Upload failed. Try again.', 'error'); }
+    finally   { spinner.style.display = 'none'; }
+}
+
+function showToast(msg, type) {
+    const t = document.createElement('div');
+    t.className = `toast toast-${type === 'success' ? 'success' : 'error'}`;
+    t.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill'}"></i> ${msg}`;
+    document.getElementById('toastContainer')?.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+}
+</script>
+
+@section Scripts {
+    <script>
+    // Inject antiforgery token into meta for AJAX
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    if (token) {
+        const m = document.createElement('meta');
+        m.name = 'antiforgery'; m.content = token;
+        document.head.appendChild(m);
+    }
+    </script>
+}

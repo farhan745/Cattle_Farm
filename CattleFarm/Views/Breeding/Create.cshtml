@@ -1,0 +1,119 @@
+@model CattleFarm.ViewModels.BreedingViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Breeding Record" : "Edit Breeding Record";
+    var isEdit = Model.Id != 0;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+        <p class="page-subtitle">Track mating events, calving schedules, and outcomes</p>
+    </div>
+    <a href="/Breeding" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card animate-in" style="max-width:760px">
+    <div class="card-body">
+        <form method="post" asp-action="@(isEdit ? "Edit" : "Create")">
+            @Html.AntiForgeryToken()
+            @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="form-group">
+                    <label class="form-label">Farm</label>
+                    <select asp-for="FarmId" class="form-control" id="farmSelect" onchange="loadCattle(this.value)">
+                        <option value="">Select farm...</option>
+                        @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                        {
+                            <option value="@farm.Id" selected="@(Model.FarmId == farm.Id)">@farm.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="FarmId" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dam (Female Cattle)</label>
+                    <select asp-for="CattleId" class="form-control" id="cattleSelect">
+                        <option value="">Select cattle...</option>
+                        @foreach (var c in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattle)
+                        {
+                            <option value="@c.Id" selected="@(Model.CattleId == c.Id)">@c.Name (@c.TagId)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CattleId" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Breeding Date</label>
+                    <input asp-for="BreedingDate" type="date" class="form-control" />
+                    <span asp-validation-for="BreedingDate" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expected Calving Date</label>
+                    <input asp-for="ExpectedCalvingDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Breeding Method</label>
+                    <select asp-for="Method" class="form-control">
+                        @foreach (var m in Enum.GetValues<CattleFarm.Models.BreedingMethod>())
+                        { <option value="@m">@m</option> }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sire Breed</label>
+                    <input asp-for="SireBreed" class="form-control" placeholder="e.g. Holstein Friesian" />
+                </div>
+                @if (isEdit)
+                {
+                    <div class="form-group">
+                        <label class="form-label">Outcome</label>
+                        <select asp-for="Outcome" class="form-control">
+                            @foreach (var o in Enum.GetValues<CattleFarm.Models.BreedingOutcome>())
+                            { <option value="@o">@o</option> }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Actual Calving Date</label>
+                        <input asp-for="ActualCalvingDate" type="date" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Number of Calves</label>
+                        <input asp-for="CalvesCount" type="number" class="form-control" min="0" max="5" />
+                    </div>
+                }
+                <div class="form-group">
+                    <label class="form-label">Cost (BDT)</label>
+                    <input asp-for="Cost" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">AI Technician</label>
+                    <input asp-for="InseminationTechnician" class="form-control" placeholder="Technician name (if AI)" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Additional observations..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:8px">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg"></i> @(isEdit ? "Save Changes" : "Add Record")
+                </button>
+                <a href="/Breeding" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function loadCattle(farmId) {
+    if (!farmId) return;
+    fetch('/Cattle/ByFarm?farmId=' + farmId)
+        .then(r => r.json())
+        .then(data => {
+            const sel = document.getElementById('cattleSelect');
+            sel.innerHTML = '<option value="">Select cattle...</option>';
+            data.forEach(c => sel.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.name} (${c.tagId})</option>`));
+        });
+}
+</script>
+}

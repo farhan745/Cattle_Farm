@@ -1,0 +1,134 @@
+@model CattleFarm.ViewModels.RegisterViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Create Account";
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account — Smart Cattle Farm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;800&family=Barlow+Condensed:wght@500;600;700&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .avatar-upload-zone {
+            width:90px; height:90px; border-radius:50%; background:#F2EDE4;
+            border:2px dashed #DDD5C8; display:flex; align-items:center;
+            justify-content:center; cursor:pointer; margin:0 auto 16px;
+            position:relative; overflow:hidden; transition:.2s;
+        }
+        .avatar-upload-zone:hover { border-color:#2D5A3D; background:#F0F7F2; }
+        .avatar-upload-zone img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+        .avatar-upload-zone .upload-icon { font-size:28px; color:#9CA3AF; pointer-events:none; }
+    </style>
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-card" style="max-width:540px;animation:fadeInUp .5s ease both">
+        <div class="auth-header">
+            <div class="auth-logo">🐄</div>
+            <h1>Smart Cattle Farm</h1>
+            <p>Create your free account</p>
+        </div>
+        <div class="auth-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>@Html.ValidationSummary(false)</div>
+                </div>
+            }
+
+            <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <!-- Profile Photo Upload -->
+                <div style="text-align:center;margin-bottom:20px">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#6B6B66;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">
+                        Profile Photo (optional)
+                    </label>
+                    <div class="avatar-upload-zone" id="avatarZone" onclick="document.getElementById('ProfileImage').click()" title="Click to upload photo">
+                        <span class="upload-icon" id="uploadIcon">📷</span>
+                        <img id="avatarPreview" style="display:none" alt="Preview" />
+                    </div>
+                    <input type="file" name="ProfileImage" id="ProfileImage" accept=".jpg,.jpeg,.png,.webp" style="display:none" onchange="previewAvatar(this)" />
+                    <div style="font-size:11px;color:#9CA3AF">JPG, PNG, WEBP · Max 5MB</div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Full Name *</label>
+                        <input asp-for="FullName" class="form-control" placeholder="e.g. Rahman Hossain" />
+                        <span asp-validation-for="FullName" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Username *</label>
+                        <input asp-for="Username" class="form-control" placeholder="your_username" />
+                        <span asp-validation-for="Username" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="+8801XXXXXXXXX" />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Email Address *</label>
+                        <input asp-for="Email" class="form-control" placeholder="you@example.com" type="email" />
+                        <span asp-validation-for="Email" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input asp-for="Password" class="form-control" placeholder="••••••••" type="password" />
+                        <span asp-validation-for="Password" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password *</label>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" type="password" />
+                        <span asp-validation-for="ConfirmPassword" class="form-error"></span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Account Type</label>
+                        <select asp-for="Role" class="form-control">
+                            <option value="User">👤 Customer / General User</option>
+                            <option value="Owner">🏡 Farm Owner</option>
+                            <option value="Worker">👷 Farm Worker</option>
+                            <option value="Doctor">👨‍⚕️ Veterinarian</option>
+                        </select>
+                        <div class="form-hint">Farm Owners can register and manage multiple farms.</div>
+                    </div>
+                </div>
+
+                <div style="margin:16px 0">
+                    <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#6B6B66;cursor:pointer;line-height:1.5">
+                        <input type="checkbox" required style="accent-color:#2D5A3D;margin-top:2px;flex-shrink:0" />
+                        I agree to the <a href="#" style="color:#2D5A3D">Terms of Service</a> and <a href="#" style="color:#2D5A3D">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                    <i class="bi bi-person-plus-fill"></i> Create Account
+                </button>
+            </form>
+        </div>
+        <div class="auth-footer">
+            Already have an account? <a href="/Account/Login" style="font-weight:600;color:#C8761A">Sign in →</a>
+        </div>
+    </div>
+</div>
+<script>
+function previewAvatar(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('uploadIcon').style.display  = 'none';
+        const img = document.getElementById('avatarPreview');
+        img.src   = e.target.result;
+        img.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+</script>
+</body>
+</html>

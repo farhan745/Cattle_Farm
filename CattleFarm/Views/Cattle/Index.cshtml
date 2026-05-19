@@ -1,0 +1,129 @@
+@model IEnumerable<CattleFarm.Models.Cattle>
+@{
+    ViewData["Title"] = "Cattle Records";
+    int currentPage = (int)ViewData["CurrentPage"]!;
+    int totalPages  = (int)ViewData["TotalPages"]!;
+    int totalCount  = (int)ViewData["TotalCount"]!;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🐄 Cattle Records</h1>
+        <p class="page-subtitle">@totalCount total cattle across all farms</p>
+    </div>
+    <div class="page-actions">
+        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+        {
+            <a href="/Cattle/Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add Cattle</a>
+        }
+        <a href="/Cattle/Marketplace" class="btn btn-outline"><i class="bi bi-shop"></i> Marketplace</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:20px">
+    <div class="card-body" style="padding:16px">
+        <form method="get" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <div class="form-group" style="margin:0;flex:1;min-width:200px">
+                <label class="form-label">Search</label>
+                <div style="position:relative">
+                    <input type="text" name="search" value="@ViewData["Search"]" placeholder="Name, breed, tag ID..." class="form-control" style="padding-left:34px" />
+                    <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+                </div>
+            </div>
+            <div class="form-group" style="margin:0;min-width:150px">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="0" selected="@(ViewData["Status"]?.ToString() == "0")">Active</option>
+                    <option value="1" selected="@(ViewData["Status"]?.ToString() == "1")">Sold</option>
+                    <option value="2" selected="@(ViewData["Status"]?.ToString() == "2")">Deceased</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block">Filter</button>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label class="form-label">&nbsp;</label>
+                <a href="/Cattle" class="btn btn-outline d-block">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cattle Grid -->
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon">🐄</div>
+        <h3>No cattle found</h3>
+        <p style="margin-top:8px">Try adjusting your filters or <a href="/Cattle/Create">add your first cattle</a>.</p>
+    </div>
+}
+else
+{
+    <div class="cattle-grid animate-in">
+        @foreach (var c in Model)
+        {
+            <div class="cattle-card">
+                <div class="cattle-card-img">
+                    @if (!string.IsNullOrEmpty(c.ImagePath))
+                    { <img src="@c.ImagePath" alt="@c.Name" loading="lazy" /> }
+                    else { <span>🐄</span> }
+                </div>
+                <div class="cattle-card-body">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                        <div>
+                            <div class="cattle-card-title">@c.Name</div>
+                            <div class="cattle-card-meta">@c.Breed • @c.TagId</div>
+                        </div>
+                        @{
+                            var hBadge = c.HealthStatus switch { CattleFarm.Models.HealthStatus.Healthy => "badge-success", CattleFarm.Models.HealthStatus.AtRisk => "badge-warning", CattleFarm.Models.HealthStatus.Sick => "badge-danger", _ => "badge-danger" };
+                        }
+                        <span class="badge @hBadge">@c.HealthStatus</span>
+                    </div>
+                    <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--text-secondary)">
+                        <span>⚖️ @c.Weight kg</span>
+                        <span>@(c.Gender == CattleFarm.Models.Gender.Female ? "♀ Female" : "♂ Male")</span>
+                        <span>🎂 @((DateTime.Now.Year - c.DateOfBirth.Year))y</span>
+                    </div>
+                    @if (c.IsListedForSale)
+                    {
+                        <div style="margin-top:10px;padding:8px;background:var(--primary-light);border-radius:6px;font-size:12px;color:var(--primary-dark);font-weight:600">
+                            💰 For Sale — ৳@c.SalePrice?.ToString("N0")
+                            @if (c.IsPremiumListing) { <span class="badge badge-warning" style="margin-left:4px">⭐ Premium</span> }
+                        </div>
+                    }
+                </div>
+                <div class="cattle-card-footer">
+                    <span style="font-size:12px;color:var(--text-muted)">@c.Farm?.Name</span>
+                    <div style="display:flex;gap:6px">
+                        <a href="/Cattle/Details/@c.Id" class="btn btn-outline btn-sm">View</a>
+                        @if (c.IsListedForSale)
+                        {
+                            <a href="/Cattle/BuyCattle/@c.Id" class="btn btn-primary btn-sm">💰 Buy Now</a>
+                        }
+                        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+                        {
+                            <a href="/Cattle/Edit/@c.Id" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i></a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="pagination">
+            @if (currentPage > 1)
+            { <a href="?page=@(currentPage-1)&search=@ViewData["Search"]&status=@ViewData["Status"]" class="page-link"><i class="bi bi-chevron-left"></i></a> }
+            @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+            { <a href="?page=@i&search=@ViewData["Search"]&status=@ViewData["Status"]" class="page-link @(i == currentPage ? "active" : "")">@i</a> }
+            @if (currentPage < totalPages)
+            { <a href="?page=@(currentPage+1)&search=@ViewData["Search"]&status=@ViewData["Status"]" class="page-link"><i class="bi bi-chevron-right"></i></a> }
+        </div>
+    }
+}

@@ -1,0 +1,87 @@
+@model CattleFarm.ViewModels.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Sign In";
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In — Smart Cattle Farm</title>
+    <meta name="description" content="Sign in to your Smart Cattle Farm management account to track livestock, health, and finances." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-card" style="animation: fadeInUp .6s ease both">
+        <div class="auth-header">
+            <div class="auth-logo">🐄</div>
+            <h1>Smart Cattle Farm</h1>
+            <p>Premium Livestock Management</p>
+        </div>
+        <div class="auth-body">
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;font-family:var(--font-heading)">Welcome back</h2>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:24px;">Sign in to your account to continue</p>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill"></i><span>@Html.ValidationSummary()</span></div>
+            }
+
+            <form asp-controller="Account" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="form-group">
+                    <label class="form-label" for="Email"><i class="bi bi-envelope"></i> Email Address</label>
+                    <input asp-for="Email" id="Email" class="form-control" placeholder="you@example.com" type="email" autofocus autocomplete="email" />
+                    <span asp-validation-for="Email" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="Password"><i class="bi bi-lock"></i> Password</label>
+                    <div class="input-group">
+                        <input asp-for="Password" id="Password" class="form-control" placeholder="••••••••" type="password" autocomplete="current-password" />
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline" id="togglePwd" onclick="togglePassword()" aria-label="Toggle password visibility">
+                                <i class="bi bi-eye" id="pwdIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Password" class="form-error"></span>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                        <input asp-for="RememberMe" type="checkbox" style="accent-color:var(--primary);" />
+                        Remember me
+                    </label>
+                    <a href="/Account/ForgotPassword" style="font-size:13px;color:var(--accent);">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg" style="font-size:15px;padding:12px;font-weight:600;">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </button>
+            </form>
+        </div>
+        <div class="auth-footer">
+            Don't have an account?
+            <a href="/Account/Register" style="font-weight:600;color:var(--accent);">Create account →</a>
+        </div>
+    </div>
+</div>
+<script>
+function togglePassword() {
+    const input = document.getElementById('Password');
+    const icon  = document.getElementById('pwdIcon');
+    if (input.type === 'password') { input.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+    else { input.type = 'password'; icon.className = 'bi bi-eye'; }
+}
+</script>
+</body>
+</html>

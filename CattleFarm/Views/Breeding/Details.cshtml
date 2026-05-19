@@ -1,0 +1,84 @@
+@model CattleFarm.Models.Breeding
+@{
+    ViewData["Title"] = "Breeding Record Details";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Breeding Record #@Model.Id</h1>
+        <p class="page-subtitle">Recorded on @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Breeding/Edit/@Model.Id" class="btn btn-primary"><i class="bi bi-pencil"></i> Edit</a>
+        <a href="/Breeding" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="animate-in">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-info-circle" style="color:var(--primary)"></i> Breeding Information</h3>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <tbody>
+                    <tr><td style="color:var(--text-muted);width:40%">Dam (Female)</td><td><strong>@(Model.Cattle?.Name ?? "N/A")</strong> <code style="font-size:11px">@Model.Cattle?.TagId</code></td></tr>
+                    <tr><td style="color:var(--text-muted)">Sire Breed</td><td>@(Model.SireBreed ?? "—")</td></tr>
+                    <tr><td style="color:var(--text-muted)">Breeding Date</td><td>@Model.BreedingDate.ToString("MMMM dd, yyyy")</td></tr>
+                    <tr><td style="color:var(--text-muted)">Method</td><td><span class="badge badge-info">@Model.Method</span></td></tr>
+                    @if (!string.IsNullOrEmpty(Model.InseminationTechnician))
+                    {
+                        <tr><td style="color:var(--text-muted)">AI Technician</td><td>@Model.InseminationTechnician</td></tr>
+                    }
+                    <tr><td style="color:var(--text-muted)">Cost</td><td>@(Model.Cost.HasValue ? $"৳{Model.Cost:N0}" : "—")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-calendar2-check" style="color:var(--accent)"></i> Calving & Outcome</h3>
+        </div>
+        <div class="card-body">
+            @{
+                var outcomeBadge = Model.Outcome switch {
+                    CattleFarm.Models.BreedingOutcome.Successful   => "badge-success",
+                    CattleFarm.Models.BreedingOutcome.Unsuccessful => "badge-danger",
+                    CattleFarm.Models.BreedingOutcome.Miscarried   => "badge-warning",
+                    _ => "badge-gray"
+                };
+            }
+            <table class="data-table">
+                <tbody>
+                    <tr><td style="color:var(--text-muted);width:45%">Outcome</td><td><span class="badge @outcomeBadge">@Model.Outcome</span></td></tr>
+                    <tr>
+                        <td style="color:var(--text-muted)">Expected Calving</td>
+                        <td>
+                            @if (Model.ExpectedCalvingDate.HasValue)
+                            {
+                                @Model.ExpectedCalvingDate.Value.ToString("MMMM dd, yyyy")
+                                var days = (Model.ExpectedCalvingDate.Value - DateTime.Today).Days;
+                                if (Model.Outcome == CattleFarm.Models.BreedingOutcome.Pending && days >= 0)
+                                {
+                                    <span class="badge badge-info" style="margin-left:6px">@days days left</span>
+                                }
+                            }
+                            else { <span style="color:var(--text-muted)">—</span> }
+                        </td>
+                    </tr>
+                    <tr><td style="color:var(--text-muted)">Actual Calving</td><td>@(Model.ActualCalvingDate.HasValue ? Model.ActualCalvingDate.Value.ToString("MMMM dd, yyyy") : "—")</td></tr>
+                    <tr><td style="color:var(--text-muted)">Calves Born</td><td>@(Model.CalvesCount.HasValue ? $"{Model.CalvesCount} calf/calves" : "—")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Notes))
+{
+    <div class="card animate-in" style="margin-top:18px">
+        <div class="card-header"><h3 class="card-title"><i class="bi bi-journal-text"></i> Notes</h3></div>
+        <div class="card-body" style="white-space:pre-line;color:var(--text-secondary)">@Model.Notes</div>
+    </div>
+}

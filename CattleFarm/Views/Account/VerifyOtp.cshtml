@@ -1,0 +1,163 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Verify OTP";
+    var email   = ViewBag.Email   as string ?? "";
+    var purpose = ViewBag.Purpose as string ?? "PasswordReset";
+    var isVerify = purpose == "EmailVerify";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify OTP — Smart Cattle Farm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;800&family=Barlow+Condensed:wght@500;600;700&family=Lora:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .otp-inputs { display:flex; gap:10px; justify-content:center; margin:28px 0 8px; }
+        .otp-box {
+            width:52px; height:60px; text-align:center; font-size:26px; font-weight:700;
+            border:2px solid var(--border,#DDD5C8); border-radius:10px;
+            background:#FAF8F4; color:#1C3A2A; font-family:'Barlow Condensed',sans-serif;
+            transition:border-color .2s, box-shadow .2s;
+        }
+        .otp-box:focus { outline:none; border-color:#2D5A3D; box-shadow:0 0 0 3px rgba(45,90,61,.15); }
+        .otp-box.filled { border-color:#2D5A3D; background:#F0F7F2; }
+        #timer { font-weight:700; color:#C8761A; font-size:15px; }
+        #resendBtn { font-size:13px; background:none; border:none; cursor:pointer; color:#2D5A3D; font-weight:600; text-decoration:underline; }
+        #resendBtn:disabled { color:#9CA3AF; cursor:not-allowed; text-decoration:none; }
+    </style>
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-card" style="max-width:440px;animation:fadeInUp .5s ease both">
+        <div class="auth-header">
+            <div class="auth-logo">@(isVerify ? "✉️" : "🔒")</div>
+            <h1>Smart Cattle Farm</h1>
+            <p>@(isVerify ? "Email Verification" : "Password Reset")</p>
+        </div>
+
+        <div class="auth-body">
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;text-align:center">Enter Your Code</h2>
+            <p style="font-size:13px;color:var(--text-muted,#6B6B66);text-align:center;margin-bottom:4px">
+                We sent a 6-digit code to
+            </p>
+            <p style="font-size:14px;font-weight:600;text-align:center;color:#1C3A2A;word-break:break-all">@email</p>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger" style="margin-top:16px">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>@ViewBag.Error</span>
+                </div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success" style="margin-top:16px">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>@TempData["SuccessMessage"]</span>
+                </div>
+            }
+
+            <form method="post" asp-action="VerifyOtp" asp-controller="Account" id="otpForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="email"   value="@email" />
+                <input type="hidden" name="purpose" value="@purpose" />
+                <input type="hidden" name="otp" id="otpHidden" />
+
+                <div class="otp-inputs" id="otpBoxes">
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                               pattern="[0-9]" autocomplete="off" id="otp@(i)" />
+                    }
+                </div>
+
+                <p style="text-align:center;font-size:13px;color:var(--text-muted,#6B6B66);margin-bottom:20px">
+                    OTP expires in <span id="timer">10:00</span>
+                </p>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg" id="verifyBtn" disabled>
+                    <i class="bi bi-shield-check"></i> Verify Code
+                </button>
+            </form>
+
+            <div style="text-align:center;margin-top:20px">
+                <p style="font-size:13px;color:var(--text-muted,#6B6B66);margin-bottom:6px">Didn't receive it?</p>
+                <form method="post" asp-action="ResendOtp" asp-controller="Account" style="display:inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="email"   value="@email" />
+                    <input type="hidden" name="purpose" value="@purpose" />
+                    <button type="submit" id="resendBtn" disabled>Resend OTP (<span id="resendTimer">60</span>s)</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            <a href="/Account/ForgotPassword" style="color:var(--brand,#2D5A3D);font-weight:600">
+                <i class="bi bi-arrow-left"></i> Use Different Email
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── OTP box auto-advance ──────────────────────────────────────────────────────
+const boxes = Array.from(document.querySelectorAll('.otp-box'));
+const hidden = document.getElementById('otpHidden');
+const verifyBtn = document.getElementById('verifyBtn');
+
+boxes.forEach((box, i) => {
+    box.addEventListener('input', e => {
+        const v = e.target.value.replace(/\D/g,'');
+        box.value = v.slice(-1);
+        box.classList.toggle('filled', box.value.length === 1);
+        if (v && i < boxes.length - 1) boxes[i+1].focus();
+        updateHidden();
+    });
+    box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && i > 0) { boxes[i-1].focus(); boxes[i-1].value = ''; boxes[i-1].classList.remove('filled'); updateHidden(); }
+    });
+    box.addEventListener('paste', e => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+        pasted.split('').forEach((ch, j) => { if (boxes[j]) { boxes[j].value = ch; boxes[j].classList.add('filled'); } });
+        if (boxes[pasted.length - 1]) boxes[pasted.length - 1].focus();
+        updateHidden();
+    });
+});
+
+function updateHidden() {
+    const code = boxes.map(b => b.value).join('');
+    hidden.value = code;
+    verifyBtn.disabled = code.length !== 6;
+}
+
+// ── OTP expiry countdown ──────────────────────────────────────────────────────
+let secs = 600;
+const timerEl = document.getElementById('timer');
+const countdown = setInterval(() => {
+    secs--;
+    const m = Math.floor(secs / 60).toString().padStart(2,'0');
+    const s = (secs % 60).toString().padStart(2,'0');
+    timerEl.textContent = `${m}:${s}`;
+    if (secs <= 60) timerEl.style.color = '#ef4444';
+    if (secs <= 0) { clearInterval(countdown); timerEl.textContent = 'Expired'; timerEl.style.color = '#ef4444'; }
+}, 1000);
+
+// ── Resend button countdown ───────────────────────────────────────────────────
+let resendSecs = 60;
+const resendEl  = document.getElementById('resendTimer');
+const resendBtn = document.getElementById('resendBtn');
+const resendCD  = setInterval(() => {
+    resendSecs--;
+    resendEl.textContent = resendSecs;
+    if (resendSecs <= 0) { clearInterval(resendCD); resendBtn.disabled = false; resendBtn.textContent = 'Resend OTP'; }
+}, 1000);
+
+boxes[0].focus();
+</script>
+</body>
+</html>

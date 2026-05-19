@@ -1,0 +1,66 @@
+@model IEnumerable<CattleFarm.Models.Appointment>
+@{
+    ViewData["Title"] = "Appointments";
+}
+<div class="page-header">
+    <div><h1 class="page-title">📅 Appointments</h1><p class="page-subtitle">Veterinary appointment scheduling</p></div>
+    <div class="page-actions">
+        <a href="/Appointment/Create" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Book Appointment</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        @if (!Model.Any())
+        { <div class="empty-state" style="padding:40px"><div class="empty-icon">📅</div><h3>No appointments scheduled</h3></div> }
+        else
+        {
+            <table class="data-table">
+                <thead><tr><th>Date &amp; Time</th><th>Cattle</th><th>Doctor</th><th>Farm</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        var sBadge = a.Status switch {
+                            CattleFarm.Models.AppointmentStatus.Completed  => "badge-success",
+                            CattleFarm.Models.AppointmentStatus.Cancelled  => "badge-danger",
+                            CattleFarm.Models.AppointmentStatus.NoShow     => "badge-warning",
+                            _ => "badge-info"
+                        };
+                        var isPast = a.ScheduledAt < DateTime.Now;
+                        <tr>
+                            <td>
+                                <div style="font-weight:600;font-size:13px">@a.ScheduledAt.ToString("MMM dd, yyyy")</div>
+                                <div style="font-size:11px;color:var(--text-muted)">@a.ScheduledAt.ToString("HH:mm")</div>
+                                @if (isPast && a.Status == CattleFarm.Models.AppointmentStatus.Scheduled)
+                                { <span class="badge badge-warning" style="font-size:9px">Overdue</span> }
+                            </td>
+                            <td><a href="/Cattle/Details/@a.CattleId" style="font-weight:600">@(a.Cattle?.Name ?? "—")</a></td>
+                            <td>Dr. @(a.Doctor?.FullName ?? "—")</td>
+                            <td style="font-size:12px">@(a.Farm?.Name ?? "—")</td>
+                            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">@a.Reason</td>
+                            <td><span class="badge @sBadge">@a.Status</span></td>
+                            <td>
+                                <div style="display:flex;gap:6px">
+                                    @if (a.Status == CattleFarm.Models.AppointmentStatus.Scheduled)
+                                    {
+                                        <form method="post" asp-action="Complete" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@a.Id" />
+                                            <button class="btn btn-primary btn-sm">✓ Complete</button>
+                                        </form>
+                                        <form method="post" asp-action="Cancel" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@a.Id" />
+                                            <button class="btn btn-ghost btn-sm" onclick="return confirm('Cancel this appointment?')">✕</button>
+                                        </form>
+                                    }
+                                    else { <span style="font-size:12px;color:var(--text-muted)">@a.Status</span> }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

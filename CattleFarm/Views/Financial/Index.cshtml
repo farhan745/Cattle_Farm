@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Financial Hub";
+    var expenses = (IEnumerable<CattleFarm.Models.Expense>)ViewBag.Expenses;
+    var revenues = (IEnumerable<CattleFarm.Models.Revenue>)ViewBag.Revenues;
+    var trend    = (IEnumerable<CattleFarm.ViewModels.MonthlyTrendItem>)ViewBag.MonthlyTrend;
+    var farms    = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    decimal totalExp = (decimal)ViewBag.TotalExpenses;
+    decimal totalRev = (decimal)ViewBag.TotalRevenue;
+    decimal netProfit = (decimal)ViewBag.NetProfit;
+}
+<div class="page-header">
+    <div><h1 class="page-title">💰 Financial Hub</h1><p class="page-subtitle">Revenue, expenses, and profitability overview</p></div>
+    <div class="page-actions">
+        <form method="get" style="display:flex;gap:8px">
+            <select name="farmId" class="form-control" style="width:auto" onchange="this.form.submit()">
+                <option value="0">All Farms</option>
+                @foreach (var f in farms) { <option value="@f.Id" selected="@(f.Id==(int)ViewBag.SelectedFarmId)">@f.Name</option> }
+            </select>
+            <select name="month" class="form-control" style="width:auto" onchange="this.form.submit()">
+                @for (int m = 1; m <= 12; m++) { var mName = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m); <option value="@m" selected="@(m==(int)ViewBag.Month)">@mName</option> }
+            </select>
+            <select name="year" class="form-control" style="width:auto" onchange="this.form.submit()">
+                @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 3; y--) { <option value="@y" selected="@(y==(int)ViewBag.Year)">@y</option> }
+            </select>
+        </form>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+    <div class="stat-card green"><div class="stat-icon green">📈</div><div><div class="stat-value">৳@((totalRev/1000).ToString("F0"))K</div><div class="stat-label">Total Revenue</div></div></div>
+    <div class="stat-card red"><div class="stat-icon red">📉</div><div><div class="stat-value">৳@((totalExp/1000).ToString("F0"))K</div><div class="stat-label">Total Expenses</div></div></div>
+    <div class="stat-card @(netProfit>=0?"green":"red")"><div class="stat-icon @(netProfit>=0?"green":"red")">💵</div><div><div class="stat-value">৳@((netProfit/1000).ToString("F0"))K</div><div class="stat-label">Net Profit</div></div></div>
+</div>
+
+<!-- Chart -->
+<div class="card" style="margin-bottom:24px">
+    <div class="card-header"><h3 class="card-title">📊 12-Month Revenue vs Expense Trend</h3></div>
+    <div class="card-body"><div class="chart-container" style="height:260px"><canvas id="trendChart"></canvas></div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <!-- Add Expense -->
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">➖ Record Expense</h3></div>
+        <div class="card-body">
+            <form method="post" asp-action="AddExpense">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="FarmId" value="@ViewBag.SelectedFarmId" />
+                <div class="form-group"><label class="form-label">Category</label>
+                    <select name="Category" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.ExpenseCategory>()"></select></div>
+                <div class="form-group"><label class="form-label">Amount (৳)</label><input name="Amount" class="form-control" type="number" step="0.01" placeholder="0.00" required /></div>
+                <div class="form-group"><label class="form-label">Date</label><input name="Date" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+                <div class="form-group"><label class="form-label">Description</label><input name="Description" class="form-control" placeholder="Brief description..." /></div>
+                <button type="submit" class="btn btn-danger w-100"><i class="bi bi-dash-circle"></i> Record Expense</button>
+            </form>
+        </div>
+    </div>
+    <!-- Add Revenue -->
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">➕ Record Revenue</h3></div>
+        <div class="card-body">
+            <form method="post" asp-action="AddRevenue">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="FarmId" value="@ViewBag.SelectedFarmId" />
+                <div class="form-group"><label class="form-label">Source</label>
+                    <select name="Source" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.RevenueSource>()"></select></div>
+                <div class="form-group"><label class="form-label">Amount (৳)</label><input name="Amount" class="form-control" type="number" step="0.01" placeholder="0.00" required /></div>
+                <div class="form-group"><label class="form-label">Date</label><input name="Date" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+                <div class="form-group"><label class="form-label">Description</label><input name="Description" class="form-control" placeholder="Brief description..." /></div>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i> Record Revenue</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">📋 Recent Expenses</h3></div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead><tr><th>Date</th><th>Category</th><th>Amount</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var e in expenses.Take(8))
+                    {
+                        <tr>
+                            <td style="font-size:11px">@e.Date.ToString("MMM dd")</td>
+                            <td><span class="badge badge-gray">@e.Category</span></td>
+                            <td style="font-weight:700;color:var(--danger)">৳@e.Amount.ToString("N0")</td>
+                            <td><form method="post" asp-action="DeleteExpense">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@e.Id" /><input type="hidden" name="farmId" value="@ViewBag.SelectedFarmId" /><button class="btn btn-ghost btn-sm" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></button></form></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">📋 Recent Revenue</h3></div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead><tr><th>Date</th><th>Source</th><th>Amount</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var r in revenues.Take(8))
+                    {
+                        <tr>
+                            <td style="font-size:11px">@r.Date.ToString("MMM dd")</td>
+                            <td><span class="badge badge-success">@r.Source</span></td>
+                            <td style="font-weight:700;color:var(--success)">৳@r.Amount.ToString("N0")</td>
+                            <td><form method="post" asp-action="DeleteRevenue">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@r.Id" /><input type="hidden" name="farmId" value="@ViewBag.SelectedFarmId" /><button class="btn btn-ghost btn-sm" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></button></form></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const trendLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Month)));
+const trendRevenues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Revenue)));
+const trendExpenses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Expense)));
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: { labels: trendLabels, datasets: [
+        { label: 'Revenue', data: trendRevenues, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', tension: .4, fill: true, pointRadius: 4 },
+        { label: 'Expenses', data: trendExpenses, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.08)', tension: .4, fill: true, pointRadius: 4 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } } }
+});
+</script>
+}

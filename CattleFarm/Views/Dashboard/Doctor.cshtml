@@ -1,0 +1,36 @@
+@model CattleFarm.ViewModels.DoctorDashboardViewModel
+@{ ViewData["Title"] = "Veterinarian Dashboard"; }
+<div class="page-header">
+    <div><h1 class="page-title">👨‍⚕️ Vet Dashboard</h1><p class="page-subtitle">Dr. @(Model.DoctorProfile?.FullName ?? User.Identity?.Name) — @Model.DoctorProfile?.Specialization</p></div>
+</div>
+<div class="stat-grid">
+    <div class="stat-card blue"><div class="stat-icon blue">📅</div><div><div class="stat-value">@Model.TotalAppointments</div><div class="stat-label">Total Appointments</div></div></div>
+    <div class="stat-card amber"><div class="stat-icon amber">🕐</div><div><div class="stat-value">@Model.TodayAppointments</div><div class="stat-label">Today's Appointments</div></div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">📅 Upcoming Appointments</h3><a href="/Appointment" class="btn btn-ghost btn-sm">View all</a></div>
+        <div class="card-body" style="padding:0">
+            @if (!Model.UpcomingAppointments.Any()) { <div class="empty-state" style="padding:30px"><div class="empty-icon">📅</div><p>No upcoming appointments</p></div> }
+            @foreach (var a in Model.UpcomingAppointments)
+            {
+                <div style="padding:12px 20px;border-bottom:1px solid var(--border)">
+                    <div style="font-size:13px;font-weight:600">@a.Cattle?.Name — @a.Reason</div>
+                    <div style="font-size:11px;color:var(--text-muted)">@a.ScheduledAt.ToString("MMM dd, HH:mm")</div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">🏥 Recent Health Records</h3><a href="/Health" class="btn btn-ghost btn-sm">View all</a></div>
+        <div class="card-body" style="padding:0">
+            @foreach (var h in Model.RecentHealthRecords.Take(5))
+            {
+                <div style="padding:10px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                    <div><div style="font-size:12px;font-weight:600">Cattle #@h.CattleId</div><div style="font-size:11px;color:var(--text-muted)">@h.RecordDate.ToString("MMM dd")</div></div>
+                    <span class="badge @(h.RiskLevel == CattleFarm.Models.RiskLevel.Low ? "badge-success" : h.RiskLevel == CattleFarm.Models.RiskLevel.Medium ? "badge-warning" : "badge-danger")">@h.RiskLevel Risk</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>

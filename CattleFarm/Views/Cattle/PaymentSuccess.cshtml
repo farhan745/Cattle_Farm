@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Payment Success";
+    Layout = "_Layout";
+}
+
+<div style="max-width: 600px; margin: 40px auto; text-align: center;">
+    <div class="card" style="padding: 40px;">
+        <div style="font-size: 64px; color: var(--success); margin-bottom: 20px;">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2 style="font-weight: 800; margin-bottom: 8px;">Cattle Purchased Successfully!</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">Your online payment was processed successfully. The cattle is now marked as Sold.</p>
+
+        <div style="background: var(--bg); border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 30px; border: 1px solid var(--border)">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-muted); font-size: 13px;">Transaction ID:</span>
+                <span style="font-weight: 600; font-family: monospace;">@ViewBag.TransactionId</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-muted); font-size: 13px;">Amount Paid:</span>
+                <span style="font-weight: 700; color: var(--primary)">৳@ViewBag.Amount</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted); font-size: 13px;">Cattle Record ID:</span>
+                <span style="font-weight: 600;">#@ViewBag.CattleId</span>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="/Cattle/Details/@ViewBag.CattleId" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-eye"></i> View Cattle Details
+            </a>
+            <a href="/Cattle/Marketplace" class="btn btn-outline w-100">
+                <i class="bi bi-shop"></i> Back to Marketplace
+            </a>
+        </div>
+    </div>
+</div>
