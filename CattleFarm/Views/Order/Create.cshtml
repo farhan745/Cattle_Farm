@@ -8,7 +8,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">🛒 Complete Your Order</h1>
+        <h1 class="page-title"> Complete Your Order</h1>
         <p class="page-subtitle">Configure quantity, delivery address, and payment method</p>
     </div>
     <a href="/Product" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Products</a>
@@ -43,7 +43,7 @@
                                 <div style="font-size:18px;font-weight:700">@selectedProduct.Name</div>
                                 <div style="font-size:13px;color:var(--text-muted)">Farm: @(selectedProduct.Farm?.Name ?? "Smart Cattle Farm")</div>
                                 <div style="font-size:14px;color:var(--primary);font-weight:600;margin-top:4px">
-                                    Price: ৳<span id="unitPrice">@selectedProduct.Price</span> per @selectedProduct.Unit
+                                    Price: @Currency.GetSettings().Symbol <span id="unitPrice">@selectedProduct.Price</span> per @selectedProduct.Unit
                                 </div>
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                                 {
                                     foreach (var p in products)
                                     {
-                                        <option value="@p.Id" data-price="@p.Price" data-unit="@p.Unit">@p.Name (৳@p.Price/@p.Unit)</option>
+                                        <option value="@p.Id" data-price="@p.Price" data-unit="@p.Unit">@p.Name (@Currency.GetSettings().Symbol @p.Price/@p.Unit)</option>
                                     }
                                 }
                             </select>
@@ -131,7 +131,7 @@
                 <div class="card-body">
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px">
                         <span style="color:var(--text-muted)">Subtotal:</span>
-                        <span style="font-weight:600">৳<span id="subtotalAmount">0.00</span></span>
+                        <span style="font-weight:600">@Currency.GetSettings().Symbol <span id="subtotalAmount">0.00</span></span>
                     </div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:16px">
                         <span style="color:var(--text-muted)">Delivery Fee:</span>
@@ -140,7 +140,7 @@
                     <hr style="border:0;border-top:1px solid var(--border);margin-bottom:16px" />
                     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px">
                         <span style="font-weight:700;font-size:16px">Total:</span>
-                        <span style="font-size:24px;font-weight:800;color:var(--primary)">৳<span id="totalAmount">0.00</span></span>
+                        <span style="font-size:24px;font-weight:800;color:var(--primary)">@Currency.GetSettings().Symbol <span id="totalAmount">0.00</span></span>
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg w-100">
                         <i class="bi bi-check2-circle"></i> Place Order

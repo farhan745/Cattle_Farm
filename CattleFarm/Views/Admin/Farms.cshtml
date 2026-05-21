@@ -2,7 +2,7 @@
 @{ ViewData["Title"] = "Farm Approvals"; }
 
 <div class="page-header">
-    <div><h1 class="page-title">✅ Farm Approvals</h1><p class="page-subtitle">@Model.Count() total farms — @Model.Count(f => f.ApprovalStatus == CattleFarm.Models.ApprovalStatus.Pending) pending</p></div>
+    <div><h1 class="page-title"> Farm Approvals</h1><p class="page-subtitle">@Model.Count() total farms — @Model.Count(f => f.ApprovalStatus == CattleFarm.Models.ApprovalStatus.Pending) pending</p></div>
 </div>
 
 <div class="card">

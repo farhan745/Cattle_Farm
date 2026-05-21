@@ -41,7 +41,7 @@
                         <label class="form-label">Veterinarian *</label>
                         <select asp-for="DoctorId" class="form-control" required>
                             <option value="0">Select doctor...</option>
-                            @foreach (var d in doctors) { <option value="@d.Id">Dr. @d.FullName — @d.Specialization (৳@d.ConsultationFee)</option> }
+                             @foreach (var d in doctors) { <option value="@d.Id">Dr. @d.FullName — @d.Specialization (@Currency.Format(d.ConsultationFee))</option> }
                         </select>
                         <span asp-validation-for="DoctorId" class="form-error"></span>
                     </div>

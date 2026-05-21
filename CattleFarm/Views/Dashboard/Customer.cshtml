@@ -5,8 +5,8 @@
     <a href="/Product" class="btn btn-primary"><i class="bi bi-shop"></i> Browse Products</a>
 </div>
 <div class="stat-grid">
-    <div class="stat-card blue"><div class="stat-icon blue">🛒</div><div><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Total Orders</div></div></div>
-    <div class="stat-card green"><div class="stat-icon green">💰</div><div><div class="stat-value">৳@Model.TotalSpent.ToString("N0")</div><div class="stat-label">Total Spent</div></div></div>
+    <div class="stat-card blue"><div class="stat-icon blue"></div><div><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Total Orders</div></div></div>
+    <div class="stat-card green"><div class="stat-icon green">💰</div><div><div class="stat-value">@Currency.Format(Model.TotalSpent)</div><div class="stat-label">Total Spent</div></div></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
     <div class="card">
@@ -20,7 +20,7 @@
                     <tr>
                         <td><a href="/Order/Details/@o.Id" style="font-weight:600">#@o.Id</a></td>
                         <td>@o.OrderDate.ToString("MMM dd")</td>
-                        <td>৳@o.TotalAmount.ToString("N0")</td>
+                        <td>@Currency.Format(o.TotalAmount)</td>
                         <td><span class="badge @(o.OrderStatus == CattleFarm.Models.OrderStatus.Delivered ? "badge-success" : "badge-info")">@o.OrderStatus</span></td>
                     </tr>
                 }
@@ -35,7 +35,7 @@
             {
                 <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
                     <div style="height:80px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px">@(p.Category == CattleFarm.Models.ProductCategory.Milk ? "🥛" : p.Category == CattleFarm.Models.ProductCategory.Beef ? "🥩" : "📦")</div>
-                    <div style="padding:8px"><div style="font-size:12px;font-weight:600">@p.Name</div><div style="font-size:11px;color:var(--primary);font-weight:700">৳@p.Price</div></div>
+                    <div style="padding:8px"><div style="font-size:12px;font-weight:600">@p.Name</div><div style="font-size:11px;color:var(--primary);font-weight:700">@Currency.Format(p.Price)</div></div>
                 </div>
             }
         </div>

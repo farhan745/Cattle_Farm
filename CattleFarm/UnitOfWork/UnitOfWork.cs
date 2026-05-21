@@ -31,6 +31,10 @@ namespace CattleFarm.UnitOfWork
             Appointments    = new AppointmentRepository(_context);
             Breedings       = new BreedingRepository(_context);
             FeedRecords     = new FeedRepository(_context);
+            Vehicles          = new VehicleRepository(_context);
+            Drivers           = new DriverRepository(_context);
+            TransportRequests = new TransportRequestRepository(_context);
+            Trips             = new TripRepository(_context);
         }
 
         public ICattleRepository          Cattles         { get; }
@@ -53,6 +57,10 @@ namespace CattleFarm.UnitOfWork
         public IAppointmentRepository     Appointments    { get; }
         public IBreedingRepository        Breedings       { get; }
         public IFeedRepository            FeedRecords     { get; }
+        public IVehicleRepository          Vehicles          { get; }
+        public IDriverRepository           Drivers           { get; }
+        public ITransportRequestRepository TransportRequests { get; }
+        public ITripRepository             Trips             { get; }
 
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

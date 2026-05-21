@@ -25,6 +25,14 @@ namespace CattleFarm.Repositories.Implementations
             return (items, total);
         }
 
+        public override async Task<Worker?> GetByIdAsync(int id)
+            => await _dbSet
+                .Include(w => w.Farm)
+                .Include(w => w.Attendances)
+                .Include(w => w.MilkProductions)
+                    .ThenInclude(m => m.Cattle)
+                .FirstOrDefaultAsync(w => w.Id == id);
+
         public async Task<int> CountByFarmAsync(int farmId)
             => await _dbSet.CountAsync(w => w.FarmId == farmId);
     }

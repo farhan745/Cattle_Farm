@@ -63,7 +63,7 @@ else
                         </div>
                     </div>
                     <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
-                        <div style="font-size:20px;font-weight:800;color:var(--primary)">৳@p.Price.ToString("N0")<span style="font-size:12px;font-weight:400;color:var(--text-muted)"> / @p.Unit</span></div>
+                        <div style="font-size:20px;font-weight:800;color:var(--primary)">@Currency.Format(p.Price)<span style="font-size:12px;font-weight:400;color:var(--text-muted)"> / @p.Unit</span></div>
                         <div style="font-size:12px;color:@(p.StockQuantity <= p.MinStockLevel ? "var(--danger)" : "var(--text-muted)")">
                             Stock: @p.StockQuantity @p.Unit
                             @if (p.StockQuantity <= p.MinStockLevel) { <span>⚠ Low</span> }

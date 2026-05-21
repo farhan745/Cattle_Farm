@@ -16,30 +16,34 @@
         <h1 class="page-title">Reports &amp; Analytics</h1>
         <p class="page-subtitle">@(farm?.Name ?? "All Farms") &mdash; Financial and operational reporting</p>
     </div>
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-outline"><i class="bi bi-printer"></i> Print Report</button>
+        <button onclick="exportReport('csv')" class="btn btn-accent"><i class="bi bi-file-earmark-spreadsheet"></i> Export CSV</button>
+    </div>
 </div>
 
 <!-- Filters -->
-<div class="card animate-in" style="margin-bottom:18px">
-    <div class="card-body" style="padding:14px 18px">
-        <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-            <div class="form-group" style="margin:0">
-                <label class="form-label" style="margin-bottom:4px">Farm</label>
-                <select name="farmId" class="form-control" style="width:auto">
+<div class="card animate-in" style="margin-bottom: 24px;">
+    <div class="card-body" style="padding: 24px;">
+        <form method="get" style="display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end;">
+            <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
+                <label class="form-label" style="margin-bottom: 8px; font-family: var(--font-heading); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i class="bi bi-house-door" style="color: var(--primary);"></i> Farm Select</label>
+                <select name="farmId" class="form-select" style="width: 100%;">
                     @foreach (var f in farms)
                     {
                         <option value="@f.Id" selected="@(farm?.Id == f.Id)">@f.Name</option>
                     }
                 </select>
             </div>
-            <div class="form-group" style="margin:0">
-                <label class="form-label" style="margin-bottom:4px">From</label>
+            <div class="form-group" style="margin: 0; flex: 1; min-width: 160px;">
+                <label class="form-label" style="margin-bottom: 8px; font-family: var(--font-heading); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i class="bi bi-calendar-event" style="color: var(--primary);"></i> Start Date</label>
                 <input type="date" name="from" class="form-control" value="@ViewBag.From" />
             </div>
-            <div class="form-group" style="margin:0">
-                <label class="form-label" style="margin-bottom:4px">To</label>
+            <div class="form-group" style="margin: 0; flex: 1; min-width: 160px;">
+                <label class="form-label" style="margin-bottom: 8px; font-family: var(--font-heading); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i class="bi bi-calendar-event" style="color: var(--primary);"></i> End Date</label>
                 <input type="date" name="to" class="form-control" value="@ViewBag.To" />
             </div>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Apply</button>
+            <button type="submit" class="btn btn-primary" style="height: 42px;"><i class="bi bi-funnel"></i> Apply Filter</button>
         </form>
     </div>
 </div>
@@ -48,36 +52,36 @@
 <div class="stat-grid animate-in">
     <div class="stat-card green">
         <div class="stat-icon green"><i class="bi bi-arrow-up-circle"></i></div>
-        <div>
-            <div class="stat-value">&#2547;@((revenue/1000).ToString("F0"))K</div>
+        <div class="flex-1">
+            <div class="stat-value">@Currency.GetSettings().Symbol @((revenue/1000).ToString("F0"))K</div>
             <div class="stat-label">Total Revenue</div>
         </div>
     </div>
     <div class="stat-card red">
         <div class="stat-icon red"><i class="bi bi-arrow-down-circle"></i></div>
-        <div>
-            <div class="stat-value">&#2547;@((expenses/1000).ToString("F0"))K</div>
+        <div class="flex-1">
+            <div class="stat-value">@Currency.GetSettings().Symbol @((expenses/1000).ToString("F0"))K</div>
             <div class="stat-label">Total Expenses</div>
         </div>
     </div>
     <div class="stat-card @(profit >= 0 ? "green" : "red")">
         <div class="stat-icon @(profit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
-        <div>
-            <div class="stat-value">&#2547;@((Math.Abs(profit)/1000).ToString("F0"))K</div>
+        <div class="flex-1">
+            <div class="stat-value">@Currency.GetSettings().Symbol @((Math.Abs(profit)/1000).ToString("F0"))K</div>
             <div class="stat-label">Net Profit</div>
             <div class="stat-change @(profit >= 0 ? "up" : "down")">@(profit >= 0 ? "Profitable" : "Net loss")</div>
         </div>
     </div>
     <div class="stat-card blue">
         <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
-        <div>
-            <div class="stat-value">@milkTotal.ToString("F0")<span style="font-size:13px;font-weight:400"> L</span></div>
+        <div class="flex-1">
+            <div class="stat-value">@milkTotal.ToString("F0")<span style="font-size: 13px; font-weight: 400; font-family: var(--font-body);"> L</span></div>
             <div class="stat-label">Total Milk Yield</div>
         </div>
     </div>
     <div class="stat-card teal">
         <div class="stat-icon teal"><i class="bi bi-collection"></i></div>
-        <div>
+        <div class="flex-1">
             <div class="stat-value">@ViewBag.TotalCattle</div>
             <div class="stat-label">Total Cattle</div>
             <div class="stat-change up">@ViewBag.ActiveCattle active</div>
@@ -85,7 +89,7 @@
     </div>
     <div class="stat-card amber">
         <div class="stat-icon amber"><i class="bi bi-percent"></i></div>
-        <div>
+        <div class="flex-1">
             <div class="stat-value">@(expenses > 0 ? ((profit / expenses) * 100).ToString("F1") : "0.0")%</div>
             <div class="stat-label">ROI</div>
         </div>
@@ -93,42 +97,42 @@
 </div>
 
 <!-- Revenue vs Expense Trend -->
-<div class="card animate-in" style="margin-bottom:18px">
+<div class="card animate-in" style="margin-bottom: 24px;">
     <div class="card-header">
-        <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color:var(--primary)"></i> Revenue vs Expenses — Monthly Trend</h3>
+        <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color: var(--primary);"></i> Revenue vs Expenses &mdash; Monthly Trend</h3>
     </div>
     <div class="card-body">
-        <div class="chart-container" style="height:260px">
+        <div class="chart-container" style="height: 280px; position: relative;">
             <canvas id="trendChart"></canvas>
         </div>
     </div>
 </div>
 
 <!-- Breakdown Row -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px" class="animate-in">
+<div class="chart-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;" class="animate-in">
     <!-- Expense by Category -->
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--danger)"></i> Expense Breakdown</h3>
+            <h3 class="card-title"><i class="bi bi-pie-chart" style="color: var(--danger);"></i> Expense Breakdown</h3>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center">
-            <div class="card-body" style="padding:14px">
-                <div class="chart-container" style="height:200px">
+        <div class="breakdown-container" style="display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 16px; padding: 24px;">
+            <div>
+                <div class="chart-container" style="height: 200px; position: relative;">
                     <canvas id="expenseChart"></canvas>
                 </div>
             </div>
-            <div style="padding:14px">
+            <div>
                 @{decimal expTotal = expBreakdown.Any() ? expBreakdown.Sum(x => (decimal)x.Total) : 1m;}
                 @foreach (var item in expBreakdown.Take(6))
                 {
                     var pct = expTotal > 0 ? ((decimal)item.Total / expTotal * 100) : 0;
-                    <div style="margin-bottom:8px">
-                        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
-                            <span style="font-weight:600">@item.Category</span>
-                            <span style="color:var(--text-muted)">@pct.ToString("F0")%</span>
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="font-weight: 600; font-family: var(--font-body);">@item.Category</span>
+                            <span style="color: var(--text-muted); font-family: var(--font-mono);">@pct.ToString("F0")%</span>
                         </div>
-                        <div style="height:4px;background:var(--border);border-radius:2px">
-                            <div style="width:@pct.ToString("F0")%;height:100%;background:var(--danger);border-radius:2px;transition:width .4s"></div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
+                            <div style="width: @pct.ToString("F0")%; height: 100%; background: var(--danger); border-radius: 4px; transition: width .4s;"></div>
                         </div>
                     </div>
                 }
@@ -139,26 +143,26 @@
     <!-- Revenue by Source -->
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--success)"></i> Revenue Breakdown</h3>
+            <h3 class="card-title"><i class="bi bi-pie-chart" style="color: var(--success);"></i> Revenue Breakdown</h3>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center">
-            <div class="card-body" style="padding:14px">
-                <div class="chart-container" style="height:200px">
+        <div class="breakdown-container" style="display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 16px; padding: 24px;">
+            <div>
+                <div class="chart-container" style="height: 200px; position: relative;">
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
-            <div style="padding:14px">
+            <div>
                 @{decimal revTotal = revBreakdown.Any() ? revBreakdown.Sum(x => (decimal)x.Total) : 1m;}
                 @foreach (var item in revBreakdown.Take(6))
                 {
                     var pct = revTotal > 0 ? ((decimal)item.Total / revTotal * 100) : 0;
-                    <div style="margin-bottom:8px">
-                        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
-                            <span style="font-weight:600">@item.Source</span>
-                            <span style="color:var(--text-muted)">@pct.ToString("F0")%</span>
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="font-weight: 600; font-family: var(--font-body);">@item.Source</span>
+                            <span style="color: var(--text-muted); font-family: var(--font-mono);">@pct.ToString("F0")%</span>
                         </div>
-                        <div style="height:4px;background:var(--border);border-radius:2px">
-                            <div style="width:@pct.ToString("F0")%;height:100%;background:var(--success);border-radius:2px;transition:width .4s"></div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
+                            <div style="width: @pct.ToString("F0")%; height: 100%; background: var(--success); border-radius: 4px; transition: width .4s;"></div>
                         </div>
                     </div>
                 }
@@ -169,38 +173,132 @@
 
 @section Scripts {
 <script>
+// Chart.js helper to dynamically check current theme grid/text colors
+function getChartColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    return {
+        gridColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
+        textColor: isDark ? '#9ca3af' : '#475569',
+        borderColor: isDark ? '#111827' : '#ffffff'
+    };
+}
+
+const chartColors = getChartColors();
+
 // Trend Chart
 const tLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Month)));
 const tRevenues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Revenue)));
 const tExpenses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trend.Select(t => t.Expense)));
-new Chart(document.getElementById('trendChart'), {
+const trendChartObj = new Chart(document.getElementById('trendChart'), {
     type: 'bar',
     data: {
         labels: tLabels,
         datasets: [
-            { label: 'Revenue',  data: tRevenues, backgroundColor: 'rgba(22,163,74,.7)',  borderRadius: 4 },
-            { label: 'Expenses', data: tExpenses, backgroundColor: 'rgba(220,38,38,.6)', borderRadius: 4 }
+            { label: 'Revenue',  data: tRevenues, backgroundColor: 'rgba(0, 255, 136, 0.8)',  borderRadius: 6 },
+            { label: 'Expenses', data: tExpenses, backgroundColor: 'rgba(255, 51, 102, 0.8)', borderRadius: 6 }
         ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } } }
+    options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+            legend: { 
+                position: 'top',
+                labels: { color: chartColors.textColor, font: { family: 'DM Sans', size: 12, weight: 'bold' } }
+            } 
+        }, 
+        scales: { 
+            y: { 
+                beginAtZero: true, 
+                grid: { color: chartColors.gridColor },
+                ticks: { color: chartColors.textColor, font: { family: 'JetBrains Mono', size: 10 } }
+            }, 
+            x: { 
+                grid: { display: false },
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 11 } }
+            } 
+        } 
+    }
 });
 
 // Expense donut
 const eLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(expBreakdown.Select(x => (string)x.Category).ToArray()));
 const eData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(expBreakdown.Select(x => (decimal)x.Total).ToArray()));
-new Chart(document.getElementById('expenseChart'), {
+const expenseChartObj = new Chart(document.getElementById('expenseChart'), {
     type: 'doughnut',
-    data: { labels: eLabels, datasets: [{ data: eData, backgroundColor: ['#dc2626','#d97706','#2563eb','#7c3aed','#0d9488','#94a3b8'], borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '60%' }
+    data: { 
+        labels: eLabels, 
+        datasets: [{ 
+            data: eData, 
+            backgroundColor: ['#ff3366','#ffb800','#00e5ff','#a78bfa','#00ff88','#6b7280'], 
+            borderWidth: 3, 
+            borderColor: chartColors.borderColor 
+        }] 
+    },
+    options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+            legend: { display: false } 
+        }, 
+        cutout: '65%' 
+    }
 });
 
 // Revenue donut
 const rLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revBreakdown.Select(x => (string)x.Source).ToArray()));
 const rData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revBreakdown.Select(x => (decimal)x.Total).ToArray()));
-new Chart(document.getElementById('revenueChart'), {
+const revenueChartObj = new Chart(document.getElementById('revenueChart'), {
     type: 'doughnut',
-    data: { labels: rLabels, datasets: [{ data: rData, backgroundColor: ['#16a34a','#0d9488','#2563eb','#d97706','#7c3aed','#94a3b8'], borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '60%' }
+    data: { 
+        labels: rLabels, 
+        datasets: [{ 
+            data: rData, 
+            backgroundColor: ['#00ff88','#00e5ff','#ffb800','#a78bfa','#ff3366','#6b7280'], 
+            borderWidth: 3, 
+            borderColor: chartColors.borderColor 
+        }] 
+    },
+    options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+            legend: { display: false } 
+        }, 
+        cutout: '65%' 
+    }
 });
+
+// Premium Theme Toggle Integration
+window.addEventListener('theme-changed', (e) => {
+    const isDark = e.detail.theme === 'dark';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+    const textColor = isDark ? '#9ca3af' : '#475569';
+    const borderColor = isDark ? '#111827' : '#ffffff';
+
+    // Update Trend Chart
+    trendChartObj.options.plugins.legend.labels.color = textColor;
+    trendChartObj.options.scales.y.grid.color = gridColor;
+    trendChartObj.options.scales.y.ticks.color = textColor;
+    trendChartObj.options.scales.x.ticks.color = textColor;
+    trendChartObj.update();
+
+    // Update Expense Donut
+    expenseChartObj.data.datasets[0].borderColor = borderColor;
+    expenseChartObj.update();
+
+    // Update Revenue Donut
+    revenueChartObj.data.datasets[0].borderColor = borderColor;
+    revenueChartObj.update();
+});
+
+// Export mock logic
+function exportReport(type) {
+    if (typeof showToast === 'function') {
+        showToast('Report Generated', `Your reports have been successfully exported as ${type.toUpperCase()}.`, 'success');
+    } else {
+        alert(`Generating report in ${type.toUpperCase()} format...`);
+    }
+}
 </script>
 }

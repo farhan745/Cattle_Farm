@@ -6,50 +6,108 @@ namespace CattleFarm.Data
 {
     public static class DbSeeder
     {
-        public static async Task SeedAsync(CattleFarmDbContext db)
+        public static async Task SeedAsync(CattleFarmDbContext db, bool isDevelopment = true)
         {
             await db.Database.EnsureCreatedAsync();
 
-            // ── Users ─────────────────────────────────────────────────────────
-            if (!await db.Users.AnyAsync())
+            // ── Admin User ──────────────────────────────────────────────────
+            var admin = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@cattlefarm.com" || u.Username == "admin");
+            if (admin == null)
             {
-                var admin = new User
+                admin = new User
                 {
                     Username = "admin", FullName = "System Administrator", Email = "admin@cattlefarm.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"), Role = AppRoles.Admin,
                     IsEmailVerified = true, IsActive = true, SubscriptionType = "Enterprise",
                     SubscriptionExpiry = DateTime.UtcNow.AddYears(10)
                 };
-                var owner = new User
+                await db.Users.AddAsync(admin);
+                await db.SaveChangesAsync();
+            }
+
+            if (!isDevelopment)
+            {
+                return;
+            }
+
+            // ── Development/Demo Users ───────────────────────────────────────
+            var owner = await db.Users.FirstOrDefaultAsync(u => u.Email == "owner@farm.com" || u.Username == "owner");
+            if (owner == null)
+            {
+                owner = new User
                 {
-                    Username = "owner1", FullName = "Rahman Hossain", Email = "owner@cattlefarm.com",
+                    Username = "owner", FullName = "Rahman Hossain", Email = "owner@farm.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Owner@123"), Role = AppRoles.Owner,
                     IsEmailVerified = true, IsActive = true, PhoneNumber = "+8801711000001",
                     SubscriptionType = "Owner", SubscriptionExpiry = DateTime.UtcNow.AddYears(1)
                 };
-                var manager = new User
+                await db.Users.AddAsync(owner);
+            }
+
+            var manager = await db.Users.FirstOrDefaultAsync(u => u.Email == "manager@cattlefarm.com" || u.Username == "manager1");
+            if (manager == null)
+            {
+                manager = new User
                 {
                     Username = "manager1", FullName = "Karim Ahmed", Email = "manager@cattlefarm.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Manager@123"), Role = AppRoles.Manager,
                     IsEmailVerified = true, IsActive = true, PhoneNumber = "+8801722000002",
                     SubscriptionType = "Member", SubscriptionExpiry = DateTime.UtcNow.AddMonths(6)
                 };
-                var customer = new User
+                await db.Users.AddAsync(manager);
+            }
+
+            var customer = await db.Users.FirstOrDefaultAsync(u => u.Email == "customer@farm.com" || u.Username == "customer");
+            if (customer == null)
+            {
+                customer = new User
                 {
-                    Username = "customer1", FullName = "Rahim Uddin", Email = "customer@cattlefarm.com",
+                    Username = "customer", FullName = "Rahim Uddin", Email = "customer@farm.com",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Customer@123"), Role = AppRoles.Customer,
                     IsEmailVerified = true, IsActive = true
                 };
-                await db.Users.AddRangeAsync(admin, owner, manager, customer);
-                await db.SaveChangesAsync();
+                await db.Users.AddAsync(customer);
+            }
 
-                // ── Subscriptions ─────────────────────────────────────────────
+            var doctorUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "doctor@farm.com" || u.Username == "doctor");
+            if (doctorUser == null)
+            {
+                doctorUser = new User
+                {
+                    Username = "doctor", FullName = "Dr. Nasreen Akhter", Email = "doctor@farm.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Doctor@123"), Role = AppRoles.Doctor,
+                    IsEmailVerified = true, IsActive = true, PhoneNumber = "+8801911000001"
+                };
+                await db.Users.AddAsync(doctorUser);
+            }
+
+            var workerUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "worker@farm.com" || u.Username == "worker");
+            if (workerUser == null)
+            {
+                workerUser = new User
+                {
+                    Username = "worker", FullName = "Salim Mia", Email = "worker@farm.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Worker@123"), Role = AppRoles.Worker,
+                    IsEmailVerified = true, IsActive = true, PhoneNumber = "+8801811000001"
+                };
+                await db.Users.AddAsync(workerUser);
+            }
+
+            await db.SaveChangesAsync();
+
+            // ── Subscriptions ─────────────────────────────────────────────
+            if (!await db.Subscriptions.AnyAsync())
+            {
                 await db.Subscriptions.AddRangeAsync(
                     new Subscription { UserId = owner.Id, Plan = SubscriptionPlan.Owner, PricePaid = 1500, StartDate = DateTime.UtcNow.AddMonths(-1), ExpiryDate = DateTime.UtcNow.AddYears(1), IsActive = true, TransactionRef = "SEED-001" },
                     new Subscription { UserId = manager.Id, Plan = SubscriptionPlan.Member, PricePaid = 500, StartDate = DateTime.UtcNow.AddMonths(-2), ExpiryDate = DateTime.UtcNow.AddMonths(6), IsActive = true, TransactionRef = "SEED-002" }
                 );
+                await db.SaveChangesAsync();
+            }
 
-                // ── Farms ─────────────────────────────────────────────────────
+            // ── Farms ─────────────────────────────────────────────────────
+            if (!await db.Farms.AnyAsync())
+            {
                 var farm1 = new Farm
                 {
                     OwnerId = owner.Id, Name = "Green Pasture Farm", Location = "Dhaka, Bangladesh",
@@ -70,13 +128,13 @@ namespace CattleFarm.Data
                 await db.SaveChangesAsync();
 
                 // ── Workers ───────────────────────────────────────────────────
-                var worker1 = new Worker { FarmId = farm1.Id, FullName = "Salim Mia", Role = "Farm Hand", Phone = "+8801811000001", Skills = "Milking, Feeding, Cleaning", ExperienceYears = 5, Salary = 12000, IsAvailable = true, IsActive = true };
+                var worker1 = new Worker { FarmId = farm1.Id, FullName = "Salim Mia", Role = "Farm Hand", Phone = "+8801811000001", Skills = "Milking, Feeding, Cleaning", ExperienceYears = 5, Salary = 12000, IsAvailable = true, IsActive = true, UserId = workerUser.Id };
                 var worker2 = new Worker { FarmId = farm1.Id, FullName = "Raju Bhai", Role = "Herd Manager", Phone = "+8801811000002", Skills = "Herd Management, Record Keeping", ExperienceYears = 8, Salary = 18000, IsAvailable = true, IsActive = true };
                 var worker3 = new Worker { FarmId = farm2.Id, FullName = "Jamal Uddin", Role = "Cattle Handler", Phone = "+8801811000003", Skills = "Cattle Handling, Branding, Vaccination", ExperienceYears = 3, Salary = 10000, IsAvailable = true, IsActive = true };
                 await db.Workers.AddRangeAsync(worker1, worker2, worker3);
 
                 // ── Doctors ───────────────────────────────────────────────────
-                var doc1 = new Doctor { FarmId = farm1.Id, FullName = "Dr. Nasreen Akhter", Specialization = "Bovine Medicine", Phone = "+8801911000001", Email = "dr.nasreen@vet.com", LicenseNumber = "VET-BD-0012", ConsultationFee = 1500, IsAvailable = true, IsActive = true };
+                var doc1 = new Doctor { FarmId = farm1.Id, FullName = "Dr. Nasreen Akhter", Specialization = "Bovine Medicine", Phone = "+8801911000001", Email = "dr.nasreen@vet.com", LicenseNumber = "VET-BD-0012", ConsultationFee = 1500, IsAvailable = true, IsActive = true, UserId = doctorUser.Id };
                 var doc2 = new Doctor { FullName = "Dr. Tariq Hasan", Specialization = "Veterinary Surgery", Phone = "+8801911000002", Email = "dr.tariq@vet.com", LicenseNumber = "VET-BD-0034", ConsultationFee = 2500, IsAvailable = true, IsActive = true };
                 await db.Doctors.AddRangeAsync(doc1, doc2);
                 await db.SaveChangesAsync();

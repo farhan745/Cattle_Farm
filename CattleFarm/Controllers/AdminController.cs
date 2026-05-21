@@ -18,17 +18,20 @@ namespace CattleFarm.Controllers
         private readonly ISubscriptionService   _subscriptionService;
         private readonly IAuditService          _auditService;
         private readonly INotificationService   _notificationService;
+        private readonly ICurrencyService       _currencyService;
 
         public AdminController(IUserManagementService user, IFarmService farm, ICattleService cattle,
             IWorkerService worker, IDoctorService doctor, ISubscriptionService subscription,
-            IAuditService audit, INotificationService notification)
+            IAuditService audit, INotificationService notification, ICurrencyService currency)
         {
             _userService = user; _farmService = farm; _cattleService = cattle;
             _workerService = worker; _doctorService = doctor; _subscriptionService = subscription;
             _auditService = audit; _notificationService = notification;
+            _currencyService = currency;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(Users));
+
 
         // ── Users ─────────────────────────────────────────────────────────────
         public async Task<IActionResult> Users(int page = 1, string? search = null, string? role = null)

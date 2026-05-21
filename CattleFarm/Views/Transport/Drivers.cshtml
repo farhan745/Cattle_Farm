@@ -1,0 +1,143 @@
+@model IEnumerable<CattleFarm.Models.Driver>
+@{
+    ViewData["Title"] = "Drivers";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Driver Management</h1>
+        <p class="page-subtitle">@Model.Count() driver(s) registered</p>
+    </div>
+    <a href="/Transport/CreateDriver" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Driver
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input name="search" value="@ViewBag.Search" placeholder="Search by name, phone, license..." class="form-control" />
+        </div>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach (var s in Enum.GetNames<CattleFarm.Models.DriverStatus>())
+            {
+                <option value="@s" selected="@(ViewBag.StatusFilter == s)">@s</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a href="/Transport/Drivers" class="btn btn-ghost">Clear</a>
+    </form>
+</div>
+
+<!-- Driver Table -->
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-person-badge"></i>
+        <h3>No drivers registered</h3>
+        <p>Add your first driver to enable trip assignments.</p>
+        <a href="/Transport/CreateDriver" class="btn btn-primary">Add Driver</a>
+    </div>
+}
+else
+{
+    <div class="card animate-in">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        <th>License</th>
+                        <th>Experience</th>
+                        <th>Assigned Vehicle</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="avatar-circle">@d.FullName.Substring(0, Math.Min(2, d.FullName.Length)).ToUpper()</div>
+                                    <div>
+                                        <div class="fw-600">@d.FullName</div>
+                                        <div class="text-muted text-sm">@d.Phone</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>@d.LicenseNumber</div>
+                                <div class="text-muted text-sm">@d.LicenseType</div>
+                            </td>
+                            <td>@d.ExperienceYears yrs</td>
+                            <td>
+                                @if (d.AssignedVehicle != null)
+                                {
+                                    <span class="badge badge-info">@d.AssignedVehicle.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="bi bi-star@(i <= (int)d.Rating ? "-fill" : "")" style="color:#f59e0b;font-size:12px"></i>
+                                    }
+                                    <span class="text-sm text-muted ml-1">@d.Rating</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge @GetDriverStatusBadge(d.Status)">@d.Status</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="/Transport/EditDriver/@d.Id" class="action-btn" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" action="/Transport/DeleteDriver/@d.Id" class="d-inline"
+                                          onsubmit="return confirm('Remove this driver?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="action-btn danger" title="Delete">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<!-- Pagination -->
+@if ((int)ViewBag.TotalPages > 1)
+{
+    <div class="pagination">
+        @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+        {
+            <a href="?page=@i&status=@ViewBag.StatusFilter&search=@ViewBag.Search"
+               class="page-btn @(i == (int)ViewBag.CurrentPage ? "active" : "")">@i</a>
+        }
+    </div>
+}
+
+@functions {
+    string GetDriverStatusBadge(CattleFarm.Models.DriverStatus s) => s switch {
+        CattleFarm.Models.DriverStatus.Available  => "badge-success",
+        CattleFarm.Models.DriverStatus.OnTrip     => "badge-purple",
+        CattleFarm.Models.DriverStatus.OffDuty    => "badge-secondary",
+        CattleFarm.Models.DriverStatus.Suspended  => "badge-danger",
+        _                                         => "badge-secondary"
+    };
+}

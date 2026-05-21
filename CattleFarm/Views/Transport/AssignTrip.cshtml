@@ -1,0 +1,176 @@
+@model CattleFarm.ViewModels.TripAssignViewModel
+@{
+    ViewData["Title"] = "Assign Trip";
+    var req      = ViewBag.Request as CattleFarm.Models.TransportRequest;
+    var vehicles = ViewBag.Vehicles  as IEnumerable<CattleFarm.Models.Vehicle> ?? Enumerable.Empty<CattleFarm.Models.Vehicle>();
+    var drivers  = ViewBag.Drivers   as IEnumerable<CattleFarm.Models.Driver>  ?? Enumerable.Empty<CattleFarm.Models.Driver>();
+    var sugVeh   = ViewBag.SuggestedVehicle as CattleFarm.Models.Vehicle;
+    var sugDrv   = ViewBag.SuggestedDriver  as CattleFarm.Models.Driver;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Assign Trip</h1>
+        <p class="page-subtitle">Allocate vehicle and driver for Request #@req?.Id</p>
+    </div>
+    <a href="/Transport/Requests" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+@if (req != null)
+{
+    <!-- Request Summary Banner -->
+    <div class="info-banner animate-in">
+        <div class="info-banner-icon"><i class="bi bi-clipboard-check"></i></div>
+        <div class="info-banner-body">
+            <div class="fw-600">@req.RequestType — @req.PickupLocation &rarr; @req.Destination</div>
+            <div class="text-sm text-muted">
+                Scheduled: @req.ScheduledDate.ToString("dd MMM yyyy")
+                @if (req.EstimatedDistanceKm.HasValue) { <span>&bull; ~@req.EstimatedDistanceKm km</span> }
+                @if (req.CargoWeight.HasValue) { <span>&bull; @req.CargoWeight t cargo</span> }
+            </div>
+        </div>
+    </div>
+}
+
+@if (sugVeh != null || sugDrv != null)
+{
+    <div class="suggestion-banner animate-in">
+        <div class="suggestion-banner-title">
+            <i class="bi bi-lightning-charge-fill"></i> Smart Suggestions Applied
+        </div>
+        <div class="suggestion-chips">
+            @if (sugVeh != null)
+            {
+                <div class="chip chip-blue">
+                    <i class="bi bi-truck"></i> @sugVeh.Name (@sugVeh.RegistrationNumber)
+                </div>
+            }
+            @if (sugDrv != null)
+            {
+                <div class="chip chip-green">
+                    <i class="bi bi-person"></i> @sugDrv.FullName
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="form-card-wrap">
+    <div class="form-card animate-in">
+        <form method="post" action="/Transport/AssignTrip" id="assignForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="TransportRequestId" />
+
+            <div class="form-section">
+                <h3 class="form-section-title">Vehicle Selection</h3>
+                <div class="vehicle-select-grid">
+                    @foreach (var v in vehicles)
+                    {
+                        bool isSuggested = sugVeh?.Id == v.Id;
+                        <label class="vehicle-option @(isSuggested ? "suggested" : "")">
+                            <input type="radio" name="VehicleId" value="@v.Id"
+                                   @(isSuggested ? "checked" : "") onchange="updateCost()" />
+                            <div class="vehicle-option-body">
+                                <div class="vehicle-option-header">
+                                    <i class="bi bi-truck"></i>
+                                    @if (isSuggested)
+                                    {
+                                        <span class="badge badge-warning badge-xs">Recommended</span>
+                                    }
+                                </div>
+                                <div class="fw-600">@v.Name</div>
+                                <div class="text-sm text-muted">@v.RegistrationNumber</div>
+                                <div class="text-sm">Cap: @v.Capacity @v.CapacityUnit &bull; @Currency.Format(v.FuelCostPerKm)/km</div>
+                            </div>
+                        </label>
+                    }
+                </div>
+                <span asp-validation-for="VehicleId" class="validation-msg"></span>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Driver Selection</h3>
+                <div class="driver-select-grid">
+                    @foreach (var d in drivers)
+                    {
+                        bool isSuggested = sugDrv?.Id == d.Id;
+                        <label class="driver-option @(isSuggested ? "suggested" : "")">
+                            <input type="radio" name="DriverId" value="@d.Id"
+                                   @(isSuggested ? "checked" : "") />
+                            <div class="driver-option-body">
+                                <div class="avatar-circle">@d.FullName.Substring(0, Math.Min(2, d.FullName.Length)).ToUpper()</div>
+                                <div>
+                                    <div class="fw-600">
+                                        @d.FullName
+                                        @if (isSuggested)
+                                        {
+                                            <span class="badge badge-warning badge-xs">Recommended</span>
+                                        }
+                                    </div>
+                                    <div class="text-sm text-muted">@d.Phone</div>
+                                    <div class="text-sm">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="bi bi-star@(i <= (int)d.Rating ? "-fill" : "")" style="color:#f59e0b;font-size:10px"></i>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    }
+                </div>
+                <span asp-validation-for="DriverId" class="validation-msg"></span>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Route & Cost</h3>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Distance (km) <span class="required">*</span></label>
+                        <input asp-for="DistanceKm" type="number" step="0.1" class="form-control"
+                               id="distKm" oninput="updateCost()" />
+                        <span asp-validation-for="DistanceKm" class="validation-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estimated Cost</label>
+                        <div class="cost-display" id="costDisplay">@Currency.GetSettings().Symbol —</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Route Notes</label>
+                        <input asp-for="RouteNotes" class="form-control" placeholder="Via Mirpur Road..." />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="/Transport/Requests" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Assign Trip
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+const activeCurrencySymbol = '@Html.Raw(Currency.GetSettings().Symbol)';
+async function updateCost() {
+    const dist = parseFloat(document.getElementById('distKm')?.value) || 0;
+    const vId  = document.querySelector('input[name="VehicleId"]:checked')?.value;
+    if (!dist || !vId) return;
+    try {
+        const r = await fetch(`/Transport/CalculateCost?distanceKm=${dist}&vehicleId=${vId}`);
+        const c = await r.json();
+        document.getElementById('costDisplay').textContent = activeCurrencySymbol + ' ' + c.formatted;
+    } catch(e) {}
+}
+document.addEventListener('DOMContentLoaded', updateCost);
+document.querySelectorAll('input[name="VehicleId"]').forEach(r => r.addEventListener('change', updateCost));
+</script>
+}

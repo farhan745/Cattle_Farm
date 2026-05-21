@@ -35,7 +35,11 @@ namespace CattleFarm.Controllers
             return View(worker);
         }
 
-        public async Task<IActionResult> Create() { await LoadFarmsAsync(); return View(new WorkerViewModel()); }
+        public async Task<IActionResult> Create(int? farmId = null)
+        {
+            await LoadFarmsAsync();
+            return View(new WorkerViewModel { FarmId = farmId ?? 0 });
+        }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(WorkerViewModel vm)

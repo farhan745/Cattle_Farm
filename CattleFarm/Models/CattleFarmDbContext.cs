@@ -29,9 +29,14 @@ namespace CattleFarm.Models
         public DbSet<Review>           Reviews           { get; set; }
         public DbSet<WorkerAttendance> WorkerAttendances { get; set; }
         public DbSet<Appointment>      Appointments      { get; set; }
-        public DbSet<OtpCode>          OtpCodes          { get; set; }
         public DbSet<Breeding>         Breedings         { get; set; }
         public DbSet<FeedRecord>       FeedRecords       { get; set; }
+
+        // ── Transport Module ──────────────────────────────────────────────────
+        public DbSet<Vehicle>           Vehicles          { get; set; }
+        public DbSet<Driver>            Drivers           { get; set; }
+        public DbSet<TransportRequest>  TransportRequests { get; set; }
+        public DbSet<Trip>              Trips             { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +68,10 @@ namespace CattleFarm.Models
             modelBuilder.Entity<Revenue>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Review>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<HealthRecord>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<Vehicle>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<Driver>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<TransportRequest>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<Trip>().HasQueryFilter(e => !e.IsDeleted);
 
             // ── Relationships — restrict cascades to avoid multiple cascade paths ──
             // Farm → Workers/Doctors/Products/etc. (restrict so parent delete requires manual cleanup)
@@ -274,6 +283,51 @@ namespace CattleFarm.Models
                  .WithMany()
                  .HasForeignKey(f => f.RecordedByWorkerId)
                  .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ── Vehicle relationships ─────────────────────────────────────────
+            modelBuilder.Entity<Vehicle>()
+                .HasOne(v => v.Driver)
+                .WithOne(d => d.AssignedVehicle)
+                .HasForeignKey<Driver>(d => d.AssignedVehicleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // ── Trip relationships ────────────────────────────────────────────
+            modelBuilder.Entity<Trip>(e =>
+            {
+                e.HasOne(t => t.TransportRequest)
+                 .WithOne(r => r.Trip)
+                 .HasForeignKey<Trip>(t => t.TransportRequestId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(t => t.Vehicle)
+                 .WithMany(v => v.Trips)
+                 .HasForeignKey(t => t.VehicleId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(t => t.Driver)
+                 .WithMany(d => d.Trips)
+                 .HasForeignKey(t => t.DriverId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── TransportRequest relationships ────────────────────────────────
+            modelBuilder.Entity<TransportRequest>(e =>
+            {
+                e.HasOne(r => r.Order)
+                 .WithMany()
+                 .HasForeignKey(r => r.OrderId)
+                 .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(r => r.Farm)
+                 .WithMany()
+                 .HasForeignKey(r => r.FarmId)
+                 .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(r => r.RequestedByUser)
+                 .WithMany()
+                 .HasForeignKey(r => r.RequestedByUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

@@ -42,6 +42,7 @@ namespace CattleFarm.Services.Implementations
                 // Work factor 12 — good balance of security vs. performance
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12),
                 Role         = role,
+                IsEmailVerified = true,
                 CreatedAt    = DateTime.UtcNow
             };
 

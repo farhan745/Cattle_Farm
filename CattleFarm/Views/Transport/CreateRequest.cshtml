@@ -1,0 +1,160 @@
+@model CattleFarm.ViewModels.TransportRequestViewModel
+@{
+    ViewData["Title"] = "New Transport Request";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">New Transport Request</h1>
+        <p class="page-subtitle">Submit a logistics booking for approval and assignment</p>
+    </div>
+    <a href="/Transport/Requests" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="form-card-wrap">
+    <div class="form-card animate-in">
+        <form method="post" id="requestForm">
+            @Html.AntiForgeryToken()
+
+            <div class="form-section">
+                <h3 class="form-section-title">Transport Details</h3>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Transport Type <span class="required">*</span></label>
+                        <select asp-for="RequestType" class="form-select"
+                                asp-items="Html.GetEnumSelectList<CattleFarm.Models.TransportType>()"
+                                id="requestType" onchange="fetchSuggestions()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Scheduled Date <span class="required">*</span></label>
+                        <input asp-for="ScheduledDate" type="date" class="form-control"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="ScheduledDate" class="validation-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pickup Location <span class="required">*</span></label>
+                        <input asp-for="PickupLocation" class="form-control" placeholder="e.g. Farm Gate, Dhaka" />
+                        <span asp-validation-for="PickupLocation" class="validation-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Destination <span class="required">*</span></label>
+                        <input asp-for="Destination" class="form-control" placeholder="e.g. Market, Chittagong" />
+                        <span asp-validation-for="Destination" class="validation-msg"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Cargo Information</h3>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Estimated Distance (km)</label>
+                        <input asp-for="EstimatedDistanceKm" type="number" step="0.1" class="form-control"
+                               placeholder="50" id="distanceInput" oninput="fetchSuggestions()" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cargo Weight (tonnes)</label>
+                        <input asp-for="CargoWeight" type="number" step="0.01" class="form-control"
+                               placeholder="2.5" id="cargoWeight" oninput="fetchSuggestions()" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cargo Description</label>
+                        <input asp-for="CargoDescription" class="form-control"
+                               placeholder="e.g. 5 cattle, 200kg feed bags" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Suggestion Panel -->
+            <div class="form-section suggestion-panel" id="suggestionPanel" style="display:none">
+                <h3 class="form-section-title">
+                    <i class="bi bi-lightning-charge-fill" style="color:#f59e0b"></i>
+                    Smart Suggestions
+                </h3>
+                <div class="suggestion-cards">
+                    <div class="suggestion-card" id="vehicleSuggestion">
+                        <div class="suggestion-icon"><i class="bi bi-truck"></i></div>
+                        <div class="suggestion-body">
+                            <div class="suggestion-label">Recommended Vehicle</div>
+                            <div class="suggestion-value" id="suggestedVehicleName">—</div>
+                            <div class="suggestion-meta" id="suggestedVehicleMeta"></div>
+                        </div>
+                    </div>
+                    <div class="suggestion-card" id="driverSuggestion">
+                        <div class="suggestion-icon"><i class="bi bi-person-badge"></i></div>
+                        <div class="suggestion-body">
+                            <div class="suggestion-label">Recommended Driver</div>
+                            <div class="suggestion-value" id="suggestedDriverName">—</div>
+                            <div class="suggestion-meta" id="suggestedDriverMeta"></div>
+                        </div>
+                    </div>
+                    <div class="suggestion-card" id="costSuggestion">
+                        <div class="suggestion-icon"><i class="bi bi-currency-dollar"></i></div>
+                        <div class="suggestion-body">
+                            <div class="suggestion-label">Estimated Cost</div>
+                            <div class="suggestion-value" id="suggestedCost">—</div>
+                            <div class="suggestion-meta">Based on distance &amp; fuel rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Notes</h3>
+                <div class="form-group">
+                    <textarea asp-for="Notes" class="form-control" rows="3"
+                              placeholder="Special handling instructions, urgency, etc."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="/Transport/Requests" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+const activeCurrencySymbol = '@Html.Raw(Currency.GetSettings().Symbol)';
+let suggestionTimeout;
+function fetchSuggestions() {
+    clearTimeout(suggestionTimeout);
+    const weight  = parseFloat(document.getElementById('cargoWeight')?.value) || 0;
+    const dist    = parseFloat(document.getElementById('distanceInput')?.value) || 0;
+    const type    = document.getElementById('requestType')?.value || 'General';
+    if (weight <= 0 && dist <= 0) return;
+
+    suggestionTimeout = setTimeout(async () => {
+        try {
+            const vRes = await fetch(`/Transport/SuggestVehicle?cargoWeight=${weight}&requestType=${type}`);
+            const v = await vRes.json();
+            if (v && v.id) {
+                document.getElementById('suggestedVehicleName').textContent = v.name;
+                document.getElementById('suggestedVehicleMeta').textContent =
+                    `Reg: ${v.registration} | Cap: ${v.capacity}t | ${activeCurrencySymbol} ${v.fuelCostPerKm}/km`;
+
+                if (dist > 0) {
+                    const cRes = await fetch(`/Transport/CalculateCost?distanceKm=${dist}&vehicleId=${v.id}`);
+                    const c = await cRes.json();
+                    document.getElementById('suggestedCost').textContent = `${activeCurrencySymbol} ${c.formatted}`;
+                }
+
+                const dRes = await fetch(`/Transport/SuggestDriver?vehicleId=${v.id}`);
+                const d = await dRes.json();
+                if (d && d.id) {
+                    document.getElementById('suggestedDriverName').textContent = d.name;
+                    document.getElementById('suggestedDriverMeta').textContent =
+                        `${d.phone} | Rating: ${d.rating}`;
+                }
+            }
+            document.getElementById('suggestionPanel').style.display = 'block';
+        } catch(e) { console.error(e); }
+    }, 600);
+}
+</script>
+}

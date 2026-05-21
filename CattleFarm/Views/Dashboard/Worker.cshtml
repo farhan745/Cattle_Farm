@@ -1,14 +1,14 @@
 @model CattleFarm.ViewModels.WorkerDashboardViewModel
 @{ ViewData["Title"] = "Worker Dashboard"; }
 <div class="page-header">
-    <div><h1 class="page-title">👷 Worker Dashboard</h1><p class="page-subtitle">Welcome, @(Model.WorkerProfile?.FullName ?? User.Identity?.Name)</p></div>
+    <div><h1 class="page-title"> Worker Dashboard</h1><p class="page-subtitle">Welcome, @(Model.WorkerProfile?.FullName ?? User.Identity?.Name)</p></div>
 </div>
 <div class="stat-grid">
     <div class="stat-card green"><div class="stat-icon green">📅</div><div><div class="stat-value">@Model.PresentThisMonth</div><div class="stat-label">Days Present (Month)</div></div></div>
     <div class="stat-card blue"><div class="stat-icon blue">🥛</div><div><div class="stat-value">@Model.RecentMilkLogs.Count</div><div class="stat-label">Milk Logs Recorded</div></div></div>
 </div>
 <div class="card">
-    <div class="card-header"><h3 class="card-title">🥛 Recent Milk Production Logs</h3></div>
+    <div class="card-header"><h3 class="card-title"> Recent Milk Production Logs</h3></div>
     <div class="table-wrapper">
         @if (!Model.RecentMilkLogs.Any()) { <div class="empty-state" style="padding:30px"><div class="empty-icon">🥛</div><p>No logs recorded yet</p></div> }
         else {

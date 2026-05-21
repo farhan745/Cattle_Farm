@@ -72,8 +72,8 @@
                             }
                         </td>
                         <td style="text-align:right;font-weight:600">@f.QuantityKg.ToString("N1")</td>
-                        <td style="text-align:right">৳@f.CostPerKg.ToString("N2")</td>
-                        <td style="text-align:right;font-weight:700;color:var(--danger)">৳@f.TotalCost.ToString("N0")</td>
+                        <td style="text-align:right">@Currency.Format(f.CostPerKg)</td>
+                        <td style="text-align:right;font-weight:700;color:var(--danger)">@Currency.Format(f.TotalCost)</td>
                         <td>
                             <div style="display:flex;gap:6px">
                                 <a href="/Feed/Edit/@f.Id" class="btn btn-outline btn-sm"><i class="bi bi-pencil"></i></a>

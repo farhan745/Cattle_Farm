@@ -69,7 +69,7 @@
                 <div style="font-size:13px;font-weight:700;letter-spacing:.1em;color:#6B6B66;text-transform:uppercase;margin-bottom:8px">@plan.Display</div>
                 <div class="plan-price" data-monthly="@plan.Price" data-annual="@(Math.Floor(plan.Price * 0.8m))"
                      style="font-size:42px;font-weight:800;color:@(plan.Popular ? "#C8761A" : "#1C3A2A");line-height:1;margin-bottom:4px">
-                    @(plan.Price == 0 ? "Free" : $"৳{plan.Price:N0}")
+                    @(plan.Price == 0 ? "Free" : Currency.Format(plan.Price))
                 </div>
                 @if (plan.Price > 0)
                 {
@@ -180,9 +180,11 @@
 </div>
 
 <script>
+const activeCurrencySymbol = '@Html.Raw(Currency.GetSettings().Symbol)';
+
 function showOrderSummary(planEnum, planDisplay, price) {
     document.getElementById('modalPlanName').textContent  = planDisplay + ' Plan';
-    document.getElementById('modalAmount').textContent    = '৳' + Number(price).toLocaleString() + '/month';
+    document.getElementById('modalAmount').textContent    = activeCurrencySymbol + ' ' + Number(price).toLocaleString() + '/month';
     document.getElementById('modalPlanInput').value       = planEnum;
     const modal = document.getElementById('orderModal');
     modal.style.display = 'flex';
@@ -205,7 +207,7 @@ function setBilling(mode) {
         const monthly = parseFloat(el.dataset.monthly);
         const annual  = parseFloat(el.dataset.annual);
         if (!monthly) return;
-        el.textContent = '৳' + (isAnnual ? annual : monthly).toLocaleString();
+        el.textContent = activeCurrencySymbol + ' ' + (isAnnual ? annual : monthly).toLocaleString();
     });
 }
 

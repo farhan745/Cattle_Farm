@@ -9,7 +9,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">👤 My Profile</h1>
+        <h1 class="page-title"> My Profile</h1>
         <p class="page-subtitle">Manage your personal information and account settings</p>
     </div>
 </div>
@@ -72,60 +72,117 @@
         </div>
     </div>
 
-    <!-- ── Profile Form ── -->
-    <div class="card animate-in">
-        <div class="card-header">
-            <h3 class="card-title">✏️ Edit Profile</h3>
+    <!-- ── Right Column Container ── -->
+    <div style="display:flex;flex-direction:column;gap:24px;width:100%">
+        <!-- ── Profile Form ── -->
+        <div class="card animate-in">
+            <div class="card-header">
+                <h3 class="card-title">✏️ Edit Profile</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="Profile" asp-controller="Account">
+                    @Html.AntiForgeryToken()
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Full Name</label>
+                            <input name="fullName" class="form-control" value="@user.FullName" placeholder="Your full name" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input class="form-control" value="@user.Username" disabled style="background:#F2EDE4;color:#9CA3AF" />
+                            <div class="form-hint">Username cannot be changed.</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" value="@user.Email" disabled style="background:#F2EDE4;color:#9CA3AF" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input name="phone" class="form-control" value="@user.PhoneNumber" placeholder="+8801XXXXXXXXX" type="tel" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Role</label>
+                            <input class="form-control" value="@user.Role" disabled style="background:#F2EDE4;color:#9CA3AF" />
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="2" placeholder="Your address...">@user.Address</textarea>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:8px">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2"></i> Save Changes
+                        </button>
+                        <a href="/Subscription" class="btn btn-outline">
+                            <i class="bi bi-star"></i> Upgrade Plan
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="post" asp-action="Profile" asp-controller="Account">
-                @Html.AntiForgeryToken()
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div class="form-group" style="grid-column:1/-1">
-                        <label class="form-label">Full Name</label>
-                        <input name="fullName" class="form-control" value="@user.FullName" placeholder="Your full name" required />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Username</label>
-                        <input class="form-control" value="@user.Username" disabled style="background:#F2EDE4;color:#9CA3AF" />
-                        <div class="form-hint">Username cannot be changed.</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input class="form-control" value="@user.Email" disabled style="background:#F2EDE4;color:#9CA3AF" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input name="phone" class="form-control" value="@user.PhoneNumber" placeholder="+8801XXXXXXXXX" type="tel" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Role</label>
-                        <input class="form-control" value="@user.Role" disabled style="background:#F2EDE4;color:#9CA3AF" />
-                    </div>
-                    <div class="form-group" style="grid-column:1/-1">
-                        <label class="form-label">Address</label>
-                        <textarea name="address" class="form-control" rows="2" placeholder="Your address...">@user.Address</textarea>
-                    </div>
-                </div>
-
-                <div style="display:flex;gap:12px;margin-top:8px">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check2"></i> Save Changes
-                    </button>
-                    <a href="/Subscription" class="btn btn-outline">
-                        <i class="bi bi-star"></i> Upgrade Plan
-                    </a>
-                </div>
-            </form>
+        <!-- ── Danger Zone ── -->
+        <div class="card animate-in" style="border: 1px solid rgba(239, 68, 68, 0.25); background: rgba(254, 242, 242, 0.45);">
+            <div class="card-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.15)">
+                <h3 class="card-title" style="color: #ef4444; font-weight: 700;">⚠️ Danger Zone</h3>
+            </div>
+            <div class="card-body">
+                <h4 style="font-size:15px;font-weight:700;margin-bottom:6px;color:#1C3A2A">Delete Account</h4>
+                <p style="font-size:13px;color:#6B6B66;margin-bottom:16px;line-height:1.5">
+                    Permanently delete your account and all associated farms and pending transport requests. 
+                    This action is irreversible. All personal information will be completely anonymized under GDPR rules.
+                </p>
+                <button type="button" class="btn" style="background:#ef4444;color:#fff;border:none;font-weight:600;padding:8px 16px;border-radius:8px" onclick="openDeleteModal()">
+                    <i class="bi bi-trash3-fill"></i> Delete My Account
+                </button>
+            </div>
         </div>
     </div>
 
 </div>
 
+<!-- Deletion Modal Overlay -->
+<div id="deleteModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(28, 58, 42, 0.45);backdrop-filter:blur(8px);align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div id="deleteModalBox" style="width:100%;max-width:460px;background:#FAF8F4;border:2px solid #E8D5C4;border-radius:16px;padding:32px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);transform:scale(0.95);transition:transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);margin:20px;">
+        
+        <div style="text-align:center;margin-bottom:20px">
+            <div style="width:64px;height:64px;border-radius:50%;background:#FEE2E2;color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h3 style="font-size:20px;font-weight:800;color:#1C3A2A;margin-bottom:8px">Are you absolutely sure?</h3>
+            <p style="font-size:13.5px;color:#6B6B66;line-height:1.5">
+                This action cannot be undone. All active farms and pending bookings will be deleted, and personal data anonymized.
+            </p>
+        </div>
+
+        <form id="deleteAccountForm" onsubmit="submitDeleteAccount(event)">
+            <div class="form-group" style="margin-bottom:24px">
+                <label class="form-label" style="font-weight:700;color:#1C3A2A">To confirm, please enter your password:</label>
+                <input id="deletePassword" type="password" class="form-control" placeholder="Enter your current password" required style="border-color:#DDD5C8;background:#FAF8F4" />
+                <div id="deleteErrorMsg" style="color:#ef4444;font-size:12.5px;margin-top:6px;display:none;font-weight:600"></div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <button type="button" class="btn btn-outline" onclick="closeDeleteModal()" style="font-weight:600">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn" type="submit" class="btn" style="background:#EF4444;color:#fff;border:none;font-weight:600">
+                    Delete Account
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <style>
 @@keyframes spin { to { transform: rotate(360deg); } }
 #avatarWrap:hover #avatarOverlay { opacity:1; }
+.spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
 </style>
 
 <script>
@@ -180,6 +237,88 @@ function showToast(msg, type) {
     t.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill'}"></i> ${msg}`;
     document.getElementById('toastContainer')?.appendChild(t);
     setTimeout(() => t.remove(), 4000);
+}
+
+// ── Deletion Modal JavaScript ──────────────────────────────────────────────────
+function openDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    const box = document.getElementById('deleteModalBox');
+    
+    // Clear inputs and error
+    document.getElementById('deletePassword').value = '';
+    const err = document.getElementById('deleteErrorMsg');
+    err.style.display = 'none';
+    err.textContent = '';
+    
+    modal.style.display = 'flex';
+    // Force a reflow
+    modal.offsetHeight;
+    
+    // Animate
+    modal.style.opacity = '1';
+    box.style.transform = 'scale(1)';
+    
+    // Focus password field
+    setTimeout(() => document.getElementById('deletePassword').focus(), 50);
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    const box = document.getElementById('deleteModalBox');
+    
+    modal.style.opacity = '0';
+    box.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+
+async function submitDeleteAccount(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('confirmDeleteBtn');
+    const passwordInput = document.getElementById('deletePassword');
+    const err = document.getElementById('deleteErrorMsg');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Deleting...';
+    err.style.display = 'none';
+    
+    const password = passwordInput.value;
+    
+    try {
+        const response = await fetch('/account', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('meta[name="antiforgery"]')?.content
+                                           || document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: JSON.stringify({ password })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showToast('Account deleted successfully! Redirecting...', 'success');
+            closeDeleteModal();
+            setTimeout(() => {
+                window.location.href = data.redirectUrl;
+            }, 1500);
+        } else {
+            err.textContent = data.message;
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Delete Account';
+            passwordInput.focus();
+        }
+    } catch (e) {
+        console.error(e);
+        err.textContent = 'An unexpected error occurred. Please try again.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Delete Account';
+    }
 }
 </script>
 

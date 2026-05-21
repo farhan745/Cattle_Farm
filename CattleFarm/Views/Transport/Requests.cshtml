@@ -1,0 +1,175 @@
+@model IEnumerable<CattleFarm.Models.TransportRequest>
+@{
+    ViewData["Title"] = "Transport Requests";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Transport Requests</h1>
+        <p class="page-subtitle">Manage booking requests and approval workflow</p>
+    </div>
+    <a href="/Transport/CreateRequest" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> New Request
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input name="search" value="@ViewBag.Search" placeholder="Search location, destination..." class="form-control" />
+        </div>
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach (var s in Enum.GetNames<CattleFarm.Models.TripStatus>())
+            {
+                <option value="@s" selected="@(ViewBag.StatusFilter == s)">@s</option>
+            }
+        </select>
+        <select name="type" class="form-select" onchange="this.form.submit()">
+            <option value="">All Types</option>
+            @foreach (var t in Enum.GetNames<CattleFarm.Models.TransportType>())
+            {
+                <option value="@t" selected="@(ViewBag.TypeFilter == t)">@t</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a href="/Transport/Requests" class="btn btn-ghost">Clear</a>
+    </form>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-clipboard-x"></i>
+        <h3>No requests found</h3>
+        <p>Create a new transport request to get started.</p>
+        <a href="/Transport/CreateRequest" class="btn btn-primary">New Request</a>
+    </div>
+}
+else
+{
+    <div class="card animate-in">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Route</th>
+                        <th>Scheduled</th>
+                        <th>Cargo</th>
+                        <th>Requested By</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td class="text-muted text-sm">#@r.Id</td>
+                            <td>
+                                <span class="badge @GetTypeBadge(r.RequestType)">
+                                    @r.RequestType.ToString().Replace("Transport","").Replace("Delivery","")
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-600">@r.PickupLocation</div>
+                                <div class="text-muted text-sm"><i class="bi bi-arrow-down"></i> @r.Destination</div>
+                                @if (r.EstimatedDistanceKm.HasValue)
+                                {
+                                    <div class="text-sm text-muted">~@r.EstimatedDistanceKm km</div>
+                                }
+                            </td>
+                            <td>
+                                <div>@r.ScheduledDate.ToString("dd MMM yyyy")</div>
+                                <div class="text-muted text-sm">@(r.ScheduledDate < DateTime.Today ? "<span class='badge badge-warning'>Past Due</span>" : "")</div>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(r.CargoDescription))
+                                {
+                                    <div class="text-sm">@r.CargoDescription</div>
+                                }
+                                @if (r.CargoWeight.HasValue)
+                                {
+                                    <div class="text-sm text-muted">@r.CargoWeight t</div>
+                                }
+                            </td>
+                            <td class="text-sm">@r.RequestedByUser?.FullName</td>
+                            <td>
+                                <span class="badge @GetStatusBadge(r.Status)">@r.Status</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    @if (r.Status == CattleFarm.Models.TripStatus.Pending && User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+                                    {
+                                        <form method="post" action="/Transport/ApproveRequest/@r.Id" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="action-btn success" title="Approve">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (r.Status == CattleFarm.Models.TripStatus.Approved && r.Trip == null)
+                                    {
+                                        <a href="/Transport/AssignTrip/@r.Id" class="action-btn info" title="Assign Trip">
+                                            <i class="bi bi-truck"></i>
+                                        </a>
+                                    }
+                                    @if (r.Status == CattleFarm.Models.TripStatus.Pending || r.Status == CattleFarm.Models.TripStatus.Approved)
+                                    {
+                                        <form method="post" action="/Transport/CancelRequest/@r.Id" class="d-inline"
+                                              onsubmit="return confirm('Cancel this request?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="action-btn danger" title="Cancel">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (r.Trip != null)
+                                    {
+                                        <a href="/Transport/TripDetails/@r.Trip.Id" class="action-btn" title="View Trip">
+                                            <i class="bi bi-arrow-right-circle"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if ((int)ViewBag.TotalPages > 1)
+    {
+        <div class="pagination">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <a href="?page=@i&status=@ViewBag.StatusFilter&type=@ViewBag.TypeFilter&search=@ViewBag.Search"
+                   class="page-btn @(i == (int)ViewBag.CurrentPage ? "active" : "")">@i</a>
+            }
+        </div>
+    }
+}
+
+@functions {
+    string GetStatusBadge(CattleFarm.Models.TripStatus s) => s switch {
+        CattleFarm.Models.TripStatus.Pending   => "badge-warning",
+        CattleFarm.Models.TripStatus.Approved  => "badge-info",
+        CattleFarm.Models.TripStatus.Assigned  => "badge-purple",
+        CattleFarm.Models.TripStatus.Ongoing   => "badge-success",
+        CattleFarm.Models.TripStatus.Completed => "badge-success",
+        CattleFarm.Models.TripStatus.Cancelled => "badge-danger",
+        _                                      => "badge-secondary"
+    };
+    string GetTypeBadge(CattleFarm.Models.TransportType t) => t switch {
+        CattleFarm.Models.TransportType.CattleTransport  => "badge-purple",
+        CattleFarm.Models.TransportType.FeedDelivery     => "badge-info",
+        CattleFarm.Models.TransportType.ProductDelivery  => "badge-success",
+        CattleFarm.Models.TransportType.EquipmentDelivery=> "badge-warning",
+        _                                                => "badge-secondary"
+    };
+}

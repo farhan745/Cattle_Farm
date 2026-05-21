@@ -30,7 +30,7 @@
                     {
                         <tr><td style="color:var(--text-muted)">AI Technician</td><td>@Model.InseminationTechnician</td></tr>
                     }
-                    <tr><td style="color:var(--text-muted)">Cost</td><td>@(Model.Cost.HasValue ? $"৳{Model.Cost:N0}" : "—")</td></tr>
+                    <tr><td style="color:var(--text-muted)">Cost</td><td>@(Model.Cost.HasValue ? Currency.Format(Model.Cost.Value) : "—")</td></tr>
                 </tbody>
             </table>
         </div>

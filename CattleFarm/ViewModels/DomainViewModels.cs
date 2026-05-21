@@ -381,3 +381,202 @@ namespace CattleFarm.ViewModels
         public List<Product> FeaturedProducts { get; set; } = new();
     }
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Transport Module ViewModels
+// ────────────────────────────────────────────────────────────────────────────
+namespace CattleFarm.ViewModels
+{
+    using System.ComponentModel.DataAnnotations;
+    using CattleFarm.Models;
+
+    // ── Shared transport DTO ──────────────────────────────────────────────────
+    public class MonthlyTransportStat
+    {
+        public string  Month     { get; set; } = string.Empty;
+        public int     TripCount { get; set; }
+        public decimal TotalCost { get; set; }
+        public decimal TotalKm   { get; set; }
+    }
+
+    // ── Vehicle ───────────────────────────────────────────────────────────────
+    public class VehicleViewModel
+    {
+        public int Id { get; set; }
+
+        [Required, StringLength(200)]
+        public string Name { get; set; } = string.Empty;
+
+        public VehicleType   Type               { get; set; } = VehicleType.Truck;
+        public FuelType      FuelType            { get; set; } = FuelType.Diesel;
+        public VehicleStatus Status              { get; set; } = VehicleStatus.Available;
+
+        [Required, StringLength(50)]
+        public string RegistrationNumber { get; set; } = string.Empty;
+
+        [Range(0.01, 100000)]
+        public decimal Capacity       { get; set; }
+        public string? CapacityUnit   { get; set; } = "tonnes";
+
+        [Range(0, 100000)]
+        public decimal FuelCostPerKm  { get; set; }
+
+        [StringLength(1000)]
+        public string? Notes { get; set; }
+    }
+
+    // ── Driver ────────────────────────────────────────────────────────────────
+    public class DriverViewModel
+    {
+        public int Id { get; set; }
+
+        [Required, StringLength(200)]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required, StringLength(20)]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required, StringLength(100)]
+        public string LicenseNumber { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        public string? LicenseType { get; set; }
+
+        [Range(0, 60)]
+        public int ExperienceYears { get; set; }
+
+        [StringLength(500)]
+        public string? Address { get; set; }
+
+        public DriverStatus Status { get; set; } = DriverStatus.Available;
+
+        [StringLength(1000)]
+        public string? Notes { get; set; }
+
+        public int? AssignedVehicleId { get; set; }
+    }
+
+    // ── Transport Request ─────────────────────────────────────────────────────
+    public class TransportRequestViewModel
+    {
+        public int Id { get; set; }
+
+        public TransportType RequestType { get; set; } = TransportType.General;
+
+        [Required, StringLength(500)]
+        public string PickupLocation { get; set; } = string.Empty;
+
+        [Required, StringLength(500)]
+        public string Destination { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime ScheduledDate { get; set; } = DateTime.Today.AddDays(1);
+
+        [Range(0.1, 100000)]
+        public decimal? EstimatedDistanceKm { get; set; }
+
+        [Range(0, 100000)]
+        public decimal? CargoWeight { get; set; }
+
+        [StringLength(500)]
+        public string? CargoDescription { get; set; }
+
+        [StringLength(1000)]
+        public string? Notes { get; set; }
+
+        public int?  FarmId  { get; set; }
+        public int?  OrderId { get; set; }
+
+        // Smart suggestion return values
+        public int?  SuggestedVehicleId { get; set; }
+        public int?  SuggestedDriverId  { get; set; }
+    }
+
+    // ── Trip Assign ───────────────────────────────────────────────────────────
+    public class TripAssignViewModel
+    {
+        [Required]
+        public int TransportRequestId { get; set; }
+
+        [Required]
+        public int VehicleId { get; set; }
+
+        [Required]
+        public int DriverId { get; set; }
+
+        [Required, Range(0.1, 100000)]
+        public decimal DistanceKm { get; set; }
+
+        [StringLength(500)]
+        public string? RouteNotes { get; set; }
+
+        [StringLength(1000)]
+        public string? Notes { get; set; }
+    }
+
+    // ── Trip Complete ─────────────────────────────────────────────────────────
+    public class TripCompleteViewModel
+    {
+        public int     TripId          { get; set; }
+        public decimal? ActualDistance  { get; set; }
+        public decimal? AdditionalCost  { get; set; }
+        public string?  AdditionalNote  { get; set; }
+    }
+
+    // ── Transport Dashboard ───────────────────────────────────────────────────
+    public class TransportDashboardViewModel
+    {
+        public int     TotalVehicles        { get; set; }
+        public int     AvailableVehicles    { get; set; }
+        public int     OnTripVehicles       { get; set; }
+        public int     MaintenanceVehicles  { get; set; }
+        public int     TotalDrivers         { get; set; }
+        public int     AvailableDrivers     { get; set; }
+        public int     OnTripDrivers        { get; set; }
+        public int     PendingRequests      { get; set; }
+        public int     OngoingTrips         { get; set; }
+        public int     CompletedTripsTotal  { get; set; }
+        public decimal TotalCostThisMonth   { get; set; }
+        public decimal TotalCostAllTime     { get; set; }
+
+        public List<Trip>   RecentTrips    { get; set; } = new();
+        public List<Trip>   OngoingTripList{ get; set; } = new();
+        public List<MonthlyTransportStat> MonthlyStats { get; set; } = new();
+        public Dictionary<string, int>   VehicleStatusBreakdown { get; set; } = new();
+    }
+
+    // ── Transport Report ──────────────────────────────────────────────────────
+    public class TransportReportViewModel
+    {
+        public DateTime From              { get; set; }
+        public DateTime To                { get; set; }
+        public int      TotalTrips        { get; set; }
+        public int      CompletedTrips    { get; set; }
+        public int      CancelledTrips    { get; set; }
+        public decimal  TotalDistanceKm   { get; set; }
+        public decimal  TotalCost         { get; set; }
+        public decimal  AverageTripCost   { get; set; }
+        public double   AverageTripDistKm { get; set; }
+        public List<VehicleUsageStat>     VehicleUsage      { get; set; } = new();
+        public List<DriverPerformanceStat> DriverPerformance { get; set; } = new();
+        public List<MonthlyTransportStat>  MonthlyStats      { get; set; } = new();
+    }
+
+    public class VehicleUsageStat
+    {
+        public string  VehicleName  { get; set; } = string.Empty;
+        public string  Registration { get; set; } = string.Empty;
+        public int     TripCount    { get; set; }
+        public decimal TotalKm      { get; set; }
+        public decimal TotalCost    { get; set; }
+    }
+
+    public class DriverPerformanceStat
+    {
+        public string  DriverName { get; set; } = string.Empty;
+        public int     TripCount  { get; set; }
+        public decimal TotalKm    { get; set; }
+        public decimal Rating     { get; set; }
+    }
+}
+

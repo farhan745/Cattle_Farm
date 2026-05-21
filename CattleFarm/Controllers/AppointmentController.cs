@@ -37,14 +37,22 @@ namespace CattleFarm.Controllers
         [Authorize(Roles = AppRoles.AdminManagerOwnerDoctor)]
         public async Task<IActionResult> Create(int? cattleId, int? farmId)
         {
-            await LoadDropdowns();
+            if (cattleId.HasValue && cattleId.Value > 0 && (!farmId.HasValue || farmId.Value == 0))
+            {
+                var cattle = await _cattleService.GetByIdAsync(cattleId.Value);
+                if (cattle != null)
+                {
+                    farmId = cattle.FarmId;
+                }
+            }
+            await LoadDropdowns(farmId);
             return View(new AppointmentViewModel { CattleId = cattleId ?? 0, FarmId = farmId ?? 0, ScheduledAt = DateTime.Now.AddDays(1) });
         }
 
         [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOwnerDoctor)]
         public async Task<IActionResult> Create(AppointmentViewModel vm)
         {
-            if (!ModelState.IsValid) { await LoadDropdowns(); return View(vm); }
+            if (!ModelState.IsValid) { await LoadDropdowns(vm.FarmId); return View(vm); }
             var appt = await _appointmentService.CreateAsync(vm, GetUserId());
             TempData["SuccessMessage"] = "Appointment scheduled successfully.";
             return RedirectToAction(nameof(Details), new { id = appt.Id });
@@ -82,9 +90,12 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task LoadDropdowns()
+        private async Task LoadDropdowns(int? farmId = null)
         {
-            ViewBag.Cattles = await _cattleService.GetByFarmIdAsync(0);
+            if (farmId.HasValue && farmId.Value > 0)
+                ViewBag.Cattles = await _cattleService.GetByFarmIdAsync(farmId.Value);
+            else
+                ViewBag.Cattles = await _cattleService.SearchAsync(string.Empty);
             ViewBag.Doctors = await _doctorService.GetAllAsync();
             ViewBag.Farms   = await _farmService.GetAllAsync();
         }

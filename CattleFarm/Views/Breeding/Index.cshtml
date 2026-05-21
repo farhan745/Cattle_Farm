@@ -79,7 +79,7 @@
                             else { <span style="color:var(--text-muted)">—</span> }
                         </td>
                         <td><span class="badge @outcomeBadge">@b.Outcome</span></td>
-                        <td>@(b.Cost.HasValue ? $"৳{b.Cost:N0}" : "—")</td>
+                        <td>@(b.Cost.HasValue ? Currency.Format(b.Cost.Value) : "—")</td>
                         <td>
                             <div style="display:flex;gap:6px">
                                 <a href="/Breeding/Details/@b.Id" class="btn btn-ghost btn-sm" title="View"><i class="bi bi-eye"></i></a>

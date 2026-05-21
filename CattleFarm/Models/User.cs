@@ -32,7 +32,7 @@ namespace CattleFarm.Models
         public string? Address { get; set; }
 
         // Account status
-        public bool IsEmailVerified { get; set; } = false;
+        public bool IsEmailVerified { get; set; } = true;
         public bool IsActive        { get; set; } = true;
         public int  FailedLoginCount { get; set; } = 0;
         public DateTime? LockedUntil { get; set; }

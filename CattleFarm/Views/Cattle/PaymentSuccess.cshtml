@@ -18,7 +18,11 @@
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                 <span style="color: var(--text-muted); font-size: 13px;">Amount Paid:</span>
-                <span style="font-weight: 700; color: var(--primary)">৳@ViewBag.Amount</span>
+                @{
+                    decimal amtPaid = 0m;
+                    decimal.TryParse(ViewBag.Amount?.ToString() ?? "0", out amtPaid);
+                }
+                <span style="font-weight: 700; color: var(--primary)">@Currency.Format(amtPaid)</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span style="color: var(--text-muted); font-size: 13px;">Cattle Record ID:</span>

@@ -1,0 +1,182 @@
+@model CattleFarm.ViewModels.TransportReportViewModel
+@{
+    ViewData["Title"] = "Transport Reports";
+    var months = Model.MonthlyStats.Select(s => s.Month).ToArray();
+    var costs  = Model.MonthlyStats.Select(s => s.TotalCost).ToArray();
+    var trips  = Model.MonthlyStats.Select(s => s.TripCount).ToArray();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Transport Analytics</h1>
+        <p class="page-subtitle">@Model.From.ToString("dd MMM yyyy") — @Model.To.ToString("dd MMM yyyy")</p>
+    </div>
+    <form method="get" class="date-range-form">
+        <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" class="form-control" style="width:150px" />
+        <span style="align-self:center;color:var(--text-muted)">to</span>
+        <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" class="form-control" style="width:150px" />
+        <button type="submit" class="btn btn-secondary">Apply</button>
+    </form>
+</div>
+
+<!-- Summary KPIs -->
+<div class="kpi-grid animate-in">
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(37,99,235,.12);color:#2563eb"><i class="bi bi-map"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@Model.TotalTrips</div>
+            <div class="kpi-label">Total Trips</div>
+            <div class="kpi-sub">@Model.CompletedTrips completed, @Model.CancelledTrips cancelled</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(16,185,129,.12);color:#10b981"><i class="bi bi-signpost-split"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@Model.TotalDistanceKm.ToString("N0") km</div>
+            <div class="kpi-label">Total Distance</div>
+            <div class="kpi-sub">Avg @Model.AverageTripDistKm.ToString("N1") km/trip</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(239,68,68,.12);color:#ef4444"><i class="bi bi-currency-dollar"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@Currency.Format(Model.TotalCost)</div>
+            <div class="kpi-label">Total Cost</div>
+            <div class="kpi-sub">Avg @Currency.Format(Model.AverageTripCost)/trip</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(245,158,11,.12);color:#f59e0b"><i class="bi bi-percent"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-value">@(Model.TotalTrips > 0 ? ((double)Model.CompletedTrips / Model.TotalTrips * 100).ToString("N0") : "0")%</div>
+            <div class="kpi-label">Completion Rate</div>
+            <div class="kpi-sub">@Model.CompletedTrips of @Model.TotalTrips trips</div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Trend Chart -->
+<div class="card animate-in mt-6">
+    <div class="card-header">
+        <h3 class="card-title">Monthly Transport Trend</h3>
+    </div>
+    <div class="card-body">
+        <canvas id="trendChart" height="120"></canvas>
+    </div>
+</div>
+
+<div class="grid-2 mt-6">
+    <!-- Vehicle Usage -->
+    <div class="card animate-in">
+        <div class="card-header"><h3 class="card-title">Vehicle Performance</h3></div>
+        <div class="card-body p-0">
+            @if (!Model.VehicleUsage.Any())
+            {
+                <div class="empty-state-sm"><i class="bi bi-truck"></i><span>No vehicle data</span></div>
+            }
+            else
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Vehicle</th><th>Trips</th><th>Distance</th><th>Cost</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in Model.VehicleUsage.OrderByDescending(x => x.TripCount))
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-600">@v.VehicleName</div>
+                                    <div class="text-muted text-sm">@v.Registration</div>
+                                </td>
+                                <td>@v.TripCount</td>
+                                <td>@v.TotalKm km</td>
+                                <td>@Currency.Format(v.TotalCost)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <!-- Driver Performance -->
+    <div class="card animate-in">
+        <div class="card-header"><h3 class="card-title">Driver Performance</h3></div>
+        <div class="card-body p-0">
+            @if (!Model.DriverPerformance.Any())
+            {
+                <div class="empty-state-sm"><i class="bi bi-person-badge"></i><span>No driver data</span></div>
+            }
+            else
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Driver</th><th>Trips</th><th>Distance</th><th>Rating</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.DriverPerformance.OrderByDescending(x => x.TripCount))
+                        {
+                            <tr>
+                                <td class="fw-600">@d.DriverName</td>
+                                <td>@d.TripCount</td>
+                                <td>@d.TotalKm km</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:4px">
+                                        <i class="bi bi-star-fill" style="color:#f59e0b;font-size:12px"></i>
+                                        @d.Rating
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const activeCurrencySymbol = '@Html.Raw(Currency.GetSettings().Symbol)';
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const tc = isDark ? '#94a3b8' : '#6b7280';
+
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(months)),
+        datasets: [
+            {
+                label: 'Cost (@Html.Raw(Currency.GetSettings().Symbol))',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(costs)),
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37,99,235,0.08)',
+                fill: true, tension: 0.4,
+                pointBackgroundColor: '#2563eb',
+                yAxisID: 'y'
+            },
+            {
+                label: 'Trips',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(trips)),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16,185,129,0.08)',
+                fill: true, tension: 0.4,
+                pointBackgroundColor: '#10b981',
+                yAxisID: 'y1'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: tc, usePointStyle: true } } },
+        scales: {
+            x:  { grid: { color: gc }, ticks: { color: tc } },
+            y:  { grid: { color: gc }, ticks: { color: tc, callback: v => activeCurrencySymbol + ' ' + v.toLocaleString() }, position: 'left' },
+            y1: { grid: { display: false }, ticks: { color: tc }, position: 'right' }
+        }
+    }
+});
+</script>
+}

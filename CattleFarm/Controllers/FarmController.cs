@@ -31,9 +31,10 @@ namespace CattleFarm.Controllers
             return View(items);
         }
 
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            var farm = await _farmService.GetWithDetailsAsync(id);
+            if (!id.HasValue || id.Value <= 0) return RedirectToAction(nameof(Index));
+            var farm = await _farmService.GetWithDetailsAsync(id.Value);
             if (farm is null) return NotFound();
             return View(farm);
         }

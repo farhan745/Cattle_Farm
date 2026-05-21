@@ -1,0 +1,245 @@
+@model CattleFarm.Models.Trip
+@{
+    ViewData["Title"] = $"Trip #{Model.Id} Details";
+    var req = Model.TransportRequest;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Trip #@Model.Id</h1>
+        <p class="page-subtitle">
+            @req?.PickupLocation <i class="bi bi-arrow-right"></i> @req?.Destination
+        </p>
+    </div>
+    <div class="page-actions">
+        <a href="/Transport/Trips" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back to Trips</a>
+        @if (Model.Status == CattleFarm.Models.TripStatus.Assigned)
+        {
+            <form method="post" action="/Transport/StartTrip/@Model.Id" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Trip</button>
+            </form>
+        }
+        @if (Model.Status == CattleFarm.Models.TripStatus.Ongoing)
+        {
+            <button class="btn btn-primary" onclick="document.getElementById('completeModal').style.display='flex'">
+                <i class="bi bi-check-lg"></i> Complete Trip
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Status Timeline -->
+<div class="card animate-in mb-4">
+    <div class="card-body">
+        <div class="trip-timeline">
+            @{
+                var allStatuses = new[] { "Pending", "Approved", "Assigned", "Ongoing", "Completed" };
+                int currentIdx = Array.IndexOf(allStatuses, Model.Status.ToString());
+                if (Model.Status == CattleFarm.Models.TripStatus.Cancelled) currentIdx = -1;
+            }
+            @if (Model.Status == CattleFarm.Models.TripStatus.Cancelled)
+            {
+                <div class="timeline-cancelled">
+                    <i class="bi bi-x-circle-fill"></i> Trip Cancelled
+                </div>
+            }
+            else
+            {
+                @for (int i = 0; i < allStatuses.Length; i++)
+                {
+                    <div class="timeline-step @(i <= currentIdx ? "done" : "") @(i == currentIdx ? "current" : "")">
+                        <div class="timeline-dot">
+                            @if (i < currentIdx) { <i class="bi bi-check-lg"></i> }
+                            else { <span>@(i + 1)</span> }
+                        </div>
+                        <div class="timeline-label">@allStatuses[i]</div>
+                    </div>
+                    @if (i < allStatuses.Length - 1)
+                    {
+                        <div class="timeline-line @(i < currentIdx ? "done" : "")"></div>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <!-- Trip Info -->
+    <div class="card animate-in">
+        <div class="card-header"><h3 class="card-title">Trip Information</h3></div>
+        <div class="card-body">
+            <div class="detail-grid">
+                <div class="detail-row">
+                    <span class="detail-label">Type</span>
+                    <span class="detail-value"><span class="badge badge-info">@req?.RequestType</span></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Pickup</span>
+                    <span class="detail-value fw-600">@req?.PickupLocation</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Destination</span>
+                    <span class="detail-value fw-600">@req?.Destination</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Scheduled</span>
+                    <span class="detail-value">@req?.ScheduledDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Start Time</span>
+                    <span class="detail-value">@(Model.StartTime?.ToString("dd MMM yyyy HH:mm") ?? "—")</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">End Time</span>
+                    <span class="detail-value">@(Model.EndTime?.ToString("dd MMM yyyy HH:mm") ?? "—")</span>
+                </div>
+                @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+                {
+                    var duration = Model.EndTime.Value - Model.StartTime.Value;
+                    <div class="detail-row">
+                        <span class="detail-label">Duration</span>
+                        <span class="detail-value">@duration.Hours h @duration.Minutes m</span>
+                    </div>
+                }
+                <div class="detail-row">
+                    <span class="detail-label">Distance</span>
+                    <span class="detail-value">@Model.DistanceKm km</span>
+                </div>
+                @if (!string.IsNullOrEmpty(req?.CargoDescription))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Cargo</span>
+                        <span class="detail-value">@req.CargoDescription (@req.CargoWeight t)</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.RouteNotes))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Route Notes</span>
+                        <span class="detail-value">@Model.RouteNotes</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment & Cost -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- Vehicle -->
+        <div class="card animate-in">
+            <div class="card-header"><h3 class="card-title">Vehicle</h3></div>
+            <div class="card-body">
+                <div class="assignment-item">
+                    <div class="assignment-icon" style="background:rgba(37,99,235,.1);color:#2563eb">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <div>
+                        <div class="fw-600">@Model.Vehicle?.Name</div>
+                        <div class="text-muted text-sm">@Model.Vehicle?.RegistrationNumber &bull; @Model.Vehicle?.Type</div>
+                        <div class="text-muted text-sm">Capacity: @Model.Vehicle?.Capacity @Model.Vehicle?.CapacityUnit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver -->
+        <div class="card animate-in">
+            <div class="card-header"><h3 class="card-title">Driver</h3></div>
+            <div class="card-body">
+                <div class="assignment-item">
+                    <div class="avatar-circle large">@Model.Driver?.FullName?.Substring(0, Math.Min(2, Model.Driver?.FullName?.Length ?? 1)).ToUpper()</div>
+                    <div>
+                        <div class="fw-600">@Model.Driver?.FullName</div>
+                        <div class="text-muted text-sm">@Model.Driver?.Phone</div>
+                        <div class="text-muted text-sm">License: @Model.Driver?.LicenseNumber</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Breakdown -->
+        <div class="card animate-in">
+            <div class="card-header"><h3 class="card-title">Cost Breakdown</h3></div>
+            <div class="card-body">
+                <div class="cost-breakdown">
+                    <div class="cost-row">
+                        <span>Base Cost</span>
+                        <span>@Currency.Format(Model.BaseCost)</span>
+                    </div>
+                    <div class="cost-row">
+                        <span>Fuel Cost (@Model.DistanceKm km × @Currency.Format(Model.FuelCostPerKm))</span>
+                        <span>@Currency.Format(Model.FuelCost)</span>
+                    </div>
+                    @if (Model.AdditionalCost > 0)
+                    {
+                        <div class="cost-row">
+                            <span>Additional (@Model.AdditionalCostNote)</span>
+                            <span>@Currency.Format(Model.AdditionalCost)</span>
+                        </div>
+                    }
+                    <div class="cost-row total">
+                        <span>Total Cost</span>
+                        <span>@Currency.Format(Model.TotalCost)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (req?.Order != null)
+{
+    <div class="card animate-in mt-4">
+        <div class="card-header">
+            <h3 class="card-title">Linked Order</h3>
+            <a href="/Order/Details/@req.OrderId" class="btn btn-sm btn-ghost">View Order</a>
+        </div>
+        <div class="card-body">
+            <div class="detail-row">
+                <span class="detail-label">Order #</span>
+                <span class="detail-value">@req.OrderId</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value">@Currency.Format(req.Order.TotalAmount)</span>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Complete Trip Modal -->
+<div class="modal-overlay" id="completeModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Complete Trip #@Model.Id</h3>
+            <button class="modal-close" onclick="document.getElementById('completeModal').style.display='none'">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form method="post" action="/Transport/CompleteTrip">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="TripId" value="@Model.Id" />
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Actual Distance (km)</label>
+                    <input name="ActualDistance" type="number" step="0.1" class="form-control" value="@Model.DistanceKm" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Cost (@Currency.GetSettings().Symbol)</label>
+                    <input name="AdditionalCost" type="number" step="0.01" class="form-control" placeholder="0" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Note (e.g. Toll, Overtime)</label>
+                    <input name="AdditionalNote" class="form-control" placeholder="Optional" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost"
+                        onclick="document.getElementById('completeModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-primary">Mark Complete</button>
+            </div>
+        </form>
+    </div>
+</div>

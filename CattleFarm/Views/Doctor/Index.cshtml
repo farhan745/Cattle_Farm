@@ -3,7 +3,7 @@
     ViewData["Title"] = "Veterinarians";
 }
 <div class="page-header">
-    <div><h1 class="page-title">👨‍⚕️ Veterinarians</h1><p class="page-subtitle">Registered doctors and vet specialists</p></div>
+    <div><h1 class="page-title"> Veterinarians</h1><p class="page-subtitle">Registered doctors and vet specialists</p></div>
     <div class="page-actions">
         @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
         { <a href="/Doctor/Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Register Doctor</a> }
@@ -24,7 +24,7 @@
             <div class="cattle-card-body" style="padding-top:8px">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
                     <div><div style="color:var(--text-muted)">Phone</div><div style="font-weight:600">@(d.Phone ?? "—")</div></div>
-                    <div><div style="color:var(--text-muted)">Fee</div><div style="font-weight:600;color:var(--primary)">৳@d.ConsultationFee/visit</div></div>
+                    <div><div style="color:var(--text-muted)">Fee</div><div style="font-weight:600;color:var(--primary)">@Currency.Format(d.ConsultationFee)/visit</div></div>
                     <div><div style="color:var(--text-muted)">License</div><div style="font-weight:600">@(d.LicenseNumber ?? "—")</div></div>
                     <div><div style="color:var(--text-muted)">Farm</div><div style="font-weight:600">@(d.Farm?.Name ?? "Independent")</div></div>
                 </div>

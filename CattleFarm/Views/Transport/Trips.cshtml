@@ -1,0 +1,167 @@
+@model IEnumerable<CattleFarm.Models.Trip>
+@{
+    ViewData["Title"] = "Trips";
+    string[] statuses = Enum.GetNames<CattleFarm.Models.TripStatus>();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Trip Management</h1>
+        <p class="page-subtitle">Track all transport trips across their full lifecycle</p>
+    </div>
+</div>
+
+<!-- Status Tabs -->
+<div class="status-tabs">
+    <a href="/Transport/Trips" class="status-tab @(string.IsNullOrEmpty(ViewBag.StatusFilter as string) ? "active" : "")">All</a>
+    @foreach (var s in statuses)
+    {
+        <a href="/Transport/Trips?status=@s" class="status-tab @(ViewBag.StatusFilter == s ? "active" : "")">@s</a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-map"></i>
+        <h3>No trips found</h3>
+        <p>Approve a request and assign a trip to see it here.</p>
+        <a href="/Transport/Requests" class="btn btn-primary">View Requests</a>
+    </div>
+}
+else
+{
+    <div class="card animate-in">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Trip #</th>
+                        <th>Route</th>
+                        <th>Vehicle</th>
+                        <th>Driver</th>
+                        <th>Distance</th>
+                        <th>Cost</th>
+                        <th>Started</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model)
+                    {
+                        <tr>
+                            <td class="text-muted text-sm">#@t.Id</td>
+                            <td>
+                                <div class="fw-600">@t.TransportRequest?.PickupLocation</div>
+                                <div class="text-muted text-sm"><i class="bi bi-arrow-down"></i> @t.TransportRequest?.Destination</div>
+                            </td>
+                            <td>
+                                <div>@t.Vehicle?.Name</div>
+                                <div class="text-muted text-sm">@t.Vehicle?.RegistrationNumber</div>
+                            </td>
+                            <td>@t.Driver?.FullName</td>
+                            <td>@t.DistanceKm km</td>
+                            <td class="fw-600">@Currency.Format(t.TotalCost)</td>
+                            <td class="text-sm">
+                                @(t.StartTime.HasValue ? t.StartTime.Value.ToString("dd MMM HH:mm") : "—")
+                            </td>
+                            <td>
+                                <span class="badge @GetStatusBadge(t.Status)">@t.Status</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="/Transport/TripDetails/@t.Id" class="action-btn" title="Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @if (t.Status == CattleFarm.Models.TripStatus.Assigned)
+                                    {
+                                        <form method="post" action="/Transport/StartTrip/@t.Id" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="action-btn success" title="Start Trip">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (t.Status == CattleFarm.Models.TripStatus.Ongoing)
+                                    {
+                                        <button class="action-btn info" title="Complete Trip"
+                                                onclick="openCompleteModal(@t.Id, @t.DistanceKm)">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if ((int)ViewBag.TotalPages > 1)
+    {
+        <div class="pagination">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <a href="?page=@i&status=@ViewBag.StatusFilter"
+                   class="page-btn @(i == (int)ViewBag.CurrentPage ? "active" : "")">@i</a>
+            }
+        </div>
+    }
+}
+
+<!-- Complete Trip Modal -->
+<div class="modal-overlay" id="completeModal" style="display:none" onclick="if(event.target===this)closeCompleteModal()">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Complete Trip</h3>
+            <button class="modal-close" onclick="closeCompleteModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="post" action="/Transport/CompleteTrip">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="TripId" id="completeTripId" />
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Actual Distance (km)</label>
+                    <input name="ActualDistance" type="number" step="0.1" class="form-control" id="actualDist" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Cost (@Currency.GetSettings().Symbol)</label>
+                    <input name="AdditionalCost" type="number" step="0.01" class="form-control" placeholder="0" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Note</label>
+                    <input name="AdditionalNote" class="form-control" placeholder="e.g. Toll fees, overtime" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeCompleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Mark Complete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadge(CattleFarm.Models.TripStatus s) => s switch {
+        CattleFarm.Models.TripStatus.Assigned  => "badge-info",
+        CattleFarm.Models.TripStatus.Ongoing   => "badge-purple",
+        CattleFarm.Models.TripStatus.Completed => "badge-success",
+        CattleFarm.Models.TripStatus.Cancelled => "badge-danger",
+        _                                      => "badge-warning"
+    };
+}
+
+@section Scripts {
+<script>
+function openCompleteModal(tripId, dist) {
+    document.getElementById('completeTripId').value = tripId;
+    document.getElementById('actualDist').value = dist;
+    document.getElementById('completeModal').style.display = 'flex';
+}
+function closeCompleteModal() {
+    document.getElementById('completeModal').style.display = 'none';
+}
+</script>
+}

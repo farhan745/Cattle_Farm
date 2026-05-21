@@ -26,7 +26,7 @@ namespace CattleFarm.Repositories.Implementations
             => await _dbSet.ToListAsync();
 
         /// <inheritdoc/>
-        public async Task<T?> GetByIdAsync(int id)
+        public virtual async Task<T?> GetByIdAsync(int id)
             => await _dbSet.FindAsync(id);
 
         /// <inheritdoc/>

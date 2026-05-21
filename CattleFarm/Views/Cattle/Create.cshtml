@@ -83,7 +83,7 @@
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="form-group">
-                            <label class="form-label">Purchase Price (৳)</label>
+                            <label class="form-label">Purchase Price (@Currency.GetSettings().Symbol)</label>
                             <input asp-for="PurchasePrice" class="form-control" type="number" step="0.01" />
                         </div>
                         <div class="form-group">
@@ -91,7 +91,7 @@
                             <input asp-for="PurchaseDate" class="form-control" type="date" />
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Sale Price (৳)</label>
+                            <label class="form-label">Sale Price (@Currency.GetSettings().Symbol)</label>
                             <input asp-for="SalePrice" class="form-control" type="number" step="0.01" id="salePriceInput" />
                         </div>
                         <div class="form-group">

@@ -45,6 +45,11 @@ builder.Services.AddScoped<IFinancialService,       FinancialService>();
 builder.Services.AddScoped<ISubscriptionService,    SubscriptionService>();
 builder.Services.AddScoped<IAppointmentService,     AppointmentService>();
 builder.Services.AddScoped<IDashboardService,       DashboardService>();
+builder.Services.AddScoped<ITransportService,        TransportService>();
+
+// ── Currency Services ──────────────────────────────────────────────
+builder.Services.Configure<CurrencySettings>(builder.Configuration.GetSection("CurrencySettings"));
+builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
 // ── Email + Payment Services ───────────────────────────────────────
 builder.Services.AddScoped<IEmailService,           EmailService>();
@@ -83,7 +88,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db  = scope.ServiceProvider.GetRequiredService<CattleFarmDbContext>();
     var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
-    await DbSeeder.SeedAsync(db);
+    await DbSeeder.SeedAsync(db, env.IsDevelopment());
     // Ensure upload folders exist
     foreach (var folder in new[] { "avatars", "cattle", "farms", "products" })
         Directory.CreateDirectory(Path.Combine(env.WebRootPath, "uploads", folder));

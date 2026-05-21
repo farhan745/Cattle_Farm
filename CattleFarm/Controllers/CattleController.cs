@@ -15,6 +15,7 @@ namespace CattleFarm.Controllers
         private readonly IAuditService  _auditService;
         private readonly IPaymentGatewayService _paymentService;
         private readonly CattleFarmDbContext     _db;
+        private readonly ICurrencyService        _currencyService;
         private const int PageSize = 12;
 
         public CattleController(
@@ -22,13 +23,15 @@ namespace CattleFarm.Controllers
             IFarmService farmService, 
             IAuditService auditService,
             IPaymentGatewayService paymentService,
-            CattleFarmDbContext db)
+            CattleFarmDbContext db,
+            ICurrencyService currencyService)
         {
             _cattleService = cattleService;
             _farmService   = farmService;
             _auditService  = auditService;
             _paymentService = paymentService;
             _db = db;
+            _currencyService = currencyService;
         }
 
         // ── INDEX ─────────────────────────────────────────────────────────────
@@ -54,10 +57,10 @@ namespace CattleFarm.Controllers
 
         // ── CREATE ────────────────────────────────────────────────────────────
         [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? farmId = null)
         {
             await LoadFarmsAsync();
-            return View(new CattleViewModel { DateOfBirth = DateTime.Today });
+            return View(new CattleViewModel { DateOfBirth = DateTime.Today, FarmId = farmId ?? 0 });
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -165,7 +168,7 @@ namespace CattleFarm.Controllers
                 await _cattleService.UpdateAsync(id, vm);
 
                 await _auditService.LogActivityAsync(userId.Value,
-                    $"Purchased cattle: {cattle.Name} (৳{cattle.SalePrice?.ToString("N0")})", "Cattle", id);
+                    $"Purchased cattle: {cattle.Name} ({_currencyService.Format(cattle.SalePrice)})", "Cattle", id);
 
                 TempData["SuccessMessage"] = $"🎉 Purchase request for '{cattle.Name}' submitted (Cash)! The farm owner will contact you.";
                 return RedirectToAction(nameof(Details), new { id });
@@ -259,7 +262,7 @@ namespace CattleFarm.Controllers
                         _db.Payments.Update(pendingPayment);
 
                         await _auditService.LogActivityAsync(pendingPayment.UserId,
-                            $"Cattle purchase online payment success: {cattle.Name} (৳{parsedAmount.ToString("N0")})", "Cattle", cattleId);
+                            $"Cattle purchase online payment success: {cattle.Name} ({_currencyService.Format(parsedAmount)})", "Cattle", cattleId);
                     }
                 }
             }

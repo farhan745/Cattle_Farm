@@ -1,0 +1,92 @@
+@model CattleFarm.ViewModels.DriverViewModel
+@{
+    bool isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit Driver" : "Add Driver";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@ViewData["Title"]</h1>
+        <p class="page-subtitle">@(isEdit ? "Update driver profile" : "Register a new driver to your team")</p>
+    </div>
+    <a href="/Transport/Drivers" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back to Drivers</a>
+</div>
+
+<div class="form-card-wrap">
+    <div class="form-card animate-in">
+        <form method="post" action="@(isEdit ? $"/Transport/EditDriver/{Model.Id}" : "/Transport/CreateDriver")">
+            @Html.AntiForgeryToken()
+
+            <div class="form-section">
+                <h3 class="form-section-title">Personal Information</h3>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Full Name <span class="required">*</span></label>
+                        <input asp-for="FullName" class="form-control" placeholder="Driver full name" />
+                        <span asp-validation-for="FullName" class="validation-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number <span class="required">*</span></label>
+                        <input asp-for="Phone" class="form-control" placeholder="+880 1XXX-XXXXXX" />
+                        <span asp-validation-for="Phone" class="validation-msg"></span>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label class="form-label">Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Driver's home address"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">License & Experience</h3>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label class="form-label">License Number <span class="required">*</span></label>
+                        <input asp-for="LicenseNumber" class="form-control" placeholder="DL-XXXXXXXXXX" />
+                        <span asp-validation-for="LicenseNumber" class="validation-msg"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">License Type</label>
+                        <select asp-for="LicenseType" class="form-select">
+                            <option value="">Select type</option>
+                            <option value="Commercial">Commercial (Heavy)</option>
+                            <option value="Light">Light Vehicle</option>
+                            <option value="Motorcycle">Motorcycle</option>
+                            <option value="All">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Years of Experience</label>
+                        <input asp-for="ExperienceYears" type="number" class="form-control" min="0" max="60" />
+                    </div>
+                    @if (isEdit)
+                    {
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select asp-for="Status" class="form-select"
+                                    asp-items="Html.GetEnumSelectList<CattleFarm.Models.DriverStatus>()"></select>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Notes</h3>
+                <div class="form-group">
+                    <textarea asp-for="Notes" class="form-control" rows="3"
+                              placeholder="Additional notes about this driver..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="/Transport/Drivers" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-@(isEdit ? "check-lg" : "plus-lg")"></i>
+                    @(isEdit ? "Save Changes" : "Add Driver")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

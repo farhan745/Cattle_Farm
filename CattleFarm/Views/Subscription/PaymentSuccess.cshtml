@@ -22,7 +22,11 @@
             </div>
             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E8E0D4">
                 <span style="color:#6B6B66;font-size:13px">Amount Paid</span>
-                <strong style="color:#C8761A;font-size:15px">৳@ViewBag.Amount</strong>
+                @{
+                    decimal amtPaid = 0m;
+                    decimal.TryParse(ViewBag.Amount?.ToString() ?? "0", out amtPaid);
+                }
+                <strong style="color:#C8761A;font-size:15px">@Currency.Format(amtPaid)</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:8px 0">
                 <span style="color:#6B6B66;font-size:13px">Transaction ID</span>

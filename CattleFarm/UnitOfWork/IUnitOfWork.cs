@@ -26,6 +26,12 @@ namespace CattleFarm.UnitOfWork
         IBreedingRepository         Breedings         { get; }
         IFeedRepository             FeedRecords       { get; }
 
+        // ── Transport Module ────────────────────────────────────────────
+        IVehicleRepository          Vehicles          { get; }
+        IDriverRepository           Drivers           { get; }
+        ITransportRequestRepository TransportRequests { get; }
+        ITripRepository             Trips             { get; }
+
         /// <summary>Commits all pending changes atomically. Returns affected row count.</summary>
         Task<int> SaveChangesAsync();
     }

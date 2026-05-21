@@ -1,8 +1,128 @@
 @model CattleFarm.ViewModels.OwnerDashboardViewModel
 @{
     ViewData["Title"] = "Farm Dashboard";
-    var activeColor = "#16a34a"; var sickColor = "#dc2626"; var soldColor = "#2563eb"; var decColor = "#94a3b8";
+    var activeColor = "#22c55e"; var sickColor = "#ef4444"; var soldColor = "#3b82f6"; var decColor = "#94a3b8";
 }
+
+<style>
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    @@media (min-width: 1200px) {
+        .dashboard-container {
+            grid-template-columns: 1fr 360px;
+        }
+    }
+
+    .dashboard-main-col {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .dashboard-sidebar-col {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: sticky;
+        top: 88px;
+    }
+
+    .right-panel-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .right-panel-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+    }
+
+    .right-panel-card .card-header-simple {
+        width: 100%;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    .right-panel-card .card-title-simple {
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Pulse Badge Styles for Live Performance Indicator */
+    .pulse-badge {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .pulse-badge.green {
+        background-color: #22c55e;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        animation: pulse-green 1.5s infinite;
+    }
+
+    .pulse-badge.red {
+        background-color: #ef4444;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        animation: pulse-red 1.5s infinite;
+    }
+
+    @@keyframes pulse-green {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+        }
+    }
+
+    @@keyframes pulse-red {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+    }
+</style>
 
 <div class="page-header animate-in">
     <div>
@@ -24,361 +144,879 @@
     </div>
 </div>
 
-<!-- KPI Row -->
-<div class="stat-grid animate-in">
-    <div class="stat-card green">
-        <div class="stat-icon green"><i class="bi bi-collection"></i></div>
-        <div>
-            <div class="stat-value">@Model.TotalCattle</div>
-            <div class="stat-label">Total Cattle</div>
-            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> @Model.ActiveCattle active</div>
-        </div>
-    </div>
-    <div class="stat-card blue">
-        <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
-        <div>
-            <div class="stat-value">@Model.MilkTodayLiters.ToString("F1")<span style="font-size:13px;font-weight:400"> L</span></div>
-            <div class="stat-label">Milk Today</div>
-            <div class="stat-change up"><i class="bi bi-clock"></i> Today's yield</div>
-        </div>
-    </div>
-    <div class="stat-card green">
-        <div class="stat-icon green"><i class="bi bi-currency-dollar"></i></div>
-        <div>
-            <div class="stat-value">&#2547;@((Model.TotalRevenue / 1000).ToString("F0"))K</div>
-            <div class="stat-label">Revenue MTD</div>
-            <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> This month</div>
-        </div>
-    </div>
-    <div class="stat-card @(Model.NetProfit >= 0 ? "green" : "red")">
-        <div class="stat-icon @(Model.NetProfit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
-        <div>
-            <div class="stat-value">&#2547;@((Math.Abs(Model.NetProfit) / 1000).ToString("F0"))K</div>
-            <div class="stat-label">Net Profit MTD</div>
-            <div class="stat-change @(Model.NetProfit >= 0 ? "up" : "down")">
-                <i class="bi bi-arrow-@(Model.NetProfit >= 0 ? "up" : "down")-short"></i>
-                @(Model.NetProfit >= 0 ? "Profitable" : "Net loss")
+<div class="dashboard-container">
+    <!-- Left Column (Center/Main Content) -->
+    <div class="dashboard-main-col animate-in">
+        <!-- KPI Row -->
+        <div class="stat-grid">
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-collection"></i></div>
+                <div>
+                    <div class="stat-value">@Model.TotalCattle</div>
+                    <div class="stat-label">Total Cattle</div>
+                    <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> @Model.ActiveCattle active</div>
+                </div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
+                <div>
+                    <div class="stat-value">@Model.MilkTodayLiters.ToString("F1")<span style="font-size:13px;font-weight:400"> L</span></div>
+                    <div class="stat-label">Milk Today</div>
+                    <div class="stat-change up"><i class="bi bi-clock"></i> Today's yield</div>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-currency-dollar"></i></div>
+                <div>
+                    <div class="stat-value">@Currency.GetSettings().Symbol @((Model.TotalRevenue / 1000).ToString("F0"))K</div>
+                    <div class="stat-label">Revenue MTD</div>
+                    <div class="stat-change up"><i class="bi bi-arrow-up-short"></i> This month</div>
+                </div>
+            </div>
+            <div class="stat-card @(Model.NetProfit >= 0 ? "green" : "red")">
+                <div class="stat-icon @(Model.NetProfit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
+                <div>
+                    <div class="stat-value">@Currency.GetSettings().Symbol @((Math.Abs(Model.NetProfit) / 1000).ToString("F0"))K</div>
+                    <div class="stat-label">Net Profit MTD</div>
+                    <div class="stat-change @(Model.NetProfit >= 0 ? "up" : "down")">
+                        <i class="bi bi-arrow-@(Model.NetProfit >= 0 ? "up" : "down")-short"></i>
+                        @(Model.NetProfit >= 0 ? "Profitable" : "Net loss")
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-icon red"><i class="bi bi-exclamation-triangle"></i></div>
+                <div>
+                    <div class="stat-value">@Model.HighRiskCount</div>
+                    <div class="stat-label">High Risk Cattle</div>
+                    <div class="stat-change @(Model.HighRiskCount > 0 ? "down" : "up")">
+                        @(Model.HighRiskCount > 0 ? "Attention required" : "All healthy")
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber"><i class="bi bi-calendar-event"></i></div>
+                <div>
+                    <div class="stat-value">@Model.VaccinationDueCount</div>
+                    <div class="stat-label">Vaccination Due</div>
+                    <div class="stat-change @(Model.VaccinationDueCount > 0 ? "down" : "up")">
+                        @(Model.VaccinationDueCount > 0 ? "Scheduled soon" : "Up to date")
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="stat-card red">
-        <div class="stat-icon red"><i class="bi bi-exclamation-triangle"></i></div>
-        <div>
-            <div class="stat-value">@Model.HighRiskCount</div>
-            <div class="stat-label">High Risk Cattle</div>
-            <div class="stat-change @(Model.HighRiskCount > 0 ? "down" : "up")">
-                @(Model.HighRiskCount > 0 ? "Attention required" : "All healthy")
-            </div>
-        </div>
-    </div>
-    <div class="stat-card amber">
-        <div class="stat-icon amber"><i class="bi bi-calendar-event"></i></div>
-        <div>
-            <div class="stat-value">@Model.VaccinationDueCount</div>
-            <div class="stat-label">Vaccination Due</div>
-            <div class="stat-change @(Model.VaccinationDueCount > 0 ? "down" : "up")">
-                @(Model.VaccinationDueCount > 0 ? "Scheduled soon" : "Up to date")
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Charts Row: Milk Line + Cattle Donut -->
-<div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:18px" class="chart-grid animate-in">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-droplet" style="color:var(--info)"></i> Milk Production — Last 7 Days</h3>
-            <a href="/MilkProduction" class="btn btn-ghost btn-sm">View all</a>
-        </div>
-        <div class="card-body">
-            <div class="chart-container" style="height:220px">
-                <canvas id="milkChart"></canvas>
+        <!-- Charts Row: Milk Line + Cattle Donut -->
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="chart-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-droplet" style="color:var(--info)"></i> Milk Production — Last 7 Days</h3>
+                    <a href="/MilkProduction" class="btn btn-ghost btn-sm">View all</a>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height:220px">
+                        <canvas id="milkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--accent)"></i> Herd Status</h3>
+                </div>
+                <div class="card-body" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="chart-container" style="height:180px;width:180px">
+                        <canvas id="herdChart"></canvas>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;width:100%;font-size:12px">
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@activeColor;display:inline-block"></span> Active (@Model.ActiveCount)</div>
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@sickColor;display:inline-block"></span> Sick/At-Risk (@Model.SickCount)</div>
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@soldColor;display:inline-block"></span> Sold (@Model.SoldCount)</div>
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@decColor;display:inline-block"></span> Deceased (@Model.DeceasedCount)</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--accent)"></i> Herd Status</h3>
-        </div>
-        <div class="card-body" style="display:flex;flex-direction:column;align-items:center">
-            <div class="chart-container" style="height:180px;width:180px">
-                <canvas id="herdChart"></canvas>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;width:100%;font-size:12px">
-                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@activeColor;display:inline-block"></span> Active (@Model.ActiveCount)</div>
-                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@sickColor;display:inline-block"></span> Sick/At-Risk (@Model.SickCount)</div>
-                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@soldColor;display:inline-block"></span> Sold (@Model.SoldCount)</div>
-                <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@decColor;display:inline-block"></span> Deceased (@Model.DeceasedCount)</div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Revenue vs Expense Bar Chart -->
-<div class="card animate-in" style="margin-bottom:18px">
-    <div class="card-header">
-        <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color:var(--primary)"></i> Revenue vs Expenses — Last 6 Months</h3>
-        <a href="/Financial" class="btn btn-outline btn-sm">View Details</a>
-    </div>
-    <div class="card-body">
-        <div class="chart-container" style="height:240px">
-            <canvas id="revenueChart"></canvas>
+        <!-- Revenue vs Expense Bar Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color:var(--primary)"></i> Revenue vs Expenses — Last 6 Months</h3>
+                <a href="/Financial" class="btn btn-outline btn-sm">View Details</a>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height:240px">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- Alerts Row -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px" class="animate-in">
-    <!-- High Risk Cattle -->
-    <div class="card" style="border-left:3px solid var(--danger)">
-        <div class="card-header">
-            <h3 class="card-title" style="color:var(--danger)"><i class="bi bi-exclamation-triangle-fill"></i> High Risk Cattle</h3>
-            <a href="/Health?riskLevel=2" class="btn btn-ghost btn-sm">View all</a>
-        </div>
-        @if (Model.HighRiskCattle.Any())
-        {
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead><tr><th>Name</th><th>Tag</th><th>Status</th></tr></thead>
-                    <tbody>
-                        @foreach (var c in Model.HighRiskCattle.Take(5))
-                        {
-                            <tr>
-                                <td><span style="font-weight:600">@c.Name</span><div style="font-size:11px;color:var(--text-muted)">@c.Breed</div></td>
-                                <td><code style="font-size:11px">@c.TagId</code></td>
-                                <td>
-                                    @{
-                                        var hBadge = c.HealthStatus switch {
-                                            CattleFarm.Models.HealthStatus.Critical => "badge-danger",
-                                            CattleFarm.Models.HealthStatus.Sick     => "badge-warning",
-                                            CattleFarm.Models.HealthStatus.AtRisk   => "badge-warning",
-                                            _ => "badge-success"
-                                        };
-                                    }
-                                    <span class="badge @hBadge">@c.HealthStatus</span>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="card-body empty-state" style="padding:24px">
-                <i class="bi bi-check-circle" style="font-size:28px;color:var(--success)"></i>
-                <h3 style="margin-top:8px">No high-risk cattle</h3>
-            </div>
-        }
-    </div>
-
-    <!-- Upcoming Vaccinations -->
-    <div class="card" style="border-left:3px solid var(--accent)">
-        <div class="card-header">
-            <h3 class="card-title" style="color:var(--accent)"><i class="bi bi-calendar-check-fill"></i> Vaccination Schedule</h3>
-            <a href="/Health/Vaccinations" class="btn btn-ghost btn-sm">View all</a>
-        </div>
-        @if (Model.UpcomingVaccinations.Any())
-        {
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead><tr><th>Vaccine</th><th>Due Date</th></tr></thead>
-                    <tbody>
-                        @foreach (var v in Model.UpcomingVaccinations.Take(5))
-                        {
-                            var daysLeft = v.NextDueDate.HasValue ? (v.NextDueDate.Value - DateTime.Today).Days : 999;
-                            <tr>
-                                <td><span style="font-weight:600">@v.VaccineName</span></td>
-                                <td>
-                                    <span class="badge @(daysLeft <= 7 ? "badge-danger" : daysLeft <= 14 ? "badge-warning" : "badge-info")">
-                                        @v.NextDueDate?.ToString("MMM dd, yyyy")
-                                    </span>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="card-body empty-state" style="padding:24px">
-                <i class="bi bi-check-circle" style="font-size:28px;color:var(--success)"></i>
-                <h3 style="margin-top:8px">All vaccinations current</h3>
-            </div>
-        }
-    </div>
-</div>
-
-<!-- Top Producers Table -->
-<div class="card animate-in" style="margin-bottom:18px">
-    <div class="card-header">
-        <h3 class="card-title"><i class="bi bi-trophy" style="color:var(--warning)"></i> Top Producing Cattle (30-day avg)</h3>
-        <a href="/MilkProduction" class="btn btn-outline btn-sm">Full Report</a>
-    </div>
-    @if (Model.TopProducers.Any())
-    {
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Tag ID</th>
-                        <th>Name</th>
-                        <th>Breed</th>
-                        <th style="text-align:right">Avg Daily (L)</th>
-                        <th>Health</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{ int rank = 1; }
-                    @foreach (var p in Model.TopProducers)
-                    {
-                        <tr>
-                            <td>
-                                <span style="font-weight:700;color:@(rank == 1 ? "#d97706" : rank == 2 ? "#94a3b8" : rank == 3 ? "#b45309" : "var(--text-muted)")">#@rank</span>
-                            </td>
-                            <td><code style="font-size:12px">@p.TagId</code></td>
-                            <td><span style="font-weight:600">@p.Name</span></td>
-                            <td style="color:var(--text-muted)">@p.Breed</td>
-                            <td style="text-align:right;font-weight:700;color:var(--primary)">@p.DailyAvgLiters.ToString("F1")</td>
-                            <td>
-                                @{
-                                    var hb2 = p.HealthStatus switch {
-                                        CattleFarm.Models.HealthStatus.Healthy  => "badge-success",
-                                        CattleFarm.Models.HealthStatus.AtRisk   => "badge-warning",
-                                        CattleFarm.Models.HealthStatus.Sick     => "badge-danger",
-                                        CattleFarm.Models.HealthStatus.Critical => "badge-danger",
-                                        _ => "badge-gray"
-                                    };
+        <!-- Alerts Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+            <!-- High Risk Cattle -->
+            <div class="card" style="border-left:3px solid var(--danger)">
+                <div class="card-header">
+                    <h3 class="card-title" style="color:var(--danger)"><i class="bi bi-exclamation-triangle-fill"></i> High Risk Cattle</h3>
+                    <a href="/Health?riskLevel=2" class="btn btn-ghost btn-sm">View all</a>
+                </div>
+                @if (Model.HighRiskCattle.Any())
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Name</th><th>Tag</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @foreach (var c in Model.HighRiskCattle.Take(5))
+                                {
+                                    <tr>
+                                        <td><span style="font-weight:600">@c.Name</span><div style="font-size:11px;color:var(--text-muted)">@c.Breed</div></td>
+                                        <td><code style="font-size:11px">@c.TagId</code></td>
+                                        <td>
+                                            @{
+                                                var hBadge = c.HealthStatus switch {
+                                                    CattleFarm.Models.HealthStatus.Critical => "badge-danger",
+                                                    CattleFarm.Models.HealthStatus.Sick     => "badge-warning",
+                                                    CattleFarm.Models.HealthStatus.AtRisk   => "badge-warning",
+                                                    _ => "badge-success"
+                                                };
+                                            }
+                                            <span class="badge @hBadge">@c.HealthStatus</span>
+                                        </td>
+                                    </tr>
                                 }
-                                <span class="badge @hb2">@p.HealthStatus</span>
-                            </td>
-                        </tr>
-                        rank++;
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-    else
-    {
-        <div class="card-body empty-state">
-            <i class="bi bi-droplet" style="font-size:32px"></i>
-            <h3>No milk production data for the past 30 days</h3>
-        </div>
-    }
-</div>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-body empty-state" style="padding:24px">
+                        <i class="bi bi-check-circle" style="font-size:28px;color:var(--success)"></i>
+                        <h3 style="margin-top:8px">No high-risk cattle</h3>
+                    </div>
+                }
+            </div>
 
-<!-- Profitability Panel -->
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px" class="financial-grid animate-in">
-    <div class="card">
-        <div class="card-body" style="text-align:center;padding:22px">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Revenue MTD</div>
-            <div style="font-size:26px;font-weight:800;color:var(--success)">&#2547;@Model.TotalRevenue.ToString("N0")</div>
+            <!-- Upcoming Vaccinations -->
+            <div class="card" style="border-left:3px solid var(--accent)">
+                <div class="card-header">
+                    <h3 class="card-title" style="color:var(--accent)"><i class="bi bi-calendar-check-fill"></i> Vaccination Schedule</h3>
+                    <a href="/Health/Vaccinations" class="btn btn-ghost btn-sm">View all</a>
+                </div>
+                @if (Model.UpcomingVaccinations.Any())
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Vaccine</th><th>Due Date</th></tr></thead>
+                            <tbody>
+                                @foreach (var v in Model.UpcomingVaccinations.Take(5))
+                                {
+                                    var daysLeft = v.NextDueDate.HasValue ? (v.NextDueDate.Value - DateTime.Today).Days : 999;
+                                    <tr>
+                                        <td><span style="font-weight:600">@v.VaccineName</span></td>
+                                        <td>
+                                            <span class="badge @(daysLeft <= 7 ? "badge-danger" : daysLeft <= 14 ? "badge-warning" : "badge-info")">
+                                                @v.NextDueDate?.ToString("MMM dd, yyyy")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-body empty-state" style="padding:24px">
+                        <i class="bi bi-check-circle" style="font-size:28px;color:var(--success)"></i>
+                        <h3 style="margin-top:8px">All vaccinations current</h3>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Top Producers Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-trophy" style="color:var(--warning)"></i> Top Producing Cattle (30-day avg)</h3>
+                <a href="/MilkProduction" class="btn btn-outline btn-sm">Full Report</a>
+            </div>
+            @if (Model.TopProducers.Any())
+            {
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Tag ID</th>
+                                <th>Name</th>
+                                <th>Breed</th>
+                                <th style="text-align:right">Avg Daily (L)</th>
+                                <th>Health</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rank = 1; }
+                            @foreach (var p in Model.TopProducers)
+                            {
+                                <tr>
+                                    <td>
+                                        <span style="font-weight:700;color:@(rank == 1 ? "#d97706" : rank == 2 ? "#94a3b8" : rank == 3 ? "#b45309" : "var(--text-muted)")">#@rank</span>
+                                    </td>
+                                    <td><code style="font-size:12px">@p.TagId</code></td>
+                                    <td><span style="font-weight:600">@p.Name</span></td>
+                                    <td style="color:var(--text-muted)">@p.Breed</td>
+                                    <td style="text-align:right;font-weight:700;color:var(--primary)">@p.DailyAvgLiters.ToString("F1")</td>
+                                    <td>
+                                        @{
+                                            var hb2 = p.HealthStatus switch {
+                                                CattleFarm.Models.HealthStatus.Healthy  => "badge-success",
+                                                CattleFarm.Models.HealthStatus.AtRisk   => "badge-warning",
+                                                CattleFarm.Models.HealthStatus.Sick     => "badge-danger",
+                                                CattleFarm.Models.HealthStatus.Critical => "badge-danger",
+                                                _ => "badge-gray"
+                                            };
+                                        }
+                                        <span class="badge @hb2">@p.HealthStatus</span>
+                                    </td>
+                                </tr>
+                                rank++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="card-body empty-state">
+                    <i class="bi bi-droplet" style="font-size:32px"></i>
+                    <h3>No milk production data for the past 30 days</h3>
+                </div>
+            }
+        </div>
+
+        <!-- Profitability Panel -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" class="financial-grid">
+            <div class="card">
+                <div class="card-body" style="text-align:center;padding:22px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Revenue MTD</div>
+                    <div style="font-size:26px;font-weight:800;color:var(--success)">@Currency.Format(Model.TotalRevenue)</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="text-align:center;padding:22px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Expenses MTD</div>
+                    <div style="font-size:26px;font-weight:800;color:var(--danger)">@Currency.Format(Model.TotalExpenses)</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="text-align:center;padding:22px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Net Profit MTD</div>
+                    <div style="font-size:26px;font-weight:800;color:@(Model.NetProfit>=0?"var(--success)":"var(--danger)")">@Currency.Format(Model.NetProfit)</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="text-align:center;padding:22px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Cost Per Litre</div>
+                    <div style="font-size:26px;font-weight:800;color:var(--accent)">@Currency.Format(Model.CostPerLiter)</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="text-align:center;padding:22px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Return on Investment</div>
+                    <div style="font-size:26px;font-weight:800;color:@(Model.Roi>=0?"var(--success)":"var(--danger)")">@Model.Roi.ToString("F1")%</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body" style="text-align:center;padding:22px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Workers</div>
+                    <div style="font-size:26px;font-weight:800;color:var(--info)">@Model.TotalWorkers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transport Operations Summary -->
+        <div class="card" style="border-left:3px solid #2563eb">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-truck" style="color:#2563eb"></i> Transport Operations</h3>
+                <a href="/Transport" class="btn btn-ghost btn-sm">Transport Hub</a>
+            </div>
+            <div class="card-body" style="padding:0">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+                    <div style="padding:16px 18px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center">
+                        <div style="font-size:22px;font-weight:800;color:#2563eb">—</div>
+                        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Vehicles</div>
+                        <a href="/Transport/Vehicles" style="font-size:11px;color:var(--primary)">Manage</a>
+                    </div>
+                    <div style="padding:16px 18px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center">
+                        <div style="font-size:22px;font-weight:800;color:#10b981">—</div>
+                        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Drivers</div>
+                        <a href="/Transport/Drivers" style="font-size:11px;color:var(--primary)">Manage</a>
+                    </div>
+                    <div style="padding:16px 18px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center">
+                        <div style="font-size:22px;font-weight:800;color:#f59e0b">—</div>
+                        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Pending Bookings</div>
+                        <a href="/Transport/Requests?status=Pending" style="font-size:11px;color:var(--primary)">Review</a>
+                    </div>
+                    <div style="padding:16px 18px;border-bottom:1px solid var(--border);text-align:center">
+                        <div style="font-size:22px;font-weight:800;color:#8b5cf6">—</div>
+                        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px">Live Trips</div>
+                        <a href="/Transport/Trips?status=Ongoing" style="font-size:11px;color:var(--primary)">View</a>
+                    </div>
+                </div>
+                <div style="padding:12px 18px;display:flex;gap:8px;flex-wrap:wrap">
+                    <a href="/Transport/CreateRequest" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> New Booking</a>
+                    <a href="/Transport/Requests?status=Approved" class="btn btn-sm btn-outline"><i class="bi bi-truck"></i> Assign Trips</a>
+                    <a href="/Transport/Reports" class="btn btn-sm btn-ghost"><i class="bi bi-bar-chart-line"></i> Analytics</a>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-body" style="text-align:center;padding:22px">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Expenses MTD</div>
-            <div style="font-size:26px;font-weight:800;color:var(--danger)">&#2547;@Model.TotalExpenses.ToString("N0")</div>
+
+    <!-- Right Sidebar Column (360px) -->
+    <div class="dashboard-sidebar-col animate-in">
+        <!-- Live Farm Performance Card (Top of right sidebar, immediately below navbar) -->
+        <div class="right-panel-card live-performance-card" style="align-items: stretch; width: 100%;">
+            <div class="card-header-simple" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span class="card-title-simple" style="font-family: var(--font-heading); font-size: 14px; font-weight: 800; color: var(--text-primary);">
+                    <i class="bi bi-activity" style="color: var(--primary)"></i> Live Farm Performance
+                </span>
+                <span id="liveCounter" style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Last updated: 0s ago</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;">
+                <!-- Column 1: Top Farms by Profit -->
+                <div style="display: flex; flex-direction: column; align-items: center; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; width: 100%; justify-content: center; flex-wrap: wrap;">
+                        <span style="font-family: var(--font-heading); font-size: 11px; font-weight: 700; color: var(--text-primary); text-align: center; white-space: nowrap;">🏆 Top Farms by Profit</span>
+                        <span style="background: rgba(34, 197, 94, 0.1); color: #16a34a; font-size: 8px; font-weight: 800; padding: 1.5px 5px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.5px; line-height: 1;">
+                            <span class="pulse-badge green" style="width: 6px; height: 6px;"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <div style="width: 120px; height: 120px; position: relative;">
+                        <canvas id="liveProfitChart"></canvas>
+                    </div>
+                    <div id="liveProfitLegend" style="margin-top: 12px; font-size: 10px; font-weight: 600; width: 100%; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Inserted via JS -->
+                    </div>
+                </div>
+
+                <!-- Column 2: Farms in Loss -->
+                <div style="display: flex; flex-direction: column; align-items: center; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; width: 100%; justify-content: center; flex-wrap: wrap;">
+                        <span style="font-family: var(--font-heading); font-size: 11px; font-weight: 700; color: var(--text-primary); text-align: center; white-space: nowrap;">⚠️ Farms in Loss</span>
+                        <span style="background: rgba(239, 68, 68, 0.1); color: #dc2626; font-size: 8px; font-weight: 800; padding: 1.5px 5px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.5px; line-height: 1;">
+                            <span class="pulse-badge red" style="width: 6px; height: 6px;"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <div style="width: 120px; height: 120px; position: relative;">
+                        <canvas id="liveLossChart"></canvas>
+                    </div>
+                    <div id="liveLossLegend" style="margin-top: 12px; font-size: 10px; font-weight: 600; width: 100%; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Inserted via JS -->
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="card">
-        <div class="card-body" style="text-align:center;padding:22px">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Net Profit MTD</div>
-            <div style="font-size:26px;font-weight:800;color:@(Model.NetProfit>=0?"var(--success)":"var(--danger)")">&#2547;@Model.NetProfit.ToString("N0")</div>
+
+        <!-- 1. Farm Profit & Loss Pie Chart -->
+        <div class="right-panel-card">
+            <div class="card-header-simple">
+                <span class="card-title-simple"><i class="bi bi-pie-chart-fill" style="color:#22c55e"></i> Farm P&L Overview</span>
+            </div>
+            <div style="width: 180px; height: 180px; position: relative;">
+                <canvas id="plPieChart"></canvas>
+            </div>
+            @{
+                var totalPL = Model.TotalRevenue + Model.TotalExpenses;
+                var profitPct = totalPL > 0 ? ((Model.TotalRevenue / totalPL) * 100).ToString("F0") : "0";
+                var lossPct = totalPL > 0 ? ((Model.TotalExpenses / totalPL) * 100).ToString("F0") : "0";
+            }
+            <div class="custom-legend" style="text-align:center; font-size:12px; font-weight:700; margin-top:16px; color:var(--text-secondary)">
+                <span style="color:#22c55e">Profit @(profitPct)%</span>
+                <span style="color:var(--text-muted); margin:0 8px">|</span>
+                <span style="color:#ef4444">Loss @(lossPct)%</span>
+            </div>
         </div>
-    </div>
-    <div class="card">
-        <div class="card-body" style="text-align:center;padding:22px">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Cost Per Litre</div>
-            <div style="font-size:26px;font-weight:800;color:var(--accent)">&#2547;@Model.CostPerLiter.ToString("N2")</div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-body" style="text-align:center;padding:22px">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Return on Investment</div>
-            <div style="font-size:26px;font-weight:800;color:@(Model.Roi>=0?"var(--success)":"var(--danger)")">@Model.Roi.ToString("F1")%</div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-body" style="text-align:center;padding:22px">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600;margin-bottom:6px">Total Workers</div>
-            <div style="font-size:26px;font-weight:800;color:var(--info)">@Model.TotalWorkers</div>
+
+        <!-- 2. News by Category Pie Chart -->
+        <div class="right-panel-card">
+            <div class="card-header-simple">
+                <span class="card-title-simple"><i class="bi bi-newspaper" style="color:#3b82f6"></i> News by Category</span>
+            </div>
+            <div style="width: 180px; height: 180px; position: relative;">
+                <canvas id="newsPieChart"></canvas>
+            </div>
+            <div class="news-legend" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px 12px; margin-top:16px; font-size:11px; font-weight:600; color:var(--text-secondary)">
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#3b82f6"></span> Weather 40%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#f97316"></span> Market 25%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#ef4444"></span> Disease 15%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#8b5cf6"></span> Policy 10%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#94a3b8"></span> General 10%</div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
 <script>
-// Milk Line Chart
+// Weekly milk data serialized from Model
 const milkLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MilkWeeklyTrend.Select(t => t.Day)));
 const milkData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MilkWeeklyTrend.Select(t => t.Liters)));
-new Chart(document.getElementById('milkChart'), {
+
+// Chart.js helper to dynamically check current theme grid/text colors
+function getChartColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+        gridColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
+        textColor: isDark ? '#94a3b8' : '#475569',
+        borderColor: isDark ? '#1e293b' : '#ffffff'
+    };
+}
+
+const chartColors = getChartColors();
+
+// Custom Plugin to draw percentages directly on pie/doughnut slices
+const percentageLabelsPlugin = {
+    id: 'percentageLabels',
+    afterDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.visible) return;
+            const total = dataset.data.reduce((sum, val) => sum + (val || 0), 0);
+            if (total === 0) return;
+            
+            meta.data.forEach((element, index) => {
+                const value = dataset.data[index];
+                if (value === null || value === undefined || value === 0) return;
+                const percentage = ((value / total) * 100).toFixed(0) + '%';
+                
+                // Get safe center position of slice
+                const { x, y } = typeof element.tooltipPosition === 'function' ? element.tooltipPosition() : element;
+                
+                // Only draw if slice angle is wide enough to avoid overlap
+                const angle = element.endAngle - element.startAngle;
+                if (angle > 0.15) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px "DM Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Shadow for readability
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    
+                    ctx.fillText(percentage, x, y);
+                }
+            });
+        });
+        ctx.restore();
+    }
+};
+
+// 1. Milk Production Line Chart
+const milkChartObj = new Chart(document.getElementById('milkChart'), {
     type: 'line',
     data: {
         labels: milkLabels,
         datasets: [{
             label: 'Litres',
             data: milkData,
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37,99,235,.08)',
-            borderWidth: 2,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: '#2563eb',
-            pointRadius: 4
+            pointBackgroundColor: '#3b82f6',
+            pointHoverBackgroundColor: '#22c55e',
+            pointRadius: 4,
+            pointHoverRadius: 6
         }]
     },
     options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 } } },
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+            y: { 
+                beginAtZero: true, 
+                grid: { color: chartColors.gridColor }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 10 } } 
+            },
+            x: { 
+                grid: { display: false }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 11 } } 
+            }
         }
     }
 });
 
-// Cattle Status Donut
-new Chart(document.getElementById('herdChart'), {
+// 2. Herd Status Donut
+const herdChartObj = new Chart(document.getElementById('herdChart'), {
     type: 'doughnut',
     data: {
         labels: ['Active', 'Sick/At-Risk', 'Sold', 'Deceased'],
         datasets: [{
             data: [@Model.ActiveCount, @Model.SickCount, @Model.SoldCount, @Model.DeceasedCount],
-            backgroundColor: ['#16a34a','#dc2626','#2563eb','#94a3b8'],
-            borderWidth: 2, borderColor: '#fff'
+            backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#94a3b8'],
+            borderWidth: 2, 
+            borderColor: chartColors.borderColor
         }]
     },
     options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } } },
-        cutout: '65%'
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { 
+            legend: { display: false }, 
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } } 
+        },
+        cutout: '72%'
     }
 });
 
-// Revenue vs Expense Bar Chart
+// 3. Revenue vs Expense Bar Chart
 const rLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Month)));
 const revenues  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Revenue)));
 const expenses  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Expense)));
-new Chart(document.getElementById('revenueChart'), {
+const revenueChartObj = new Chart(document.getElementById('revenueChart'), {
     type: 'bar',
     data: {
         labels: rLabels,
         datasets: [
-            { label: 'Revenue',  data: revenues, backgroundColor: 'rgba(22,163,74,.75)',  borderRadius: 4 },
-            { label: 'Expenses', data: expenses, backgroundColor: 'rgba(220,38,38,.65)', borderRadius: 4 }
+            { label: 'Revenue',  data: revenues, backgroundColor: 'rgba(34, 197, 94, 0.85)',  borderRadius: 6 },
+            { label: 'Expenses', data: expenses, backgroundColor: 'rgba(239, 68, 68, 0.85)', borderRadius: 6 }
         ]
     },
     options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } },
+        plugins: { 
+            legend: { 
+                position: 'top', 
+                labels: { color: chartColors.textColor, font: { family: 'DM Sans', size: 12, weight: '600' } } 
+            } 
+        },
         scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 } } },
-            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+            y: { 
+                beginAtZero: true, 
+                grid: { color: chartColors.gridColor }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 10 } } 
+            },
+            x: { 
+                grid: { display: false }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 11 } } 
+            }
         }
+    }
+});
+
+// 4. Farm Profit & Loss Pie Chart (Right Panel)
+const profitVal = Number('@Model.TotalRevenue');
+const expenseVal = Number('@Model.TotalExpenses');
+const plChartObj = new Chart(document.getElementById('plPieChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Profit', 'Loss'],
+        datasets: [{
+            data: [profitVal, expenseVal],
+            backgroundColor: ['#22c55e', '#ef4444'],
+            borderWidth: 2,
+            borderColor: chartColors.borderColor
+        }]
+    },
+    plugins: [percentageLabelsPlugin],
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${Number(ctx.raw).toLocaleString()}` } }
+        }
+    }
+});
+
+// 5. News by Category Pie Chart (Right Panel)
+const newsChartObj = new Chart(document.getElementById('newsPieChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Weather', 'Market Price', 'Pest & Disease', 'Government Policy', 'General'],
+        datasets: [{
+            data: [40, 25, 15, 10, 10],
+            backgroundColor: ['#3b82f6', '#f97316', '#ef4444', '#8b5cf6', '#94a3b8'],
+            borderWidth: 2,
+            borderColor: chartColors.borderColor
+        }]
+    },
+    plugins: [percentageLabelsPlugin],
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` } }
+        }
+    }
+});
+
+// ==========================================
+// LIVE FARM PERFORMANCE PIE CHARTS COMPONENT
+// ==========================================
+
+const farmNames = ["Green Valley", "Meadowbrook", "Sunnyside", "Willow Creek", "Oakridge", "Riverview", "Whispering Pines"];
+
+function generateLivePerformanceData() {
+    const shuffled = [...farmNames].sort(() => 0.5 - Math.random());
+    const selectedFarms = shuffled.slice(0, 6);
+    
+    const profitFarms = [];
+    const lossFarms = [];
+    
+    selectedFarms.forEach((name, idx) => {
+        if (idx % 2 === 0) {
+            const profit = Math.floor(Math.random() * 85000) + 10000;
+            profitFarms.push({ name, value: profit });
+        } else {
+            const loss = Math.floor(Math.random() * 43000) + 2000;
+            lossFarms.push({ name, value: loss });
+        }
+    });
+    
+    profitFarms.sort((a, b) => b.value - a.value);
+    lossFarms.sort((a, b) => b.value - a.value);
+    
+    return { profitFarms, lossFarms };
+}
+
+const liveLabelsPlugin = {
+    id: 'liveLabelsPlugin',
+    afterDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.visible) return;
+            const total = dataset.data.reduce((sum, val) => sum + (val || 0), 0);
+            if (total === 0) return;
+            
+            meta.data.forEach((element, index) => {
+                const value = dataset.data[index];
+                if (value === null || value === undefined || value === 0) return;
+                const percentage = ((value / total) * 100).toFixed(0) + '%';
+                const name = chart.data.labels[index];
+                
+                const { x, y } = typeof element.tooltipPosition === 'function' ? element.tooltipPosition() : element;
+                const angle = element.endAngle - element.startAngle;
+                
+                if (angle > 0.45) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    
+                    ctx.font = 'bold 8px "DM Sans", sans-serif';
+                    ctx.fillText(name.substring(0, 7) + (name.length > 7 ? '.' : ''), x, y - 5);
+                    ctx.font = 'bold 9px "DM Sans", sans-serif';
+                    ctx.fillText(percentage, x, y + 5);
+                } else if (angle > 0.22) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px "DM Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText(percentage, x, y);
+                }
+            });
+        });
+        ctx.restore();
+    }
+};
+
+let secondsSinceUpdate = 0;
+let liveProfitChartObj = null;
+let liveLossChartObj = null;
+
+function refreshLiveCharts() {
+    const data = generateLivePerformanceData();
+    const profitLabels = data.profitFarms.map(f => f.name);
+    const profitValues = data.profitFarms.map(f => f.value);
+    
+    const lossLabels = data.lossFarms.map(f => f.name);
+    const lossValues = data.lossFarms.map(f => f.value);
+    
+    if (liveProfitChartObj && liveLossChartObj) {
+        liveProfitChartObj.data.labels = profitLabels;
+        liveProfitChartObj.data.datasets[0].data = profitValues;
+        liveProfitChartObj.update();
+        
+        liveLossChartObj.data.labels = lossLabels;
+        liveLossChartObj.data.datasets[0].data = lossValues;
+        liveLossChartObj.update();
+    } else {
+        initLiveCharts(profitLabels, profitValues, lossLabels, lossValues);
+    }
+    
+    updateLiveLegends(data.profitFarms, data.lossFarms);
+    
+    secondsSinceUpdate = 0;
+    document.getElementById('liveCounter').textContent = `Last updated: 0s ago`;
+}
+
+function initLiveCharts(profitLabels, profitValues, lossLabels, lossValues) {
+    const profitColors = ['#15803d', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
+    const lossColors = ['#991b1b', '#ef4444', '#f97316', '#fca5a5', '#fed7aa'];
+    const currentColors = getChartColors();
+    
+    liveProfitChartObj = new Chart(document.getElementById('liveProfitChart'), {
+        type: 'pie',
+        data: {
+            labels: profitLabels,
+            datasets: [{
+                data: profitValues,
+                backgroundColor: profitColors,
+                borderWidth: 2,
+                borderColor: currentColors.borderColor
+            }]
+        },
+        plugins: [liveLabelsPlugin],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${Number(ctx.raw).toLocaleString()}` } }
+            }
+        }
+    });
+
+    liveLossChartObj = new Chart(document.getElementById('liveLossChart'), {
+        type: 'pie',
+        data: {
+            labels: lossLabels,
+            datasets: [{
+                data: lossValues,
+                backgroundColor: lossColors,
+                borderWidth: 2,
+                borderColor: currentColors.borderColor
+            }]
+        },
+        plugins: [liveLabelsPlugin],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${Number(ctx.raw).toLocaleString()}` } }
+            }
+        }
+    });
+}
+
+function updateLiveLegends(profitFarms, lossFarms) {
+    const profitTotal = profitFarms.reduce((sum, f) => sum + f.value, 0);
+    const lossTotal = lossFarms.reduce((sum, f) => sum + f.value, 0);
+    
+    const profitColors = ['#15803d', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
+    const profitContainer = document.getElementById('liveProfitLegend');
+    profitContainer.innerHTML = '';
+    profitFarms.forEach((farm, idx) => {
+        const color = profitColors[idx % profitColors.length];
+        const pct = profitTotal > 0 ? ((farm.value / profitTotal) * 100).toFixed(0) : 0;
+        profitContainer.innerHTML += `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: ${color}; display: inline-block; flex-shrink: 0;"></span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${farm.name}</span>
+                </div>
+                <span style="color: var(--text-primary); flex-shrink: 0;">$${farm.value.toLocaleString()} (${pct}%)</span>
+            </div>
+        `;
+    });
+
+    const lossColors = ['#991b1b', '#ef4444', '#f97316', '#fca5a5', '#fed7aa'];
+    const lossContainer = document.getElementById('liveLossLegend');
+    lossContainer.innerHTML = '';
+    lossFarms.forEach((farm, idx) => {
+        const color = lossColors[idx % lossColors.length];
+        const pct = lossTotal > 0 ? ((farm.value / lossTotal) * 100).toFixed(0) : 0;
+        lossContainer.innerHTML += `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: ${color}; display: inline-block; flex-shrink: 0;"></span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${farm.name}</span>
+                </div>
+                <span style="color: var(--text-primary); flex-shrink: 0;">$${farm.value.toLocaleString()} (${pct}%)</span>
+            </div>
+        `;
+    });
+}
+
+// Start 30s Live Auto-Refresh Tick
+setInterval(() => {
+    secondsSinceUpdate++;
+    document.getElementById('liveCounter').textContent = `Last updated: ${secondsSinceUpdate}s ago`;
+    if (secondsSinceUpdate >= 30) {
+        refreshLiveCharts();
+    }
+}, 1000);
+
+// Initial Load execution
+refreshLiveCharts();
+
+
+// Premium Theme Toggle Integration & Live Updates
+window.addEventListener('theme-changed', (e) => {
+    const isDark = e.detail.theme === 'dark';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+    const textColor = isDark ? '#94a3b8' : '#475569';
+    const borderColor = isDark ? '#1e293b' : '#ffffff';
+
+    // Update Milk Chart
+    milkChartObj.options.scales.y.grid.color = gridColor;
+    milkChartObj.options.scales.y.ticks.color = textColor;
+    milkChartObj.options.scales.x.ticks.color = textColor;
+    milkChartObj.update();
+
+    // Update Herd Chart
+    herdChartObj.data.datasets[0].borderColor = borderColor;
+    herdChartObj.update();
+
+    // Update Revenue Chart
+    revenueChartObj.options.plugins.legend.labels.color = textColor;
+    revenueChartObj.options.scales.y.grid.color = gridColor;
+    revenueChartObj.options.scales.y.ticks.color = textColor;
+    revenueChartObj.options.scales.x.ticks.color = textColor;
+    revenueChartObj.update();
+
+    // Update P&L Pie Chart
+    plChartObj.data.datasets[0].borderColor = borderColor;
+    plChartObj.update();
+
+    // Update News Pie Chart
+    newsChartObj.data.datasets[0].borderColor = borderColor;
+    newsChartObj.update();
+
+    // Update Live Performance Charts border color
+    if (liveProfitChartObj) {
+        liveProfitChartObj.data.datasets[0].borderColor = borderColor;
+        liveProfitChartObj.update();
+    }
+    if (liveLossChartObj) {
+        liveLossChartObj.data.datasets[0].borderColor = borderColor;
+        liveLossChartObj.update();
     }
 });
 </script>

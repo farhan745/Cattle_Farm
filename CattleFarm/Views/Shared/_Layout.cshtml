@@ -8,7 +8,7 @@
     <link rel="icon" href="~/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
@@ -24,80 +24,104 @@
                 <!-- Brand -->
                 <div class="sidebar-brand">
                     <div class="brand-icon">
-                        <i class="bi bi-building"></i>
+                        <i class="bi bi-houses"></i>
                     </div>
-                    <div>
+                    <div class="collapse-label">
                         <div class="brand-name">Smart Cattle Farm</div>
                         <div class="brand-sub">Management System</div>
                     </div>
+                    <button class="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar" aria-label="Toggle sidebar">
+                        <i class="bi bi-layout-sidebar-reverse" id="collapseIcon"></i>
+                    </button>
                 </div>
 
                 <!-- Navigation -->
                 <div class="sidebar-nav">
                     <div class="nav-section">Overview</div>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")" href="/Dashboard">
-                        <i class="bi bi-grid-1x2 nav-icon"></i> Dashboard
+                        <i class="bi bi-grid-1x2 nav-icon"></i><span class="nav-text">Dashboard</span>
                     </a>
 
                     @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
                     {
                         <div class="nav-section">Farm Management</div>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Farm" ? "active" : "")" href="/Farm">
-                            <i class="bi bi-house-door nav-icon"></i> Farms
+                            <i class="bi bi-house-door nav-icon"></i><span class="nav-text">Farms</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cattle" ? "active" : "")" href="/Cattle">
-                            <i class="bi bi-geo-alt nav-icon"></i> Cattle
+                            <i class="bi bi-geo-alt nav-icon"></i><span class="nav-text">Cattle</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Worker" ? "active" : "")" href="/Worker">
-                            <i class="bi bi-people nav-icon"></i> Workers
+                            <i class="bi bi-people nav-icon"></i><span class="nav-text">Workers</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MilkProduction" ? "active" : "")" href="/MilkProduction">
-                            <i class="bi bi-droplet nav-icon"></i> Milk Production
+                            <i class="bi bi-droplet nav-icon"></i><span class="nav-text">Milk Production</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Breeding" ? "active" : "")" href="/Breeding">
-                            <i class="bi bi-diagram-2 nav-icon"></i> Breeding
+                            <i class="bi bi-diagram-2 nav-icon"></i><span class="nav-text">Breeding</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Feed" ? "active" : "")" href="/Feed">
-                            <i class="bi bi-box2 nav-icon"></i> Feed Management
+                            <i class="bi bi-box2 nav-icon"></i><span class="nav-text">Feed Management</span>
                         </a>
                     }
 
                     <div class="nav-section">Health</div>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Health" ? "active" : "")" href="/Health">
-                        <i class="bi bi-heart-pulse nav-icon"></i> Health Records
+                        <i class="bi bi-heart-pulse nav-icon"></i><span class="nav-text">Health Records</span>
                     </a>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Doctor" ? "active" : "")" href="/Doctor">
-                        <i class="bi bi-person-badge nav-icon"></i> Veterinarians
+                        <i class="bi bi-person-badge nav-icon"></i><span class="nav-text">Veterinarians</span>
                     </a>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Appointment" ? "active" : "")" href="/Appointment">
-                        <i class="bi bi-calendar-check nav-icon"></i> Appointments
+                        <i class="bi bi-calendar-check nav-icon"></i><span class="nav-text">Appointments</span>
                     </a>
 
                     <div class="nav-section">Commerce</div>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Product" ? "active" : "")" href="/Product">
-                        <i class="bi bi-box-seam nav-icon"></i> Products
+                        <i class="bi bi-box-seam nav-icon"></i><span class="nav-text">Products</span>
                     </a>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active" : "")" href="/Order">
-                        <i class="bi bi-receipt nav-icon"></i> Orders
+                        <i class="bi bi-receipt nav-icon"></i><span class="nav-text">Orders</span>
                     </a>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cattle" && ViewContext.RouteData.Values["action"]?.ToString() == "Marketplace" ? "active" : "")" href="/Cattle/Marketplace">
-                        <i class="bi bi-shop nav-icon"></i> Marketplace
+                        <i class="bi bi-shop nav-icon"></i><span class="nav-text">Marketplace</span>
+                    </a>
+
+                    <div class="nav-section">Transport</div>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transport" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" href="/Transport">
+                        <i class="bi bi-truck nav-icon"></i><span class="nav-text">Transport Hub</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transport" && ViewContext.RouteData.Values["action"]?.ToString() == "Vehicles" ? "active" : "")" href="/Transport/Vehicles">
+                        <i class="bi bi-truck-front nav-icon"></i><span class="nav-text">Vehicles</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transport" && ViewContext.RouteData.Values["action"]?.ToString() == "Drivers" ? "active" : "")" href="/Transport/Drivers">
+                        <i class="bi bi-person-badge nav-icon"></i><span class="nav-text">Drivers</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transport" && ViewContext.RouteData.Values["action"]?.ToString() == "Requests" ? "active" : "")" href="/Transport/Requests">
+                        <i class="bi bi-clipboard-plus nav-icon"></i><span class="nav-text">Bookings</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transport" && ViewContext.RouteData.Values["action"]?.ToString() == "Trips" ? "active" : "")" href="/Transport/Trips">
+                        <i class="bi bi-map nav-icon"></i><span class="nav-text">Trips</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transport" && ViewContext.RouteData.Values["action"]?.ToString() == "Reports" ? "active" : "")" href="/Transport/Reports">
+                        <i class="bi bi-bar-chart-line nav-icon"></i><span class="nav-text">Transport Reports</span>
                     </a>
 
                     @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
                     {
                         <div class="nav-section">Finance</div>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Financial" ? "active" : "")" href="/Financial">
-                            <i class="bi bi-bar-chart-line nav-icon"></i> Financials
+                            <i class="bi bi-bar-chart-line nav-icon"></i><span class="nav-text">Financials</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")" href="/Reports">
-                            <i class="bi bi-file-earmark-bar-graph nav-icon"></i> Reports
+                            <i class="bi bi-file-earmark-bar-graph nav-icon"></i><span class="nav-text">Reports</span>
                         </a>
                     }
 
                     <div class="nav-section">My Account</div>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Subscription" ? "active" : "")" href="/Subscription">
-                        <i class="bi bi-star nav-icon"></i> My Plan
+                        <i class="bi bi-star nav-icon"></i>
+                        <span class="nav-text">My Plan</span>
                         @{
                             var subType = User.FindFirst("SubscriptionType")?.Value ?? "";
                             if (!string.IsNullOrEmpty(subType) && subType != "Free")
@@ -105,32 +129,34 @@
                         }
                     </a>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")" href="/Account/Profile">
-                        <i class="bi bi-person-circle nav-icon"></i> My Profile
+                        <i class="bi bi-person-circle nav-icon"></i><span class="nav-text">My Profile</span>
                     </a>
 
                     @if (User.IsInRole("Admin"))
                     {
                         <div class="nav-section">Administration</div>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["action"]?.ToString() == "Users" ? "active" : "")" href="/Admin/Users">
-                            <i class="bi bi-people-fill nav-icon"></i> Users
+                            <i class="bi bi-people-fill nav-icon"></i><span class="nav-text">Users</span>
                         </a>
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["action"]?.ToString() == "Farms" ? "active" : "")" href="/Admin/Farms">
-                            <i class="bi bi-check2-circle nav-icon"></i> Approvals
+                            <i class="bi bi-check2-circle nav-icon"></i><span class="nav-text">Approvals</span>
                         </a>
                         <a class="nav-item" href="/Admin/Subscriptions">
-                            <i class="bi bi-credit-card nav-icon"></i> Subscriptions
+                            <i class="bi bi-credit-card nav-icon"></i><span class="nav-text">Subscriptions</span>
                         </a>
                         <a class="nav-item" href="/Admin/AuditLogs">
-                            <i class="bi bi-journal-text nav-icon"></i> Audit Logs
+                            <i class="bi bi-journal-text nav-icon"></i><span class="nav-text">Audit Logs</span>
                         </a>
                         <a class="nav-item" href="/UserManagement">
-                            <i class="bi bi-sliders nav-icon"></i> User Management
+                            <i class="bi bi-sliders nav-icon"></i><span class="nav-text">User Management</span>
                         </a>
                     }
 
+
                     <div class="nav-section">Alerts</div>
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notification" ? "active" : "")" href="/Notification" id="notif-link">
-                        <i class="bi bi-bell nav-icon"></i> Notifications
+                        <i class="bi bi-bell nav-icon"></i>
+                        <span class="nav-text">Notifications</span>
                         <span class="nav-badge" id="notif-count" style="display:none"></span>
                     </a>
                 </div>
@@ -176,10 +202,6 @@
                         <input type="search" placeholder="Search cattle, farms, workers..." id="globalSearch" />
                     </div>
                     <div class="header-actions">
-                        <!-- Theme toggle -->
-                        <button class="header-btn" id="themeToggle" title="Toggle theme" onclick="toggleTheme()">
-                            <i class="bi bi-moon" id="themeIcon"></i>
-                        </button>
                         <!-- Notifications -->
                         <a class="header-btn" href="/Notification" title="Notifications" aria-label="View notifications">
                             <i class="bi bi-bell"></i>
@@ -259,29 +281,34 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-        // Sidebar toggle
+        // Sidebar collapse & toggle
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('open');
+            if (window.innerWidth > 768) {
+                document.body.classList.toggle('sidebar-collapsed');
+                const collapsed = document.body.classList.contains('sidebar-collapsed');
+                localStorage.setItem('sidebar-collapsed', collapsed ? 'true' : 'false');
+                const icon = document.getElementById('collapseIcon');
+                if (icon) icon.className = collapsed ? 'bi bi-layout-sidebar' : 'bi bi-layout-sidebar-reverse';
+            } else {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('open');
+            }
         }
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('open');
         }
 
-        // Theme toggle
-        function toggleTheme() {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            document.getElementById('themeIcon').className = isDark ? 'bi bi-moon' : 'bi bi-sun';
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        }
         (function () {
             const saved = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', saved);
-            const icon = document.getElementById('themeIcon');
-            if (icon) icon.className = saved === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+            
+            const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            if (collapsed && window.innerWidth > 768) {
+                document.body.classList.add('sidebar-collapsed');
+                const icon = document.getElementById('collapseIcon');
+                if (icon) icon.className = 'bi bi-layout-sidebar';
+            }
         })();
 
         // Scroll animation observer

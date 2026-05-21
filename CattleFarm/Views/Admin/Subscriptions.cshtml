@@ -27,7 +27,7 @@
                                 @s.ExpiryDate.ToString("MMM dd, yyyy")
                                 @if (s.ExpiryDate < DateTime.Now.AddDays(7) && s.IsActive) { <span class="badge badge-danger" style="font-size:9px">⚠ Soon</span> }
                             </td>
-                            <td style="font-weight:700;color:var(--primary)">৳@s.PricePaid.ToString("N0")</td>
+                            <td style="font-weight:700;color:var(--primary)">@Currency.Format(s.PricePaid)</td>
                             <td><span class="badge @(s.IsActive ? "badge-success" : "badge-gray")">@(s.IsActive ? "Active" : "Expired")</span></td>
                             <td>
                                 @if (s.IsActive)

@@ -27,7 +27,7 @@
                         </td>
                         <td><span class="badge badge-info">@w.Role</span></td>
                         <td style="font-size:12px">@(w.Farm?.Name ?? "—")</td>
-                        <td style="font-weight:600">৳@w.Salary.ToString("N0")</td>
+                        <td style="font-weight:600">@Currency.Format(w.Salary)</td>
                         <td style="font-size:13px">@w.ExperienceYears yrs</td>
                         <td><span class="badge @(w.IsAvailable ? "badge-success" : "badge-gray")">@(w.IsAvailable ? "Available" : "Busy")</span></td>
                         <td>

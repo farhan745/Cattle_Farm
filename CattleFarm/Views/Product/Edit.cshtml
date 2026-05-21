@@ -1,0 +1,4 @@
+@model CattleFarm.ViewModels.ProductViewModel
+@{ ViewData["Title"] = "Edit Product"; }
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+@await Html.PartialAsync("Create", Model)

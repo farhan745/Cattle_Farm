@@ -64,7 +64,7 @@ else
                         <div><span style="color:var(--text-muted)">Farm:</span> <strong>@(c.Farm?.Name ?? "—")</strong></div>
                     </div>
                     <div style="margin-top:12px;padding:10px;background:var(--primary-light);border-radius:6px;text-align:center">
-                        <div style="font-size:22px;font-weight:800;color:var(--primary)">৳@c.SalePrice?.ToString("N0")</div>
+                        <div style="font-size:22px;font-weight:800;color:var(--primary)">@Currency.Format(c.SalePrice)</div>
                         <div style="font-size:11px;color:var(--text-muted)">Negotiable price</div>
                     </div>
                 </div>

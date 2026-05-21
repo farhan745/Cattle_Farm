@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
 namespace CattleFarm.Controllers
@@ -17,19 +18,22 @@ namespace CattleFarm.Controllers
         private readonly IImageService           _imageService;
         private readonly IUserManagementService  _userService;
         private readonly CattleFarmDbContext      _db;
+        private readonly IAuditService           _auditService;
 
         public AccountController(
             IAuthService authService,
             IEmailService emailService,
             IImageService imageService,
             IUserManagementService userService,
-            CattleFarmDbContext db)
+            CattleFarmDbContext db,
+            IAuditService auditService)
         {
             _authService  = authService;
             _emailService = emailService;
             _imageService = imageService;
             _userService  = userService;
             _db           = db;
+            _auditService = auditService;
         }
 
         // ─── LOGIN ────────────────────────────────────────────────────────────
@@ -128,13 +132,8 @@ namespace CattleFarm.Controllers
                 }
             }
 
-            // Send OTP for email verification
-            await SendOtpAsync(model.Email, "EmailVerify");
-
-            TempData["PendingEmail"] = model.Email;
-            TempData["PendingName"]  = model.Username;
-            TempData["SuccessMessage"] = "Account created! Check your email for a verification code.";
-            return RedirectToAction(nameof(VerifyOtp), new { email = model.Email, purpose = "EmailVerify" });
+            TempData["SuccessMessage"] = "Account created successfully! You can now log in.";
+            return RedirectToAction(nameof(Login));
         }
 
         // ─── LOGOUT ───────────────────────────────────────────────────────────
@@ -146,157 +145,104 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        // ─── FORGOT PASSWORD ──────────────────────────────────────────────────
-
-        [HttpGet]
-        public IActionResult ForgotPassword()
+        public class DeleteAccountRequest
         {
-            if (User.Identity?.IsAuthenticated == true)
-                return RedirectToAction("Index", "Dashboard");
-            return View();
+            public string Password { get; set; } = string.Empty;
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(string email)
+        [Authorize]
+        [HttpDelete("/account")]
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest model)
         {
-            if (string.IsNullOrWhiteSpace(email))
+            var userId = GetUserId();
+            if (userId == 0)
             {
-                ModelState.AddModelError("email", "Email is required.");
-                return View();
+                return Json(new { success = false, message = "User not authenticated." });
             }
 
-            var exists = await _authService.EmailExistsAsync(email);
-            if (!exists)
+            if (model == null || string.IsNullOrWhiteSpace(model.Password))
             {
-                // Security: don't reveal if email exists
-                TempData["SuccessMessage"] = $"If {email} is registered, an OTP has been sent.";
-                return RedirectToAction(nameof(VerifyOtp), new { email, purpose = "PasswordReset" });
+                return Json(new { success = false, message = "Password is required to delete your account." });
             }
 
-            await SendOtpAsync(email, "PasswordReset");
-            TempData["SuccessMessage"] = $"OTP sent to {email}. Check your inbox.";
-            return RedirectToAction(nameof(VerifyOtp), new { email, purpose = "PasswordReset" });
-        }
-
-        // ─── VERIFY OTP ───────────────────────────────────────────────────────
-
-        [HttpGet]
-        public IActionResult VerifyOtp(string email, string purpose = "PasswordReset")
-        {
-            ViewBag.Email   = email;
-            ViewBag.Purpose = purpose;
-            return View();
-        }
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyOtp(string email, string otp, string purpose)
-        {
-            ViewBag.Email   = email;
-            ViewBag.Purpose = purpose;
-
-            var otpRecord = await _db.OtpCodes
-                .Where(o => o.Email == email && o.Purpose == purpose && !o.IsUsed)
-                .OrderByDescending(o => o.CreatedAt)
-                .FirstOrDefaultAsync();
-
-            if (otpRecord == null || otpRecord.Code != otp.Trim())
+            var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null || user.IsDeleted)
             {
-                ViewBag.Error = "Incorrect code. Please check and try again.";
-                return View();
-            }
-            if (otpRecord.ExpiresAt < DateTime.UtcNow)
-            {
-                ViewBag.Error = "This code has expired. Request a new one.";
-                return View();
+                return Json(new { success = false, message = "User not found or already deleted." });
             }
 
-            // Mark as used
-            otpRecord.IsUsed = true;
-            await _db.SaveChangesAsync();
-
-            if (purpose == "EmailVerify")
+            // Verify Password using BCrypt
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
+            if (!isPasswordValid)
             {
-                // Activate account
-                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
-                if (user != null)
+                return Json(new { success = false, message = "Incorrect password. Verification failed." });
+            }
+
+            var oldValues = $"Username: {user.Username}, Email: {user.Email}";
+
+            // Cascade Soft-Delete to Owned Farms
+            var ownedFarms = await _db.Farms.Where(f => f.OwnerId == userId && !f.IsDeleted).ToListAsync();
+            foreach (var farm in ownedFarms)
+            {
+                farm.IsDeleted = true;
+                farm.IsActive = false;
+                farm.DeletedAt = DateTime.UtcNow;
+                farm.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Cascade Soft-Delete to active/pending TransportRequests
+            var farmIds = ownedFarms.Select(f => f.Id).ToList();
+            var activeStatuses = new[] { TripStatus.Pending, TripStatus.Approved, TripStatus.Assigned, TripStatus.Ongoing };
+            var activeRequests = await _db.TransportRequests
+                .Where(r => !r.IsDeleted && (r.RequestedByUserId == userId || (r.FarmId != null && farmIds.Contains(r.FarmId.Value))))
+                .ToListAsync();
+
+            foreach (var req in activeRequests)
+            {
+                req.IsDeleted = true;
+                if (activeStatuses.Contains(req.Status))
                 {
-                    user.IsEmailVerified = true;
-                    await _db.SaveChangesAsync();
-                    try { await _emailService.SendWelcomeEmailAsync(email, user.Username); } catch { }
+                    req.Status = TripStatus.Cancelled;
                 }
-                TempData["SuccessMessage"] = "Email verified! You can now log in.";
-                return RedirectToAction(nameof(Login));
+                req.UpdatedAt = DateTime.UtcNow;
             }
 
-            // Password reset — generate one-time token
-            var resetToken = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-            TempData["ResetToken"] = resetToken;
-            TempData["ResetEmail"] = email;
-            return RedirectToAction(nameof(ResetPassword), new { email, token = resetToken });
-        }
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResendOtp(string email, string purpose)
-        {
-            await SendOtpAsync(email, purpose);
-            TempData["SuccessMessage"] = "New OTP sent to your email.";
-            return RedirectToAction(nameof(VerifyOtp), new { email, purpose });
-        }
-
-        // ─── RESET PASSWORD ───────────────────────────────────────────────────
-
-        [HttpGet]
-        public IActionResult ResetPassword(string email, string token)
-        {
-            if (TempData["ResetToken"]?.ToString() != token)
-                return RedirectToAction(nameof(ForgotPassword));
-            TempData.Keep("ResetToken");
-            TempData.Keep("ResetEmail");
-            ViewBag.Email = email;
-            ViewBag.Token = token;
-            return View();
-        }
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(string email, string token, string newPassword, string confirmPassword)
-        {
-            ViewBag.Email = email;
-            ViewBag.Token = token;
-
-            if (newPassword != confirmPassword)
+            // Clean up profile image if exists
+            if (!string.IsNullOrEmpty(user.ProfileImagePath))
             {
-                ViewBag.Error = "Passwords do not match.";
-                return View();
-            }
-            if (newPassword.Length < 8)
-            {
-                ViewBag.Error = "Password must be at least 8 characters.";
-                return View();
+                try
+                {
+                    _imageService.DeleteImage(user.ProfileImagePath);
+                }
+                catch { }
             }
 
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
-            {
-                ViewBag.Error = "User not found.";
-                return View();
-            }
+            // Anonymize personal details (GDPR compliance)
+            user.Username = $"deleted_user_{user.Id}";
+            user.Email = $"deleted_{user.Id}@deleted.cattlefarm.local";
+            user.FullName = "Deleted User";
+            user.PasswordHash = "DELETED";
+            user.PhoneNumber = null;
+            user.Address = null;
+            user.ProfileImagePath = null;
+            
+            user.IsActive = false;
+            user.IsEmailVerified = false;
+            user.IsDeleted = true;
+            user.DeletedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword, workFactor: 12);
-            user.UpdatedAt    = DateTime.UtcNow;
+            // Log audit logs
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _auditService.LogAsync(userId, "DELETE_ACCOUNT", "User", userId, oldValues, "Anonymized & Soft-Deleted", ip);
+            await _auditService.LogActivityAsync(userId, "Account deleted securely and anonymized (GDPR compliant soft-delete).", "User", userId, ip);
+
             await _db.SaveChangesAsync();
 
-            // Invalidate all OTPs for this user
-            var otps = _db.OtpCodes.Where(o => o.Email == email);
-            await otps.ExecuteUpdateAsync(s => s.SetProperty(o => o.IsUsed, true));
+            // Sign out
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            TempData["SuccessMessage"] = "Password reset successfully! You can now log in.";
-            return RedirectToAction(nameof(ResetSuccess));
-        }
-
-        [HttpGet]
-        public IActionResult ResetSuccess()
-        {
-            return View();
+            return Json(new { success = true, message = "Your account has been deleted successfully.", redirectUrl = Url.Action(nameof(Login)) });
         }
 
         // ─── PROFILE ──────────────────────────────────────────────────────────
@@ -362,30 +308,6 @@ namespace CattleFarm.Controllers
         {
             var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(id, out var p) ? p : 0;
-        }
-
-        private async Task SendOtpAsync(string email, string purpose)
-        {
-            var code = new Random().Next(100000, 999999).ToString();
-
-            // Invalidate old OTPs
-            var old = _db.OtpCodes.Where(o => o.Email == email && o.Purpose == purpose && !o.IsUsed);
-            await old.ExecuteUpdateAsync(s => s.SetProperty(o => o.IsUsed, true));
-
-            _db.OtpCodes.Add(new OtpCode
-            {
-                Email     = email,
-                Code      = code,
-                Purpose   = purpose,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10)
-            });
-            await _db.SaveChangesAsync();
-
-            var user = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == email);
-            var name = user?.Username ?? email.Split('@')[0];
-
-            try { await _emailService.SendOtpEmailAsync(email, name, code, purpose); }
-            catch (Exception ex) { /* log only — don't crash on email errors */ _ = ex; }
         }
     }
 }
