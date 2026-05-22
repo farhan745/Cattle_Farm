@@ -77,7 +77,14 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task LoadFarmsAsync() => ViewBag.Farms = await _farmService.GetAllAsync();
+        private async Task LoadFarmsAsync()
+        {
+            var userId = GetUserId();
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? string.Empty;
+            ViewBag.Farms = role == AppRoles.Owner
+                ? await _farmService.GetByOwnerAsync(userId)
+                : await _farmService.GetAllAsync();
+        }
         private int GetUserId() { var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; return int.TryParse(id, out var p) ? p : 0; }
     }
 }

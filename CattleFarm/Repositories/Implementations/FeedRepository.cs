@@ -29,10 +29,12 @@ namespace CattleFarm.Repositories.Implementations
                 .SumAsync(f => (decimal)f.QuantityKg * f.CostPerKg);
 
         public async Task<(IEnumerable<FeedRecord> Items, int Total)> GetPagedAsync(
-            int page, int pageSize, int? farmId = null, FeedType? feedType = null)
+            int page, int pageSize, int? farmId = null, FeedType? feedType = null, IEnumerable<int>? farmIds = null)
         {
             var q = _db.FeedRecords.Include(f => f.Cattle).AsQueryable();
             if (farmId.HasValue)   q = q.Where(f => f.FarmId == farmId.Value);
+            else if (farmIds != null) q = q.Where(f => farmIds.Contains(f.FarmId));
+            
             if (feedType.HasValue) q = q.Where(f => f.FeedType == feedType.Value);
             var total = await q.CountAsync();
             var items = await q.OrderByDescending(f => f.Date)

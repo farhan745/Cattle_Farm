@@ -7,6 +7,6 @@ namespace CattleFarm.Repositories.Interfaces
         Task<IEnumerable<FeedRecord>> GetByFarmIdAsync(int farmId);
         Task<IEnumerable<FeedRecord>> GetByCattleIdAsync(int cattleId);
         Task<decimal> GetTotalCostAsync(int farmId, DateTime from, DateTime to);
-        Task<(IEnumerable<FeedRecord> Items, int Total)> GetPagedAsync(int page, int pageSize, int? farmId = null, FeedType? feedType = null);
+        Task<(IEnumerable<FeedRecord> Items, int Total)> GetPagedAsync(int page, int pageSize, int? farmId = null, FeedType? feedType = null, IEnumerable<int>? farmIds = null);
     }
 }

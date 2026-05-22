@@ -110,23 +110,50 @@ namespace CattleFarm.Controllers
                 return View(model);
             }
 
-            var success = await _authService.RegisterAsync(model.Username, model.Email, model.Password);
+            var success = await _authService.RegisterAsync(model.Username, model.Email, model.Password, model.Role);
             if (!success)
             {
                 ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
                 return View(model);
             }
 
-            // Save profile image if provided
-            if (model.ProfileImage != null && _imageService.IsValidImage(model.ProfileImage))
+            // Retrieve the newly created user
+            var newUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted);
+
+            if (newUser != null)
             {
-                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
-                if (user != null)
+                // Save profile image if provided
+                if (model.ProfileImage != null && _imageService.IsValidImage(model.ProfileImage))
                 {
                     var imagePath = await _imageService.SaveImageAsync(model.ProfileImage, "avatars");
                     if (imagePath != null)
                     {
-                        user.ProfileImagePath = imagePath;
+                        newUser.ProfileImagePath = imagePath;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
+                // Auto-create a Worker record so self-registered workers appear in the Worker list
+                if (model.Role == AppRoles.Worker)
+                {
+                    var defaultFarm = await _db.Farms.FirstOrDefaultAsync(f => f.IsActive && !f.IsDeleted);
+                    if (defaultFarm != null)
+                    {
+                        var worker = new Worker
+                        {
+                            FullName = model.FullName,
+                            Role = "Worker",
+                            Phone = model.PhoneNumber,
+                            Email = model.Email,
+                            Salary = 0,
+                            IsActive = true,
+                            IsAvailable = true,
+                            FarmId = defaultFarm.Id,
+                            UserId = newUser.Id,
+                            HiredAt = DateTime.UtcNow,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        await _db.Workers.AddAsync(worker);
                         await _db.SaveChangesAsync();
                     }
                 }
@@ -301,6 +328,86 @@ namespace CattleFarm.Controllers
 
         [HttpGet]
         public IActionResult AccessDenied() => View();
+
+        // GET: Account/ForgotPassword
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToAction("Index", "Dashboard");
+            return View();
+        }
+
+        // POST: Account/ForgotPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToAction("Index", "Dashboard");
+
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email && !u.IsDeleted);
+            if (user != null)
+            {
+                var token = Guid.NewGuid().ToString("N");
+                user.PasswordResetToken = token;
+                user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+                await _db.SaveChangesAsync();
+
+                var resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme);
+                await _emailService.SendPasswordResetEmailAsync(user.Email, resetLink ?? string.Empty);
+            }
+
+            // Always display success message for security
+            TempData["SuccessMessage"] = "If a matching account was found, a password reset link has been sent to your email address.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        // GET: Account/ResetPassword
+        [HttpGet]
+        public IActionResult ResetPassword(string token)
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToAction("Index", "Dashboard");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("A token is required for password reset.");
+            }
+
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        // POST: Account/ResetPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToAction("Index", "Dashboard");
+
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && !u.IsDeleted);
+            if (user == null || !user.PasswordResetTokenExpiry.HasValue || user.PasswordResetTokenExpiry.Value < DateTime.UtcNow)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid or expired password reset token.");
+                return View(model);
+            }
+
+            // Hash using BCrypt
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Your password has been reset successfully. You can now log in with your new password.";
+            return RedirectToAction(nameof(Login));
+        }
 
         // ─── Helpers ──────────────────────────────────────────────────────────
 

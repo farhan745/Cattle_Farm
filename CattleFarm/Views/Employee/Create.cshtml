@@ -1,0 +1,140 @@
+@model CattleFarm.ViewModels.EmployeeCreateViewModel
+@inject CattleFarm.Services.Interfaces.ICurrencyService Currency
+@{
+    ViewData["Title"] = "Hire Employee";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">💼 Hire New Employee</h1>
+        <p class="page-subtitle">Add a new staff member with system credentials and payroll configuration</p>
+    </div>
+    <a href="/Employee" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
+        @* Left Column: Details form *@
+        <div style="display:flex;flex-direction:column;gap:20px">
+            
+            <!-- Credentials section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🔐 Account & Authentication Credentials</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Username">Username *</label>
+                            <input asp-for="Username" class="form-control" placeholder="e.g. john_doe" />
+                            <span asp-validation-for="Username" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Password">Password *</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
+                            <span asp-validation-for="Password" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile details -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">👤 Profile & Contact Information</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label" asp-for="FullName">Full Name *</label>
+                            <input asp-for="FullName" class="form-control" placeholder="e.g. John Doe" />
+                            <span asp-validation-for="FullName" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Email">Email Address *</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="john.doe@cattlefarm.com" />
+                            <span asp-validation-for="Email" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="PhoneNumber">Phone Number</label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+8801XXXXXXXXX" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Assignment -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💼 Role & Employment Assignment</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Department">Department</label>
+                            <input asp-for="Department" class="form-control" placeholder="e.g. Dairy, Field Operations" />
+                            <span asp-validation-for="Department" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Designation">Job Title / Designation</label>
+                            <input asp-for="Designation" class="form-control" placeholder="e.g. Supervisor, Farm Hand" />
+                            <span asp-validation-for="Designation" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Role">System Security Role *</label>
+                            <select asp-for="Role" class="form-control">
+                                <option value="Worker">👷 Worker (Employee)</option>
+                                <option value="Owner">🏡 Owner</option>
+                                <option value="Manager">🧑‍💼 Manager</option>
+                                <option value="Doctor">👨‍⚕️ Doctor</option>
+                            </select>
+                            <span asp-validation-for="Role" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="FarmId">Assign to Farm *</label>
+                            <select asp-for="FarmId" class="form-control">
+                                <option value="">— Select Farm —</option>
+                                @if (ViewBag.Farms != null)
+                                {
+                                    foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                                    {
+                                        <option value="@farm.Id">@farm.Name</option>
+                                    }
+                                }
+                            </select>
+                            <span style="font-size:11px;color:var(--text-muted)">Worker will be assigned to this farm.</span>
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label" asp-for="BaseSalary">Base Monthly Salary (@Currency.GetSettings().Symbol) *</label>
+                            <input asp-for="BaseSalary" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                            <span asp-validation-for="BaseSalary" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @* Right Column: Action sidebar *@
+        <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+                <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-person-plus"></i> Hire Employee
+                    </button>
+                    <a href="/Employee" class="btn btn-outline w-100">Cancel</a>
+                </div>
+            </div>
+            
+            <div class="card" style="padding:16px;background:rgba(99,102,241,.04);border:1px dashed var(--primary)">
+                <h4 style="font-size:14px;font-weight:700;margin-bottom:8px;color:var(--primary)">💡 Hiring Info</h4>
+                <p style="font-size:12px;color:var(--text-muted);line-height:1.5">
+                    Hiring an employee automatically creates an active system user profile with worker level permissions. Their initial password will be securely hashed upon registration.
+                </p>
+            </div>
+        </div>
+    </div>
+</form>

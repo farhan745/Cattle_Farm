@@ -4,5 +4,6 @@ namespace CattleFarm.Services.Interfaces
     {
         Task SendWelcomeEmailAsync(string toEmail, string toName);
         Task SendPaymentConfirmationAsync(string toEmail, string toName, string planName, string txId, decimal amount);
+        Task SendPasswordResetEmailAsync(string toEmail, string resetLink);
     }
 }

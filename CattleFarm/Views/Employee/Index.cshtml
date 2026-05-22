@@ -1,0 +1,269 @@
+@model IEnumerable<CattleFarm.ViewModels.EmployeeViewModel>
+@inject CattleFarm.Services.Interfaces.ICurrencyService Currency
+@{
+    ViewData["Title"] = "Employees";
+    var employees = Model.ToList();
+    var totalCount = employees.Count;
+    var activeCount = employees.Count(e => e.IsActive);
+    var avgSalary = employees.Any() ? employees.Average(e => e.BaseSalary) : 0;
+    bool isAdminOrOwner = User.IsInRole("Admin") || User.IsInRole("Owner");
+}
+
+@section Styles {
+<style>
+    .emp-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .emp-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .emp-stat-card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 6px 20px rgba(0,0,0,.08); 
+    }
+
+    .emp-stat-icon {
+        width: 44px; height: 44px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .emp-stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+    .emp-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+    .filter-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 16px;
+    }
+
+    .filter-bar input, .filter-bar select {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 13px;
+        font-family: inherit;
+    }
+
+    .filter-bar input:focus, .filter-bar select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+</style>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">💼 Employees</h1>
+        <p class="page-subtitle">Staff profiles and details management</p>
+    </div>
+    <div>
+        @if (isAdminOrOwner)
+        {
+            <a href="/Employee/Create" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Hire Employee
+            </a>
+        }
+    </div>
+</div>
+
+@* ── Stats Row ────────────────────────────────────────────── *@
+<div class="emp-stats-grid">
+    <div class="emp-stat-card">
+        <div class="emp-stat-icon" style="background:rgba(99,102,241,.12)"><i class="bi bi-people" style="color:#6366f1"></i></div>
+        <div>
+            <div class="emp-stat-value">@totalCount</div>
+            <div class="emp-stat-label">Total Employees</div>
+        </div>
+    </div>
+    <div class="emp-stat-card">
+        <div class="emp-stat-icon" style="background:rgba(16,185,129,.12)"><i class="bi bi-shield-check" style="color:#10b981"></i></div>
+        <div>
+            <div class="emp-stat-value" style="color:#10b981">@activeCount</div>
+            <div class="emp-stat-label">Active staff</div>
+        </div>
+    </div>
+    <div class="emp-stat-card">
+        <div class="emp-stat-icon" style="background:rgba(245,158,11,.12)"><i class="bi bi-cash-stack" style="color:#f59e0b"></i></div>
+        <div>
+            <div class="emp-stat-value" style="color:#f59e0b">@Currency.Format(avgSalary)</div>
+            <div class="emp-stat-label">Avg. Base Salary</div>
+        </div>
+    </div>
+</div>
+
+@* ── Filter Bar ───────────────────────────────────────────── *@
+<div class="filter-bar">
+    <i class="bi bi-funnel" style="color:var(--text-muted)"></i>
+    <input type="text" id="searchInput" placeholder="Search employee name/username…" oninput="filterTable()" style="min-width:240px" />
+    <select id="statusFilter" onchange="filterTable()">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+    </select>
+    <select id="roleFilter" onchange="filterTable()">
+        <option value="">All Roles</option>
+        <option value="Worker">Worker</option>
+        <option value="Owner">Owner</option>
+        <option value="Manager">Manager</option>
+        <option value="Doctor">Doctor</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()"><i class="bi bi-x-circle"></i> Clear</button>
+    <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
+        Showing <strong id="visibleCount">@totalCount</strong> of @totalCount employees
+    </span>
+</div>
+
+@* ── Table ────────────────────────────────────────────────── *@
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table" id="empIndexTable">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Username</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>System Role</th>
+                    <th>Base Salary</th>
+                    <th>Status</th>
+                    <th>Hired Date</th>
+                    <th style="text-align:center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!employees.Any())
+                {
+                    <tr>
+                        <td colspan="8" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+                            <div style="font-size:48px;margin-bottom:12px">💼</div>
+                            <div style="font-weight:600;margin-bottom:6px">No employee profiles found</div>
+                            @if (isAdminOrOwner)
+                            {
+                                <a href="/Employee/Create" class="btn btn-primary" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px">
+                                    <i class="bi bi-person-plus"></i> Hire Employee Now
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @foreach (var e in employees)
+                {
+                    var statusText = e.IsActive ? "Active" : "Inactive";
+                    var badgeCss = e.IsActive ? "badge-success" : "badge-gray";
+                    var initials = string.Join("", e.FullName
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Take(2).Select(w => w[0])).ToUpper();
+                    if (string.IsNullOrEmpty(initials) && !string.IsNullOrEmpty(e.Username))
+                    {
+                        initials = e.Username.Substring(0, Math.Min(2, e.Username.Length)).ToUpper();
+                    }
+
+                    <tr data-name="@e.FullName.ToLower() @e.Username.ToLower()"
+                        data-status="@statusText"
+                        data-role="@(e.Role ?? "Worker")">
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:34px;height:34px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--primary);flex-shrink:0">
+                                    @initials
+                                </div>
+                                <div>
+                                    <span style="font-weight:600;display:block">@e.FullName</span>
+                                    <span style="font-size:11px;color:var(--text-muted)">@e.Email</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size:13px;font-family:monospace">@@@e.Username</td>
+                        <td>@(string.IsNullOrEmpty(e.Department) ? "—" : e.Department)</td>
+                        <td><span class="badge badge-info">@(string.IsNullOrEmpty(e.Designation) ? "Worker" : e.Designation)</span></td>
+                        <td>
+                            @{
+                                var roleBadge = (e.Role ?? "Worker") switch {
+                                    "Owner"   => ("badge-warning",  "🏡 Owner"),
+                                    "Manager" => ("badge-info",     "🧑‍💼 Manager"),
+                                    "Doctor"  => ("badge-purple",   "👨‍⚕️ Doctor"),
+                                    _         => ("badge-gray",     "👷 Worker")
+                                };
+                            }
+                            <span class="badge @roleBadge.Item1">@roleBadge.Item2</span>
+                        </td>
+                        <td style="font-weight:600">@Currency.Format(e.BaseSalary)</td>
+                        <td>
+                            <span class="badge @badgeCss">@statusText</span>
+                        </td>
+                        <td style="font-size:12px">@e.HiredAt.ToString("MMM dd, yyyy")</td>
+                        <td style="text-align:center">
+                            <div style="display:flex;gap:6px;justify-content:center">
+                                <a href="/Employee/Details/@e.Id" class="btn btn-outline btn-sm" title="Details">
+                                    View
+                                </a>
+                                @if (isAdminOrOwner)
+                                {
+                                    <a href="/Employee/Edit/@e.Id" class="btn btn-ghost btn-sm" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/Employee/Delete/@e.Id" class="btn btn-ghost btn-sm" title="Delete">
+                                        <i class="bi bi-trash text-danger"></i>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function filterTable() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const role   = document.getElementById('roleFilter').value;
+        const rows = document.querySelectorAll('#empIndexTable tbody tr[data-name]');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const nameMatch   = !search || row.dataset.name.includes(search);
+            const statusMatch = !status || row.dataset.status === status;
+            const roleMatch   = !role   || row.dataset.role === role;
+            const show = nameMatch && statusMatch && roleMatch;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        document.getElementById('visibleCount').textContent = visible;
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('roleFilter').value = '';
+        filterTable();
+    }
+</script>
+}

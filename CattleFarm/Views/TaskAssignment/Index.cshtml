@@ -1,0 +1,273 @@
+@model IEnumerable<CattleFarm.ViewModels.TaskViewModel>
+@{
+    ViewData["Title"] = "Task Assignments";
+    var tasks = Model.ToList();
+    var totalTasks = tasks.Count;
+    var pendingTasks = tasks.Count(t => t.Status == "Pending");
+    var inProgressTasks = tasks.Count(t => t.Status == "InProgress");
+    var completedTasks = tasks.Count(t => t.Status == "Completed");
+    bool isStaffManager = User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager");
+}
+
+@section Styles {
+<style>
+    .task-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .task-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .task-stat-card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 6px 20px rgba(0,0,0,.08); 
+    }
+
+    .task-stat-icon {
+        width: 44px; height: 44px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .task-stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+    .task-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+    .filter-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 16px;
+    }
+
+    .filter-bar input, .filter-bar select {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 13px;
+        font-family: inherit;
+    }
+
+    .filter-bar input:focus, .filter-bar select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+</style>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Task Assignments</h1>
+        <p class="page-subtitle">Track and assign farm operations duties</p>
+    </div>
+    <div>
+        @if (isStaffManager)
+        {
+            <a href="/TaskAssignment/Assign" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Assign New Task
+            </a>
+        }
+    </div>
+</div>
+
+@* ── Stats Row ────────────────────────────────────────────── *@
+<div class="task-stats-grid">
+    <div class="task-stat-card">
+        <div class="task-stat-icon" style="background:rgba(99,102,241,.12)"><i class="bi bi-list-task" style="color:#6366f1"></i></div>
+        <div>
+            <div class="task-stat-value">@totalTasks</div>
+            <div class="task-stat-label">Total Tasks</div>
+        </div>
+    </div>
+    <div class="task-stat-card">
+        <div class="task-stat-icon" style="background:rgba(239,68,68,.12)"><i class="bi bi-hourglass" style="color:#ef4444"></i></div>
+        <div>
+            <div class="task-stat-value" style="color:#ef4444">@pendingTasks</div>
+            <div class="task-stat-label">Pending</div>
+        </div>
+    </div>
+    <div class="task-stat-card">
+        <div class="task-stat-icon" style="background:rgba(245,158,11,.12)"><i class="bi bi-activity" style="color:#f59e0b"></i></div>
+        <div>
+            <div class="task-stat-value" style="color:#f59e0b">@inProgressTasks</div>
+            <div class="task-stat-label">In Progress</div>
+        </div>
+    </div>
+    <div class="task-stat-card">
+        <div class="task-stat-icon" style="background:rgba(16,185,129,.12)"><i class="bi bi-check-circle" style="color:#10b981"></i></div>
+        <div>
+            <div class="task-stat-value" style="color:#10b981">@completedTasks</div>
+            <div class="task-stat-label">Completed</div>
+        </div>
+    </div>
+</div>
+
+@* ── Filter Bar ───────────────────────────────────────────── *@
+<div class="filter-bar">
+    <i class="bi bi-funnel" style="color:var(--text-muted)"></i>
+    <input type="text" id="searchInput" placeholder="Search tasks or workers…" oninput="filterTable()" style="min-width:240px" />
+    <select id="statusFilter" onchange="filterTable()">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="InProgress">In Progress</option>
+        <option value="Completed">Completed</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()"><i class="bi bi-x-circle"></i> Clear</button>
+    <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
+        Showing <strong id="visibleCount">@totalTasks</strong> of @totalTasks tasks
+    </span>
+</div>
+
+@* ── Table ────────────────────────────────────────────────── *@
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table" id="taskIndexTable">
+            <thead>
+                <tr>
+                    <th>Task Details</th>
+                    <th>Assigned To</th>
+                    <th>Assigned At</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align:center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!tasks.Any())
+                {
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+                            <div style="font-size:48px;margin-bottom:12px">📋</div>
+                            <div style="font-weight:600;margin-bottom:6px">No tasks found</div>
+                            @if (isStaffManager)
+                            {
+                                <a href="/TaskAssignment/Assign" class="btn btn-primary btn-sm" style="margin-top:8px">
+                                    <i class="bi bi-plus-circle"></i> Assign a Task Now
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @foreach (var t in tasks)
+                {
+                    var statusText = t.Status switch
+                    {
+                        "InProgress" => "In Progress",
+                        _ => t.Status
+                    };
+                    var badgeCss = t.Status switch
+                    {
+                        "Pending" => "badge-danger",
+                        "InProgress" => "badge-warning",
+                        "Completed" => "badge-success",
+                        _ => "badge-gray"
+                    };
+
+                    <tr data-search="@t.Title.ToLower() @t.Description.ToLower() @(t.WorkerName?.ToLower() ?? "")"
+                        data-status="@t.Status">
+                        <td>
+                            <div>
+                                <span style="font-weight:600;display:block">@t.Title</span>
+                                <span style="font-size:12px;color:var(--text-muted);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">@t.Description</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:28px;height:28px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;color:var(--primary);flex-shrink:0">
+                                    @(!string.IsNullOrEmpty(t.WorkerName) ? string.Join("", t.WorkerName.Split(' ').Take(2).Select(w => w[0])).ToUpper() : "W")
+                                </div>
+                                <span style="font-weight:500">@(string.IsNullOrEmpty(t.WorkerName) ? "Unassigned" : t.WorkerName)</span>
+                            </div>
+                        </td>
+                        <td style="font-size:12px">@t.AssignedAt.ToString("MMM dd, yyyy")</td>
+                        <td style="font-size:12px;font-weight:600;color:@(t.DueDate.Date < DateTime.Today && t.Status != "Completed" ? "var(--danger)" : "inherit")">
+                            @t.DueDate.ToString("MMM dd, yyyy")
+                            @if (t.DueDate.Date < DateTime.Today && t.Status != "Completed")
+                            {
+                                <span style="color:var(--danger);font-size:10px;display:block"><i class="bi bi-exclamation-triangle"></i> Overdue</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @badgeCss">@statusText</span>
+                        </td>
+                        <td style="text-align:center">
+                            <div style="display:flex;gap:6px;justify-content:center;align-items:center">
+                                <a href="/TaskAssignment/Details/@t.Id" class="btn btn-outline btn-sm" title="View details">
+                                    View
+                                </a>
+                                @if (isStaffManager)
+                                {
+                                    <a href="/TaskAssignment/Edit/@t.Id" class="btn btn-ghost btn-sm" title="Edit task">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/TaskAssignment/Delete/@t.Id" class="btn btn-ghost btn-sm" title="Delete assignment">
+                                        <i class="bi bi-trash text-danger"></i>
+                                    </a>
+                                }
+                                else if (User.IsInRole("Worker"))
+                                {
+                                    <form asp-action="UpdateStatus" method="post" style="display:flex;align-items:center">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="taskId" value="@t.Id" />
+                                        <select name="status" onchange="this.form.submit()" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); cursor:pointer">
+                                            <option value="Pending" selected="@(t.Status == "Pending")">Pending</option>
+                                            <option value="InProgress" selected="@(t.Status == "InProgress")">In Progress</option>
+                                            <option value="Completed" selected="@(t.Status == "Completed")">Completed</option>
+                                        </select>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function filterTable() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('#taskIndexTable tbody tr[data-search]');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const searchMatch = !search || row.dataset.search.includes(search);
+            const statusMatch = !status || row.dataset.status === status;
+            const show = searchMatch && statusMatch;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        document.getElementById('visibleCount').textContent = visible;
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        filterTable();
+    }
+</script>
+}

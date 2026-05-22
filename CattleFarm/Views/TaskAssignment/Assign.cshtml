@@ -1,0 +1,64 @@
+@model CattleFarm.ViewModels.TaskAssignViewModel
+@{
+    ViewData["Title"] = "Assign Task";
+    var workers = ViewBag.Workers as List<CattleFarm.Models.Worker> ?? new List<CattleFarm.Models.Worker>();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Assign Task</h1>
+        <p class="page-subtitle">Create a new task assignment for a worker</p>
+    </div>
+    <div>
+        <a href="/TaskAssignment" class="btn btn-outline">
+            <i class="bi bi-arrow-left"></i> Cancel & Back
+        </a>
+    </div>
+</div>
+
+<div style="max-width:600px;margin:0 auto">
+    <div class="card" style="padding:28px">
+        <form asp-action="Assign" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Status" value="Pending" />
+
+            <div style="margin-bottom:20px">
+                <label asp-for="AssignedWorkerId" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Assign To Worker</label>
+                <select asp-for="AssignedWorkerId" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none" required>
+                    <option value="">-- Select a Worker --</option>
+                    @foreach (var w in workers)
+                    {
+                        <option value="@w.Id">@w.FullName</option>
+                    }
+                </select>
+                <span asp-validation-for="AssignedWorkerId" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="margin-bottom:20px">
+                <label asp-for="Title" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Task Title</label>
+                <input asp-for="Title" placeholder="e.g. Clean Cattle Barn 3" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none" required />
+                <span asp-validation-for="Title" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="margin-bottom:20px">
+                <label asp-for="Description" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Description & Instructions</label>
+                <textarea asp-for="Description" rows="4" placeholder="Describe instructions and details for this task..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none;resize:vertical" required></textarea>
+                <span asp-validation-for="Description" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="margin-bottom:28px">
+                <label asp-for="DueDate" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Due Date</label>
+                <input type="date" asp-for="DueDate" value="@Model.DueDate.ToString("yyyy-MM-dd")" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none" required />
+                <span asp-validation-for="DueDate" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="display:flex;justify-content:end;gap:12px;border-top:1px solid var(--border);padding-top:20px">
+                <a href="/TaskAssignment" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Assign Task
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

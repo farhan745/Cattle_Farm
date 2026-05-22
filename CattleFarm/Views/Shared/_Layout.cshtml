@@ -63,6 +63,17 @@
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Feed" ? "active" : "")" href="/Feed">
                             <i class="bi bi-box2 nav-icon"></i><span class="nav-text">Feed Management</span>
                         </a>
+                        
+                        <div class="nav-section">Staff Operations</div>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Attendance" ? "active" : "")" href="/Attendance">
+                            <i class="bi bi-calendar-check nav-icon"></i><span class="nav-text">Attendance</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "TaskAssignment" ? "active" : "")" href="/TaskAssignment">
+                            <i class="bi bi-check2-square nav-icon"></i><span class="nav-text">Task Board</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Payroll" ? "active" : "")" href="/Payroll">
+                            <i class="bi bi-credit-card-2-front nav-icon"></i><span class="nav-text">Payroll</span>
+                        </a>
                     }
 
                     <div class="nav-section">Health</div>
@@ -131,6 +142,20 @@
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")" href="/Account/Profile">
                         <i class="bi bi-person-circle nav-icon"></i><span class="nav-text">My Profile</span>
                     </a>
+
+                    @if (User.IsInRole("Worker"))
+                    {
+                        <div class="nav-section">My Work</div>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Attendance" ? "active" : "")" href="/Attendance">
+                            <i class="bi bi-calendar-check nav-icon"></i><span class="nav-text">My Attendance</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "TaskAssignment" ? "active" : "")" href="/TaskAssignment">
+                            <i class="bi bi-check2-square nav-icon"></i><span class="nav-text">My Tasks</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Payroll" ? "active" : "")" href="/Payroll">
+                            <i class="bi bi-credit-card-2-front nav-icon"></i><span class="nav-text">My Salary Slips</span>
+                        </a>
+                    }
 
                     @if (User.IsInRole("Admin"))
                     {

@@ -2,6 +2,7 @@ using CattleFarm.Models;
 using CattleFarm.Services.Interfaces;
 using CattleFarm.UnitOfWork;
 using CattleFarm.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace CattleFarm.Services.Implementations
 {
@@ -9,11 +10,15 @@ namespace CattleFarm.Services.Implementations
     {
         private readonly IUnitOfWork _uow;
         private readonly IFinancialService _fin;
+        private readonly ITaskAssignmentService _tasks;
+        private readonly CattleFarmDbContext _db;
 
-        public DashboardService(IUnitOfWork uow, IFinancialService fin)
+        public DashboardService(IUnitOfWork uow, IFinancialService fin, ITaskAssignmentService tasks, CattleFarmDbContext db)
         {
-            _uow = uow;
-            _fin = fin;
+            _uow   = uow;
+            _fin   = fin;
+            _tasks = tasks;
+            _db    = db;
         }
 
         public async Task<AdminDashboardViewModel> GetAdminDashboardAsync()
@@ -26,6 +31,49 @@ namespace CattleFarm.Services.Implementations
             var recentActivity = await _uow.ActivityLogs.GetRecentAsync(10);
             var auditLogs      = (await _uow.AuditLogs.GetPagedAsync(1, 10)).Items;
 
+            var today    = DateTime.UtcNow.Date;
+            var monthStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var now      = DateTime.UtcNow;
+
+            var allRevenues = (await _uow.Revenues.GetAllAsync()).Where(r => !r.IsDeleted).ToList();
+            var allExpenses = (await _uow.Expenses.GetAllAsync()).Where(e => !e.IsDeleted).ToList();
+            var allMilk = (await _uow.MilkProductions.GetAllAsync()).ToList();
+
+            var revenue = allRevenues.Where(r => r.Date >= monthStart && r.Date <= now).Sum(r => r.Amount);
+            var expenses = allExpenses.Where(e => e.Date >= monthStart && e.Date <= now).Sum(e => e.Amount);
+            var netProfit = revenue - expenses;
+
+            var activeCount   = cattles.Count(c => c.Status == CattleStatus.Active && c.HealthStatus == HealthStatus.Healthy);
+            var sickCount     = cattles.Count(c => c.HealthStatus is HealthStatus.Sick or HealthStatus.Critical);
+            var atRiskCount   = cattles.Count(c => c.HealthStatus == HealthStatus.AtRisk);
+            var soldCount     = cattles.Count(c => c.Status == CattleStatus.Sold);
+            var deceasedCount = cattles.Count(c => c.Status == CattleStatus.Deceased);
+
+            var milkTrend = new List<DailyMilkTrend>();
+            for (int i = 6; i >= 0; i--)
+            {
+                var day     = today.AddDays(-i);
+                var dayStart = day;
+                var dayEnd   = day.AddDays(1);
+                var dayYield = allMilk.Where(m => m.Date >= dayStart && m.Date < dayEnd).Sum(m => m.MorningYieldLiters + m.EveningYieldLiters);
+                milkTrend.Add(new DailyMilkTrend
+                {
+                    Day    = day.ToString("ddd"),
+                    Liters = dayYield
+                });
+            }
+
+            var trend = new List<MonthlyTrendItem>();
+            for (int i = 5; i >= 0; i--)
+            {
+                var date = DateTime.UtcNow.AddMonths(-i);
+                var from = new DateTime(date.Year, date.Month, 1);
+                var to   = from.AddMonths(1).AddDays(-1);
+                var rev  = allRevenues.Where(r => r.Date >= from && r.Date <= to).Sum(r => r.Amount);
+                var exp  = allExpenses.Where(e => e.Date >= from && e.Date <= to).Sum(e => e.Amount);
+                trend.Add(new MonthlyTrendItem { Month = from.ToString("MMM yyyy"), Revenue = rev, Expense = exp });
+            }
+
             return new AdminDashboardViewModel
             {
                 TotalUsers      = users.Count(),
@@ -35,7 +83,16 @@ namespace CattleFarm.Services.Implementations
                 TotalDoctors    = doctors.Count(),
                 PendingFarms    = farms.Count(f => f.ApprovalStatus == ApprovalStatus.Pending),
                 RecentActivity  = recentActivity.ToList(),
-                RecentAuditLogs = auditLogs.ToList()
+                RecentAuditLogs = auditLogs.ToList(),
+                TotalRevenue    = revenue,
+                TotalExpenses   = expenses,
+                NetProfit       = netProfit,
+                ActiveCount     = activeCount,
+                SickCount       = sickCount + atRiskCount,
+                SoldCount       = soldCount,
+                DeceasedCount   = deceasedCount,
+                MilkWeeklyTrend = milkTrend,
+                MonthlyTrend    = trend
             };
         }
 
@@ -157,14 +214,27 @@ namespace CattleFarm.Services.Implementations
             };
         }
 
-        public async Task<WorkerDashboardViewModel> GetWorkerDashboardAsync(int workerId)
+        public async Task<WorkerDashboardViewModel> GetWorkerDashboardAsync(int userId)
         {
-            var worker   = await _uow.Workers.GetByIdAsync(workerId);
-            var milkLogs = await _uow.MilkProductions.GetByFarmIdAsync(worker?.FarmId ?? 0);
+            var worker       = (await _uow.Workers.GetAllAsync()).FirstOrDefault(w => w.UserId == userId);
+            var milkLogs     = await _uow.MilkProductions.GetByFarmIdAsync(worker?.FarmId ?? 0);
+            var myTasks      = (await _tasks.GetTasksByUserIdAsync(userId)).ToList();
+            var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var presentDays  = 0;
+            if (worker != null)
+            {
+                presentDays = await _db.Set<Attendance>()
+                    .CountAsync(a => a.WorkerId == worker.Id && a.Date >= startOfMonth && a.Status == "Present");
+            }
             return new WorkerDashboardViewModel
             {
-                WorkerProfile   = worker,
-                RecentMilkLogs  = milkLogs.Take(10).ToList()
+                WorkerProfile    = worker,
+                RecentMilkLogs   = milkLogs.Take(10).ToList(),
+                PresentThisMonth = presentDays,
+                MyTasks          = myTasks,
+                PendingTasks     = myTasks.Count(t => t.Status == "Pending"),
+                InProgressTasks  = myTasks.Count(t => t.Status == "InProgress"),
+                CompletedTasks   = myTasks.Count(t => t.Status == "Completed")
             };
         }
 
@@ -186,15 +256,18 @@ namespace CattleFarm.Services.Implementations
         public async Task<CustomerDashboardViewModel> GetCustomerDashboardAsync(int customerId)
         {
             var orders   = await _uow.Orders.GetByCustomerIdAsync(customerId);
-            var featured = (await _uow.Products.GetAllAsync())
-                .Where(p => p.IsFeatured && p.IsAvailable)
+            // Show all available products on the website (not just featured ones)
+            var products = (await _uow.Products.GetAllAsync())
+                .Where(p => p.IsAvailable)
+                .OrderByDescending(p => p.IsFeatured)
+                .ThenBy(p => p.Name)
                 .Take(8).ToList();
             return new CustomerDashboardViewModel
             {
                 RecentOrders     = orders.Take(5).ToList(),
                 TotalOrders      = orders.Count(),
                 TotalSpent       = orders.Where(o => o.PaymentStatus == PaymentStatus.Completed).Sum(o => o.TotalAmount),
-                FeaturedProducts = featured
+                FeaturedProducts = products
             };
         }
     }

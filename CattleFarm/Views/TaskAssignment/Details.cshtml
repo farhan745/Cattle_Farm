@@ -1,0 +1,103 @@
+@model CattleFarm.ViewModels.TaskViewModel
+@{
+    ViewData["Title"] = $"Task Details: {Model.Title}";
+    bool isOwnerOrAdmin = User.IsInRole("Admin") || User.IsInRole("Owner");
+
+    var statusText = Model.Status switch
+    {
+        "InProgress" => "In Progress",
+        _ => Model.Status
+    };
+    var badgeCss = Model.Status switch
+    {
+        "Pending" => "badge-danger",
+        "InProgress" => "badge-warning",
+        "Completed" => "badge-success",
+        _ => "badge-gray"
+    };
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Task Details</h1>
+        <p class="page-subtitle">Detailed information about task assignment</p>
+    </div>
+    <div style="display:flex;gap:10px">
+        <a href="/TaskAssignment" class="btn btn-outline">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        @if (isOwnerOrAdmin)
+        {
+            <a href="/TaskAssignment/Edit/@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit Task
+            </a>
+        }
+    </div>
+</div>
+
+<div style="max-width:800px;margin:0 auto">
+    <div class="card" style="padding:28px">
+        @* Task Header Info *@
+        <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:16px;border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px">
+            <div style="flex:1;min-width:280px">
+                <span class="badge @badgeCss" style="font-size:12px;padding:6px 12px;margin-bottom:10px">@statusText</span>
+                <h2 style="font-size:22px;font-weight:800;margin:0 0 6px">@Model.Title</h2>
+                <div style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:12px">
+                    <span><i class="bi bi-calendar"></i> Assigned: @Model.AssignedAt.ToString("MMM dd, yyyy hh:mm tt")</span>
+                    @if (Model.CompletedAt.HasValue)
+                    {
+                        <span style="color:var(--success)"><i class="bi bi-check2-all"></i> Completed: @Model.CompletedAt.Value.ToString("MMM dd, yyyy hh:mm tt")</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Task Description *@
+        <div style="margin-bottom:28px">
+            <h3 style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Description</h3>
+            <div style="line-height:1.6;font-size:14.5px;white-space:pre-line;background:var(--bg);border:1px solid var(--border);padding:16px;border-radius:8px">
+                @Model.Description
+            </div>
+        </div>
+
+        @* Assignment Grid *@
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:20px;background:var(--bg);border:1px solid var(--border);padding:20px;border-radius:10px">
+            <div>
+                <label style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px">Assigned To</label>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:30px;height:30px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--primary)">
+                        @(!string.IsNullOrEmpty(Model.WorkerName) ? string.Join("", Model.WorkerName.Split(' ').Take(2).Select(w => w[0])).ToUpper() : "W")
+                    </div>
+                    <span style="font-weight:600">@(string.IsNullOrEmpty(Model.WorkerName) ? "Unassigned" : Model.WorkerName)</span>
+                </div>
+            </div>
+            
+            <div>
+                <label style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px">Due Date</label>
+                <div style="font-weight:600;display:flex;align-items:center;gap:6px">
+                    <i class="bi bi-calendar-event text-primary"></i>
+                    <span>@Model.DueDate.ToString("MMMM dd, yyyy")</span>
+                    @if (Model.DueDate.Date < DateTime.Today && Model.Status != "Completed")
+                    {
+                        <span class="badge badge-danger" style="font-size:10px">Overdue</span>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:4px">Task ID</label>
+                <div style="font-weight:600;font-family:monospace">#@Model.Id</div>
+            </div>
+        </div>
+
+        @* Admin Actions footer *@
+        @if (isOwnerOrAdmin)
+        {
+            <div style="display:flex;justify-content:end;gap:12px;margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
+                <a href="/TaskAssignment/Delete/@Model.Id" class="btn btn-outline" style="border-color:var(--danger);color:var(--danger)">
+                    <i class="bi bi-trash"></i> Delete Assignment
+                </a>
+            </div>
+        }
+    </div>
+</div>

@@ -29,6 +29,8 @@ namespace CattleFarm.Repositories.Implementations
             => await _dbSet
                 .Include(w => w.Farm)
                 .Include(w => w.Attendances)
+                .Include(w => w.DailyAttendances)
+                    .ThenInclude(da => da.MarkedByUser)
                 .Include(w => w.MilkProductions)
                     .ThenInclude(m => m.Cattle)
                 .FirstOrDefaultAsync(w => w.Id == id);

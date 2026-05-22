@@ -1,0 +1,275 @@
+@model IEnumerable<CattleFarm.ViewModels.AttendanceViewModel>
+@{
+    ViewData["Title"] = "Attendance Records";
+    var records    = Model.ToList();
+    var totalCount = records.Count;
+    var presentCount = records.Count(r => r.Notes == "Present" || r.Status == CattleFarm.Models.AttendanceStatus.Present && r.Notes != "Absent" && r.Notes != "Late");
+    var absentCount  = records.Count(r => r.Notes == "Absent");
+    var lateCount    = records.Count(r => r.Notes == "Late");
+    bool isAdminOrOwner = User.IsInRole("Admin") || User.IsInRole("Owner");
+}
+
+@section Styles {
+<style>
+    .att-index-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .att-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        transition: transform .2s, box-shadow .2s;
+    }
+
+    .att-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+
+    .att-stat-icon {
+        width: 44px; height: 44px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .att-stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+    .att-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+    .filter-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 16px;
+    }
+
+    .filter-bar input, .filter-bar select {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 13px;
+        font-family: inherit;
+    }
+
+    .filter-bar input:focus, .filter-bar select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+</style>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Attendance Records</h1>
+        <p class="page-subtitle">Daily worker attendance log</p>
+    </div>
+    <div style="display:flex;gap:10px">
+        @if (isAdminOrOwner)
+        {
+            <a href="/Attendance/Mark" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Mark Today's Attendance
+            </a>
+        }
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#059669;margin-bottom:20px">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+@* ── Stats Row ────────────────────────────────────────────── *@
+<div class="att-index-stats">
+    <div class="att-stat-card">
+        <div class="att-stat-icon" style="background:rgba(99,102,241,.12)"><i class="bi bi-people" style="color:#6366f1"></i></div>
+        <div>
+            <div class="att-stat-value">@totalCount</div>
+            <div class="att-stat-label">Total Records</div>
+        </div>
+    </div>
+    <div class="att-stat-card">
+        <div class="att-stat-icon" style="background:rgba(16,185,129,.12)"><i class="bi bi-check-circle" style="color:#10b981"></i></div>
+        <div>
+            <div class="att-stat-value" style="color:#10b981">@records.Count(r => r.Notes == "Present")</div>
+            <div class="att-stat-label">Present</div>
+        </div>
+    </div>
+    <div class="att-stat-card">
+        <div class="att-stat-icon" style="background:rgba(239,68,68,.12)"><i class="bi bi-x-circle" style="color:#ef4444"></i></div>
+        <div>
+            <div class="att-stat-value" style="color:#ef4444">@records.Count(r => r.Notes == "Absent")</div>
+            <div class="att-stat-label">Absent</div>
+        </div>
+    </div>
+    <div class="att-stat-card">
+        <div class="att-stat-icon" style="background:rgba(245,158,11,.12)"><i class="bi bi-clock" style="color:#f59e0b"></i></div>
+        <div>
+            <div class="att-stat-value" style="color:#f59e0b">@records.Count(r => r.Notes == "Late")</div>
+            <div class="att-stat-label">Late</div>
+        </div>
+    </div>
+</div>
+
+@* ── Filter Bar ───────────────────────────────────────────── *@
+<div class="filter-bar">
+    <i class="bi bi-funnel" style="color:var(--text-muted)"></i>
+    <input type="text" id="searchInput" placeholder="Search worker name…" oninput="filterTable()" style="min-width:200px" />
+    <select id="statusFilter" onchange="filterTable()">
+        <option value="">All Statuses</option>
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+        <option value="Late">Late</option>
+    </select>
+    <input type="date" id="dateFilter" onchange="filterTable()" />
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()"><i class="bi bi-x-circle"></i> Clear</button>
+    <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
+        Showing <strong id="visibleCount">@totalCount</strong> of @totalCount records
+    </span>
+</div>
+
+@* ── Table ────────────────────────────────────────────────── *@
+<div class="card">
+    <div class="table-wrapper">
+        <table class="data-table" id="attIndexTable">
+            <thead>
+                <tr>
+                    <th>Worker</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    @if (isAdminOrOwner)
+                    {
+                        <th style="text-align:center">Actions</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (!records.Any())
+                {
+                    <tr>
+                        <td colspan="@(isAdminOrOwner ? 4 : 3)" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+                            <div style="font-size:48px;margin-bottom:12px">📋</div>
+                            <div style="font-weight:600;margin-bottom:6px">No attendance records yet</div>
+                            @if (isAdminOrOwner)
+                            {
+                                <a href="/Attendance/Mark" class="btn btn-primary" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px">
+                                    <i class="bi bi-pencil-square"></i> Mark Attendance Now
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @foreach (var r in records)
+                {
+                    var rawStatus  = r.Notes ?? r.Status.ToString();
+                    var badgeCss   = rawStatus switch {
+                        "Present" => "badge-success",
+                        "Absent"  => "badge-danger",
+                        "Late"    => "badge-warning",
+                        _         => "badge-info"
+                    };
+                    var dotColor = rawStatus switch {
+                        "Present" => "#10b981",
+                        "Absent"  => "#ef4444",
+                        "Late"    => "#f59e0b",
+                        _         => "#6366f1"
+                    };
+                    var initials = string.Join("", r.WorkerName
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Take(2).Select(w => w[0]));
+
+                    <tr data-name="@r.WorkerName.ToLower()"
+                        data-status="@rawStatus"
+                        data-date="@r.Date.ToString("yyyy-MM-dd")">
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <div style="width:34px;height:34px;border-radius:50%;background:@(dotColor)18;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:@dotColor;flex-shrink:0">
+                                    @initials
+                                </div>
+                                <span style="font-weight:600">@r.WorkerName</span>
+                            </div>
+                        </td>
+                        <td style="font-size:13px">
+                            <i class="bi bi-calendar3" style="color:var(--text-muted);margin-right:5px"></i>
+                            @r.Date.ToString("ddd, MMM d yyyy")
+                        </td>
+                        <td>
+                            <span class="badge @badgeCss">
+                                <span class="status-dot" style="background:@dotColor"></span>@rawStatus
+                            </span>
+                        </td>
+                        @if (isAdminOrOwner)
+                        {
+                            <td style="text-align:center">
+                                <div style="display:flex;gap:6px;justify-content:center">
+                                    <a href="/Attendance/Edit/@r.Id" class="btn btn-ghost btn-sm" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="post" action="/Attendance/Delete/@r.Id" style="display:inline"
+                                          onsubmit="return confirm('Delete this attendance record?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-ghost btn-sm" title="Delete">
+                                            <i class="bi bi-trash text-danger"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function filterTable() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const date   = document.getElementById('dateFilter').value;
+        const rows   = document.querySelectorAll('#attIndexTable tbody tr[data-name]');
+        let visible  = 0;
+
+        rows.forEach(row => {
+            const nameMatch   = !search || row.dataset.name.includes(search);
+            const statusMatch = !status || row.dataset.status === status;
+            const dateMatch   = !date   || row.dataset.date === date;
+            const show = nameMatch && statusMatch && dateMatch;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        document.getElementById('visibleCount').textContent = visible;
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value  = '';
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('dateFilter').value   = '';
+        filterTable();
+    }
+</script>
+}

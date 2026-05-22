@@ -1,42 +1,208 @@
 @model CattleFarm.ViewModels.CustomerDashboardViewModel
-@{ ViewData["Title"] = "Customer Dashboard"; }
-<div class="page-header">
-    <div><h1 class="page-title">🛒 My Account</h1><p class="page-subtitle">Your orders and the marketplace</p></div>
-    <a href="/Product" class="btn btn-primary"><i class="bi bi-shop"></i> Browse Products</a>
-</div>
-<div class="stat-grid">
-    <div class="stat-card blue"><div class="stat-icon blue"></div><div><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Total Orders</div></div></div>
-    <div class="stat-card green"><div class="stat-icon green">💰</div><div><div class="stat-value">@Currency.Format(Model.TotalSpent)</div><div class="stat-label">Total Spent</div></div></div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-    <div class="card">
-        <div class="card-header"><h3 class="card-title">📦 Recent Orders</h3><a href="/Order" class="btn btn-ghost btn-sm">View all</a></div>
-        <div class="table-wrapper">
-            @if (!Model.RecentOrders.Any()) { <div class="empty-state" style="padding:30px"><div class="empty-icon">🛒</div><p>No orders yet</p></div> }
-            else {
-                <table class="data-table"><thead><tr><th>Order</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
-                @foreach (var o in Model.RecentOrders)
-                {
-                    <tr>
-                        <td><a href="/Order/Details/@o.Id" style="font-weight:600">#@o.Id</a></td>
-                        <td>@o.OrderDate.ToString("MMM dd")</td>
-                        <td>@Currency.Format(o.TotalAmount)</td>
-                        <td><span class="badge @(o.OrderStatus == CattleFarm.Models.OrderStatus.Delivered ? "badge-success" : "badge-info")">@o.OrderStatus</span></td>
-                    </tr>
-                }
-                </tbody></table>
-            }
-        </div>
+@{ ViewData["Title"] = "My Account"; }
+
+@section Styles {
+<style>
+    .customer-hero {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        border-radius: 16px;
+        padding: 26px 32px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .customer-hero::after {
+        content: '🛒';
+        position: absolute;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 64px;
+        opacity: 0.18;
+    }
+    .customer-hero h1 { font-size: 20px; font-weight: 800; margin: 0 0 4px; }
+    .customer-hero p  { margin: 0; font-size: 13px; opacity: 0.85; }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .product-card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform .2s, box-shadow .2s;
+        background: var(--bg);
+        cursor: pointer;
+    }
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,.1);
+        border-color: var(--primary);
+    }
+    .product-thumb {
+        height: 90px;
+        background: var(--card-bg);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px;
+        position: relative;
+    }
+    .product-featured-badge {
+        position: absolute; top: 6px; right: 6px;
+        background: #f59e0b;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+    .product-info { padding: 10px; }
+    .product-name {
+        font-size: 12px; font-weight: 700;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .product-category {
+        font-size: 10px; color: var(--text-muted); margin-top: 2px;
+    }
+    .product-price {
+        font-size: 13px; font-weight: 800; color: var(--primary); margin-top: 6px;
+    }
+    .product-buy-btn {
+        display: block;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 6px;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        transition: opacity .2s;
+    }
+    .product-buy-btn:hover { opacity: .85; }
+</style>
+}
+
+@* ── Hero ─────────────────────────────────────────────────── *@
+<div class="customer-hero">
+    <div>
+        <h1>👋 Welcome, @User.Identity?.Name</h1>
+        <p>Browse fresh farm products and track your orders</p>
     </div>
+</div>
+
+@* ── Stats ───────────────────────────────────────────────── *@
+<div class="stat-grid" style="margin-bottom:24px">
+    <div class="stat-card blue">
+        <div class="stat-icon blue">🛒</div>
+        <div><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Total Orders</div></div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon green">💰</div>
+        <div><div class="stat-value">@Currency.Format(Model.TotalSpent)</div><div class="stat-label">Total Spent</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div><div class="stat-value">@Model.FeaturedProducts.Count</div><div class="stat-label">Products Available</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div><div class="stat-value">@Model.FeaturedProducts.Count(p => p.IsFeatured)</div><div class="stat-label">Featured Items</div></div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+
+    @* ── Products ────────────────────────────────────────── *@
     <div class="card">
-        <div class="card-header"><h3 class="card-title">⭐ Featured Products</h3><a href="/Product" class="btn btn-ghost btn-sm">Browse all</a></div>
-        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px">
-            @foreach (var p in Model.FeaturedProducts.Take(4))
+        <div class="card-header">
+            <h3 class="card-title">🛍️ Products Available on Our Farm</h3>
+            <a href="/Product" class="btn btn-primary btn-sm"><i class="bi bi-shop"></i> Browse All</a>
+        </div>
+        @if (!Model.FeaturedProducts.Any())
+        {
+            <div style="text-align:center;padding:48px 20px;color:var(--text-muted)">
+                <div style="font-size:48px;margin-bottom:12px">🏪</div>
+                <div style="font-weight:600">No products available yet</div>
+            </div>
+        }
+        else
+        {
+            <div class="product-grid">
+                @foreach (var p in Model.FeaturedProducts)
+                {
+                    var emoji = p.Category switch
+                    {
+                        CattleFarm.Models.ProductCategory.Milk            => "🥛",
+                        CattleFarm.Models.ProductCategory.Beef            => "🥩",
+                        CattleFarm.Models.ProductCategory.Manure          => "🌱",
+                        CattleFarm.Models.ProductCategory.BreedingService => "🐄",
+                        _ => "📦"
+                    };
+                    <div class="product-card" onclick="window.location='/Product/Details/@p.Id'">
+                        <div class="product-thumb">
+                            @emoji
+                            @if (p.IsFeatured)
+                            {
+                                <span class="product-featured-badge">Featured</span>
+                            }
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name" title="@p.Name">@p.Name</div>
+                            <div class="product-category">@p.Category</div>
+                            <div class="product-price">@Currency.Format(p.Price)</div>
+                        </div>
+                        <a href="/Order/Create?productId=@p.Id" class="product-buy-btn" onclick="event.stopPropagation()">
+                            Buy Now
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @* ── Orders Sidebar ───────────────────────────────────── *@
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">📦 Recent Orders</h3>
+            <a href="/Order" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        <div class="table-wrapper" style="margin:0">
+            @if (!Model.RecentOrders.Any())
             {
-                <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
-                    <div style="height:80px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px">@(p.Category == CattleFarm.Models.ProductCategory.Milk ? "🥛" : p.Category == CattleFarm.Models.ProductCategory.Beef ? "🥩" : "📦")</div>
-                    <div style="padding:8px"><div style="font-size:12px;font-weight:600">@p.Name</div><div style="font-size:11px;color:var(--primary);font-weight:700">@Currency.Format(p.Price)</div></div>
+                <div style="text-align:center;padding:32px 16px;color:var(--text-muted)">
+                    <div style="font-size:36px;margin-bottom:8px">🛒</div>
+                    <div style="font-size:13px;font-weight:600">No orders yet</div>
+                    <a href="/Product" class="btn btn-primary btn-sm" style="margin-top:10px">Shop Now</a>
                 </div>
+            }
+            else
+            {
+                <table class="data-table" style="font-size:13px">
+                    <thead><tr><th>Order</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody>
+                    @foreach (var o in Model.RecentOrders)
+                    {
+                        var badge = o.OrderStatus == CattleFarm.Models.OrderStatus.Delivered ? "badge-success"
+                                  : o.OrderStatus == CattleFarm.Models.OrderStatus.Cancelled ? "badge-danger"
+                                  : "badge-info";
+                        <tr>
+                            <td><a href="/Order/Details/@o.Id" style="font-weight:700">#@o.Id</a></td>
+                            <td>@o.OrderDate.ToString("MMM dd")</td>
+                            <td>@Currency.Format(o.TotalAmount)</td>
+                            <td><span class="badge @badge" style="font-size:10px">@o.OrderStatus</span></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
             }
         </div>
     </div>

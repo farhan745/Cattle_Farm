@@ -158,7 +158,7 @@
                   <h3 class="card-title">📅 Recent Attendance (Last 10 Days)</h3>
               </div>
               <div class="table-wrapper">
-                  @if (Model.Attendances == null || !Model.Attendances.Any())
+                  @if (Model.DailyAttendances == null || !Model.DailyAttendances.Any())
                   {
                       <div class="empty-state" style="padding:40px;text-align:center">
                           <div style="font-size:40px;margin-bottom:8px">📋</div>
@@ -172,30 +172,25 @@
                               <tr>
                                   <th>Date</th>
                                   <th>Status</th>
-                                  <th>Check In</th>
-                                  <th>Check Out</th>
-                                  <th>Hours Worked</th>
-                                  <th>Notes</th>
+                                  <th>Marked By</th>
+                                  <th>Marked At</th>
                               </tr>
                           </thead>
                           <tbody>
-                              @foreach (var a in Model.Attendances.OrderByDescending(a => a.Date).Take(10))
+                              @foreach (var a in Model.DailyAttendances.OrderByDescending(a => a.Date).Take(10))
                               {
                                   var statusBadgeClass = a.Status switch
                                   {
-                                      CattleFarm.Models.AttendanceStatus.Present => "badge-success",
-                                      CattleFarm.Models.AttendanceStatus.HalfDay => "badge-warning",
-                                      CattleFarm.Models.AttendanceStatus.Leave => "badge-info",
-                                      CattleFarm.Models.AttendanceStatus.Absent => "badge-danger",
+                                      "Present" => "badge-success",
+                                      "Late" => "badge-warning",
+                                      "Absent" => "badge-danger",
                                       _ => "badge-gray"
                                   };
                                   <tr>
                                       <td style="font-weight:600">@a.Date.ToString("MMM dd, yyyy")</td>
                                       <td><span class="badge @statusBadgeClass">@a.Status</span></td>
-                                      <td>@(a.CheckIn?.ToString("hh:mm tt") ?? "—")</td>
-                                      <td>@(a.CheckOut?.ToString("hh:mm tt") ?? "—")</td>
-                                      <td style="font-weight:600">@(a.HoursWorked.HasValue ? $"{a.HoursWorked.Value:F1} hrs" : "—")</td>
-                                      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="@a.Notes">@(a.Notes ?? "—")</td>
+                                      <td>@(a.MarkedByUser?.FullName ?? "System")</td>
+                                      <td style="color:var(--text-muted)">@a.MarkedAt.ToString("MMM dd, yyyy hh:mm tt")</td>
                                   </tr>
                               }
                           </tbody>

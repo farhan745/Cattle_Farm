@@ -1,0 +1,474 @@
+@model CattleFarm.ViewModels.BulkAttendanceViewModel
+@{
+    ViewData["Title"] = "Mark Attendance";
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
+    var selectedDate = Model.Date.ToString("yyyy-MM-dd");
+    var totalWorkers  = Model.Rows.Count;
+    var presentCount  = Model.Rows.Count(r => r.Status == "Present");
+    var absentCount   = Model.Rows.Count(r => r.Status == "Absent");
+    var lateCount     = Model.Rows.Count(r => r.Status == "Late");
+}
+
+@section Styles {
+<style>
+    /* ── Attendance Mark Page Styles ────────────────────────────── */
+    .att-header-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .att-stat-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .att-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .3px;
+    }
+
+    .att-pill-present { background: rgba(16,185,129,.12); color: #059669; border: 1px solid rgba(16,185,129,.25); }
+    .att-pill-absent  { background: rgba(239,68,68,.12);  color: #dc2626; border: 1px solid rgba(239,68,68,.25);  }
+    .att-pill-late    { background: rgba(245,158,11,.12); color: #d97706; border: 1px solid rgba(245,158,11,.25); }
+    .att-pill-total   { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-light); }
+
+    /* date bar */
+    .att-date-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .att-date-bar label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .att-date-input {
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: border-color .2s;
+    }
+
+    .att-date-input:focus { outline: none; border-color: var(--primary); }
+
+    .att-date-nav {
+        display: flex;
+        gap: 4px;
+    }
+
+    .att-date-nav button {
+        width: 34px; height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 15px;
+        display: flex; align-items: center; justify-content: center;
+        transition: background .2s, color .2s;
+    }
+
+    .att-date-nav button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .today-chip {
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: var(--primary);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        letter-spacing: .4px;
+        transition: opacity .2s;
+    }
+    .today-chip:hover { opacity: .85; }
+
+    /* worker avatar */
+    .worker-avatar {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 14px;
+        flex-shrink: 0;
+        background: var(--primary-light);
+        color: var(--primary);
+        text-transform: uppercase;
+    }
+
+    /* status select styling */
+    .att-select {
+        appearance: none;
+        padding: 8px 36px 8px 12px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23999' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        transition: border-color .2s, box-shadow .2s;
+        min-width: 120px;
+    }
+
+    .att-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+
+    .att-select[data-status="Present"] { border-color: #10b981; color: #059669; background-color: rgba(16,185,129,.06); }
+    .att-select[data-status="Absent"]  { border-color: #ef4444; color: #dc2626; background-color: rgba(239,68,68,.06);  }
+    .att-select[data-status="Late"]    { border-color: #f59e0b; color: #d97706; background-color: rgba(245,158,11,.06); }
+
+    /* quick-mark buttons */
+    .quick-bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 12px 20px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 16px;
+    }
+
+    .quick-bar span { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-right: 4px; }
+
+    .qbtn {
+        padding: 5px 14px;
+        border-radius: 999px;
+        border: none;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform .12s, opacity .2s;
+    }
+    .qbtn:hover { transform: translateY(-1px); opacity: .85; }
+    .qbtn-present { background: #10b981; color: #fff; }
+    .qbtn-absent  { background: #ef4444; color: #fff; }
+    .qbtn-late    { background: #f59e0b; color: #fff; }
+
+    /* submit footer */
+    .att-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border);
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+    }
+
+    .att-footer-info { font-size: 12px; color: var(--text-muted); }
+    .att-footer-info strong { color: var(--text); }
+
+    /* row hover highlight */
+    .data-table tbody tr { transition: background .15s; }
+    .data-table tbody tr:hover { background: var(--primary-light) !important; }
+
+    /* loading overlay */
+    .submit-loading { display: none; }
+    .submitting .submit-label { display: none; }
+    .submitting .submit-loading { display: inline; }
+</style>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Mark Attendance</h1>
+        <p class="page-subtitle">Record daily attendance for all active workers</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+        <a href="/Attendance" class="btn btn-outline"><i class="bi bi-arrow-left"></i> View Records</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#059669;margin-bottom:20px">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#dc2626;margin-bottom:20px">
+        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+    </div>
+}
+
+@* ── Date Selector Bar ─────────────────────────────────────── *@
+<div class="att-date-bar">
+    <i class="bi bi-calendar3" style="color:var(--primary);font-size:18px"></i>
+    <label for="datePickerNav">Attendance Date</label>
+    <input type="date"
+           id="datePickerNav"
+           class="att-date-input"
+           value="@selectedDate"
+           max="@today"
+           onchange="navigateDate(this.value)" />
+    <div class="att-date-nav">
+        <button type="button" onclick="shiftDate(-1)" title="Previous day"><i class="bi bi-chevron-left"></i></button>
+        <button type="button" onclick="shiftDate(1)"  title="Next day"     id="btnNext"><i class="bi bi-chevron-right"></i></button>
+    </div>
+    <button class="today-chip" onclick="navigateDate('@today')">Today</button>
+    <div style="margin-left:auto">
+        <div class="att-stat-pills">
+            <span class="att-pill att-pill-total"><i class="bi bi-people"></i> @totalWorkers Total</span>
+            <span class="att-pill att-pill-present" id="pill-present"><i class="bi bi-check-circle"></i> <span id="cnt-present">@presentCount</span> Present</span>
+            <span class="att-pill att-pill-absent"  id="pill-absent"><i class="bi bi-x-circle"></i> <span id="cnt-absent">@absentCount</span> Absent</span>
+            <span class="att-pill att-pill-late"    id="pill-late"><i class="bi bi-clock"></i> <span id="cnt-late">@lateCount</span> Late</span>
+        </div>
+    </div>
+</div>
+
+@if (Model.Rows.Count == 0)
+{
+    <div class="card" style="text-align:center;padding:60px 20px">
+        <div style="font-size:64px;margin-bottom:16px">👷</div>
+        <h3 style="margin:0 0 8px;font-size:20px">No Active Workers Found</h3>
+        <p style="color:var(--text-muted);margin:0 0 20px">There are no active workers registered on your farm yet.</p>
+        <a href="/Worker/Create" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px">
+            <i class="bi bi-person-plus"></i> Hire a Worker
+        </a>
+    </div>
+}
+else
+{
+    @* ── Quick Mark Bar ────────────────────────────────────────── *@
+    <div class="quick-bar">
+        <i class="bi bi-lightning-charge" style="color:var(--primary)"></i>
+        <span>Mark All As:</span>
+        <button type="button" class="qbtn qbtn-present" onclick="markAll('Present')">✔ All Present</button>
+        <button type="button" class="qbtn qbtn-absent"  onclick="markAll('Absent')">✘ All Absent</button>
+        <button type="button" class="qbtn qbtn-late"    onclick="markAll('Late')">⏱ All Late</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
+            <i class="bi bi-info-circle"></i> Changes are saved only when you click <strong>Save Attendance</strong>
+        </span>
+    </div>
+
+    @* ── Main Bulk Form ────────────────────────────────────────── *@
+    <form id="attendanceForm" asp-action="Mark" method="post" onsubmit="handleSubmit(this)">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+
+        <div class="card" style="overflow:hidden">
+            <div class="table-wrapper" style="margin:0">
+                <table class="data-table" id="attTable">
+                    <thead>
+                        <tr>
+                            <th style="width:48px">#</th>
+                            <th>Worker</th>
+                            <th>Role / Position</th>
+                            <th style="text-align:center">Attendance Status</th>
+                            <th style="text-align:center">Quick Toggle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Rows.Count; i++)
+                        {
+                            var row    = Model.Rows[i];
+                            var initials = string.Join("", row.WorkerName
+                                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                .Take(2)
+                                .Select(w => w[0]));
+                            var statusColor = row.Status switch {
+                                "Absent" => "#ef4444",
+                                "Late"   => "#f59e0b",
+                                _        => "#10b981"
+                            };
+
+                            <tr id="row-@i">
+                                <td style="color:var(--text-muted);font-size:12px;font-weight:600">@(i + 1)</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:12px">
+                                        <div class="worker-avatar" style="background:@(statusColor)18;color:@statusColor">
+                                            @initials
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:600;font-size:14px">@row.WorkerName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info" style="font-size:11px">@row.Role</span>
+                                </td>
+                                <td style="text-align:center">
+                                    @* Hidden WorkerId for model binding *@
+                                    <input type="hidden" name="Rows[@i].WorkerId"   value="@row.WorkerId" />
+                                    <input type="hidden" name="Rows[@i].WorkerName" value="@row.WorkerName" />
+                                    <input type="hidden" name="Rows[@i].Role"       value="@row.Role" />
+
+                                    <select name="Rows[@i].Status"
+                                            id="select-@i"
+                                            class="att-select"
+                                            data-status="@row.Status"
+                                            data-row="@i"
+                                            onchange="onStatusChange(this)">
+                                        <option value="Present" selected="@(row.Status == "Present" ? "selected" : null)">✔ Present</option>
+                                        <option value="Absent"  selected="@(row.Status == "Absent"  ? "selected" : null)">✘ Absent</option>
+                                        <option value="Late"    selected="@(row.Status == "Late"    ? "selected" : null)">⏱ Late</option>
+                                    </select>
+                                </td>
+                                <td style="text-align:center">
+                                    <div style="display:flex;gap:6px;justify-content:center">
+                                        <button type="button" class="btn btn-ghost btn-sm"
+                                                style="color:#10b981;font-size:11px;padding:4px 10px"
+                                                onclick="setStatus(@i,'Present')" title="Present">✔</button>
+                                        <button type="button" class="btn btn-ghost btn-sm"
+                                                style="color:#ef4444;font-size:11px;padding:4px 10px"
+                                                onclick="setStatus(@i,'Absent')"  title="Absent">✘</button>
+                                        <button type="button" class="btn btn-ghost btn-sm"
+                                                style="color:#f59e0b;font-size:11px;padding:4px 10px"
+                                                onclick="setStatus(@i,'Late')"    title="Late">⏱</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* ── Sticky Submit Footer ──────────────────────────────── *@
+            <div class="att-footer">
+                <div class="att-footer-info">
+                    Marking attendance for <strong>@Model.Date.ToString("dddd, MMMM d, yyyy")</strong>
+                    &nbsp;·&nbsp; <strong>@totalWorkers</strong> workers
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                    <a href="/Attendance" class="btn btn-outline">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" style="min-width:160px">
+                        <span class="submit-label"><i class="bi bi-check2-all"></i> Save Attendance</span>
+                        <span class="submit-loading"><i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite"></i> Saving…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+}
+
+@section Scripts {
+<script>
+    // ── Navigation helpers ──────────────────────────────────────
+    function navigateDate(val) {
+        window.location.href = '/Attendance/Mark?date=' + val;
+    }
+
+    function shiftDate(delta) {
+        const picker = document.getElementById('datePickerNav');
+        const d = new Date(picker.value);
+        d.setDate(d.getDate() + delta);
+        const shifted = d.toISOString().slice(0, 10);
+        const today   = new Date().toISOString().slice(0, 10);
+        if (shifted <= today) navigateDate(shifted);
+    }
+
+    // Disable "Next day" btn when already on today
+    (function () {
+        const picker = document.getElementById('datePickerNav');
+        const btn    = document.getElementById('btnNext');
+        if (picker && btn) {
+            const today = new Date().toISOString().slice(0, 10);
+            if (picker.value >= today) {
+                btn.disabled = true;
+                btn.style.opacity = '.35';
+                btn.style.cursor  = 'not-allowed';
+            }
+        }
+    })();
+
+    // ── Status change handler ────────────────────────────────────
+    function onStatusChange(sel) {
+        const status = sel.value;
+        sel.setAttribute('data-status', status);
+        updateAvatarColor(parseInt(sel.dataset.row), status);
+        recalcPills();
+    }
+
+    function setStatus(rowIdx, status) {
+        const sel = document.getElementById('select-' + rowIdx);
+        if (!sel) return;
+        sel.value = status;
+        sel.setAttribute('data-status', status);
+        updateAvatarColor(rowIdx, status);
+        recalcPills();
+    }
+
+    function updateAvatarColor(rowIdx, status) {
+        const row    = document.getElementById('row-' + rowIdx);
+        if (!row) return;
+        const avatar = row.querySelector('.worker-avatar');
+        if (!avatar) return;
+        const colors = { Present: ['#10b98118','#059669'], Absent: ['#ef444418','#dc2626'], Late: ['#f59e0b18','#d97706'] };
+        const c = colors[status] || colors['Present'];
+        avatar.style.background = c[0];
+        avatar.style.color      = c[1];
+    }
+
+    // ── Quick mark all ───────────────────────────────────────────
+    function markAll(status) {
+        document.querySelectorAll('.att-select').forEach((sel, idx) => {
+            sel.value = status;
+            sel.setAttribute('data-status', status);
+            updateAvatarColor(idx, status);
+        });
+        recalcPills();
+    }
+
+    // ── Recalculate live counter pills ───────────────────────────
+    function recalcPills() {
+        const selects = document.querySelectorAll('.att-select');
+        let p = 0, a = 0, l = 0;
+        selects.forEach(s => {
+            if (s.value === 'Present') p++;
+            else if (s.value === 'Absent')  a++;
+            else if (s.value === 'Late')    l++;
+        });
+        document.getElementById('cnt-present').textContent = p;
+        document.getElementById('cnt-absent').textContent  = a;
+        document.getElementById('cnt-late').textContent    = l;
+    }
+
+    // ── Submit loading state ─────────────────────────────────────
+    function handleSubmit(form) {
+        document.getElementById('submitBtn').classList.add('submitting');
+    }
+
+    // ── Spin keyframe (for loading icon) ────────────────────────
+    const style = document.createElement('style');
+    style.textContent = `@@keyframes spin { to { transform: rotate(360deg); } }`;
+    document.head.appendChild(style);
+</script>
+}

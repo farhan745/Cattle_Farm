@@ -1,0 +1,75 @@
+@model CattleFarm.ViewModels.PayrollViewModel
+@{
+    var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(Model.Month);
+    ViewData["Title"] = $"Delete Payroll - {Model.WorkerName}";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title text-danger">⚠️ Delete Payroll Entry</h1>
+        <p class="page-subtitle">Are you sure you want to permanently remove this payroll record?</p>
+    </div>
+    <a href="/Payroll" class="btn btn-outline">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div style="max-width:560px">
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="card" style="border-color:rgba(239,68,68,.3)">
+            <div class="card-header" style="background:rgba(239,68,68,.03);border-bottom:1px solid rgba(239,68,68,.15)">
+                <h3 class="card-title text-danger">🚨 Permanent Deletion Warning</h3>
+            </div>
+            
+            <div class="card-body" style="display:flex;flex-direction:column;gap:18px">
+                
+                <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:start">
+                    <i class="bi bi-exclamation-triangle-fill" style="color:var(--danger);font-size:20px;margin-top:2px"></i>
+                    <div style="font-size:13px;line-height:1.45;color:var(--text)">
+                        This action <strong>cannot be undone</strong>. The payroll record for this worker and period will be completely deleted from the system.
+                    </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:12px;background:var(--bg);padding:18px;border-radius:10px;border:1px solid var(--border)">
+                    <div style="display:flex;justify-content:between;border-bottom:1px solid var(--border);padding-bottom:10px">
+                        <span style="color:var(--text-muted);font-size:13.5px">Worker Name:</span>
+                        <strong style="margin-left:auto;font-size:14px">@Model.WorkerName</strong>
+                    </div>
+                    
+                    <div style="display:flex;justify-content:between;border-bottom:1px solid var(--border);padding-bottom:10px">
+                        <span style="color:var(--text-muted);font-size:13.5px">Payroll Period:</span>
+                        <strong style="margin-left:auto;font-size:14px">@monthName @Model.Year</strong>
+                    </div>
+
+                    <div style="display:flex;justify-content:between;border-bottom:1px solid var(--border);padding-bottom:10px">
+                        <span style="color:var(--text-muted);font-size:13.5px">Base Salary:</span>
+                        <strong style="margin-left:auto;font-size:14px;color:var(--text)">@Currency.Format(Model.BaseSalary)</strong>
+                    </div>
+
+                    <div style="display:flex;justify-content:between;border-bottom:1px solid var(--border);padding-bottom:10px">
+                        <span style="color:var(--text-muted);font-size:13.5px">Net Salary:</span>
+                        <strong style="margin-left:auto;font-size:15px;color:var(--primary)">@Currency.Format(Model.NetSalary)</strong>
+                    </div>
+
+                    <div style="display:flex;justify-content:between">
+                        <span style="color:var(--text-muted);font-size:13.5px">Payment Status:</span>
+                        <span class="badge @(Model.IsPaid ? "badge-success" : "badge-danger")" style="margin-left:auto">
+                            @(Model.IsPaid ? "Paid" : "Unpaid")
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:10px;padding-top:6px;border-top:1px solid var(--border)">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirm Delete
+                    </button>
+                    <a href="/Payroll" class="btn btn-outline">Cancel</a>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>

@@ -23,13 +23,48 @@ namespace CattleFarm.Controllers
 
         public async Task<IActionResult> Index(int page = 1, int? farmId = null, FeedType? feedType = null)
         {
-            var (items, total) = await _uow.FeedRecords.GetPagedAsync(page, PageSize, farmId, feedType);
+            var userId = GetUserId();
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+
+            IEnumerable<FeedRecord> items;
+            int total;
+
+            if (role == AppRoles.Owner)
+            {
+                var ownerFarms = await _uow.Farms.GetByOwnerIdAsync(userId);
+                var ownerFarmIds = ownerFarms.Select(f => f.Id).ToList();
+
+                if (farmId.HasValue)
+                {
+                    if (!ownerFarmIds.Contains(farmId.Value))
+                    {
+                        farmId = -1; // Force no results if searching a farm not owned
+                    }
+                    var result = await _uow.FeedRecords.GetPagedAsync(page, PageSize, farmId.Value, feedType);
+                    items = result.Items;
+                    total = result.Total;
+                }
+                else
+                {
+                    var result = await _uow.FeedRecords.GetPagedAsync(page, PageSize, null, feedType, ownerFarmIds);
+                    items = result.Items;
+                    total = result.Total;
+                }
+                ViewBag.Farms = ownerFarms;
+            }
+            else
+            {
+                var result = await _uow.FeedRecords.GetPagedAsync(page, PageSize, farmId, feedType);
+                items = result.Items;
+                total = result.Total;
+                ViewBag.Farms = await _uow.Farms.GetAllAsync();
+            }
+
             ViewData["CurrentPage"] = page;
             ViewData["TotalPages"]  = (int)Math.Ceiling(total / (double)PageSize);
             ViewData["TotalCount"]  = total;
             ViewData["FarmId"]      = farmId;
             ViewData["FeedType"]    = feedType;
-            ViewBag.Farms = await _uow.Farms.GetAllAsync();
             return View(items);
         }
 
@@ -115,7 +150,18 @@ namespace CattleFarm.Controllers
 
         private async Task LoadDropdowns(int? farmId)
         {
-            ViewBag.Farms  = await _uow.Farms.GetAllAsync();
+            var userId = GetUserId();
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+
+            if (role == AppRoles.Owner)
+            {
+                ViewBag.Farms = await _uow.Farms.GetByOwnerIdAsync(userId);
+            }
+            else
+            {
+                ViewBag.Farms = await _uow.Farms.GetAllAsync();
+            }
+
             ViewBag.Cattle = farmId.HasValue
                 ? await _uow.Cattles.GetByFarmIdAsync(farmId.Value)
                 : await _uow.Cattles.GetAllAsync();

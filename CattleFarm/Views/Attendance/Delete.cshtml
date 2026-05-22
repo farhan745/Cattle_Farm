@@ -1,0 +1,66 @@
+@model CattleFarm.ViewModels.AttendanceViewModel
+@{
+    ViewData["Title"] = "Delete Attendance";
+    var rawStatus = Model.Notes ?? Model.Status.ToString();
+    var dotColor  = rawStatus switch {
+        "Present" => "#10b981",
+        "Absent"  => "#ef4444",
+        "Late"    => "#f59e0b",
+        _         => "#6366f1"
+    };
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🗑️ Delete Attendance Record</h1>
+        <p class="page-subtitle">This action cannot be undone</p>
+    </div>
+    <a href="/Attendance" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Records</a>
+</div>
+
+<div style="max-width:520px">
+    <div class="card" style="border:1.5px solid rgba(239,68,68,.35)">
+        <div class="card-body" style="display:flex;flex-direction:column;gap:20px">
+
+            <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(239,68,68,.06);border-radius:10px;border:1px solid rgba(239,68,68,.2)">
+                <div style="font-size:36px">⚠️</div>
+                <div>
+                    <div style="font-weight:700;color:#dc2626;margin-bottom:4px">Confirm Deletion</div>
+                    <div style="font-size:13px;color:var(--text-muted)">
+                        You are about to permanently delete the attendance record below.
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+                <div style="display:flex;justify-content:space-between">
+                    <span style="font-size:12px;color:var(--text-muted);font-weight:600">WORKER</span>
+                    <span style="font-weight:700">@Model.WorkerName</span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                    <span style="font-size:12px;color:var(--text-muted);font-weight:600">DATE</span>
+                    <span style="font-weight:600">@Model.Date.ToString("dddd, MMMM d yyyy")</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:12px;color:var(--text-muted);font-weight:600">STATUS</span>
+                    <span style="padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;background:@(dotColor)18;color:@dotColor;border:1px solid @(dotColor)44">
+                        @rawStatus
+                    </span>
+                </div>
+            </div>
+
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+                  style="display:flex;gap:10px">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn"
+                        style="flex:1;background:#ef4444;color:#fff;border-color:#ef4444">
+                    <i class="bi bi-trash"></i> Yes, Delete Record
+                </button>
+                <a href="/Attendance" class="btn btn-outline" style="flex:1;text-align:center">
+                    Cancel
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>

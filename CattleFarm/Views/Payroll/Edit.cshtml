@@ -1,0 +1,219 @@
+@model CattleFarm.ViewModels.PayrollEditViewModel
+@{
+    var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(Model.Month);
+    ViewData["Title"] = $"Adjust Payroll - {Model.WorkerName}";
+}
+
+@section Styles {
+<style>
+    .calculation-summary {
+        background: rgba(99,102,241,.06);
+        border: 1px dashed var(--primary);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13.5px;
+        color: var(--text-muted);
+    }
+
+    .calc-row.total {
+        border-top: 1px solid var(--border);
+        padding-top: 10px;
+        margin-top: 6px;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+</style>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✏️ Adjust Payroll</h1>
+        <p class="page-subtitle">Modify earnings, deductions, and payment status for @Model.WorkerName (@monthName @Model.Year)</p>
+    </div>
+    <a href="/Payroll" class="btn btn-outline">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div style="max-width:680px">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" id="payrollEditForm">
+        @Html.AntiForgeryToken()
+        
+        @* Hidden fields for Model Binding *@
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="UserId" />
+        <input type="hidden" asp-for="WorkerId" />
+        <input type="hidden" asp-for="WorkerName" />
+        <input type="hidden" asp-for="Year" />
+        <input type="hidden" asp-for="Month" />
+        <input type="hidden" asp-for="BaseSalary" id="baseSalaryHidden" />
+        <input type="hidden" asp-for="NetSalary" id="netSalaryHidden" />
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">💵 Adjustments for @Model.WorkerName</h3>
+            </div>
+            
+            <div class="card-body" style="display:flex;flex-direction:column;gap:18px">
+                
+                @* Info Row *@
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;background:var(--bg);padding:14px 16px;border-radius:10px;border:1px solid var(--border)">
+                    <div>
+                        <span style="font-size:11.5px;color:var(--text-muted);display:block;text-transform:uppercase;font-weight:600">Employee ID</span>
+                        <strong style="font-size:14px">#@Model.WorkerId</strong>
+                    </div>
+                    <div>
+                        <span style="font-size:11.5px;color:var(--text-muted);display:block;text-transform:uppercase;font-weight:600">Payroll Period</span>
+                        <strong style="font-size:14px">@monthName @Model.Year</strong>
+                    </div>
+                </div>
+
+                @* Base Salary Reference *@
+                <div class="form-group">
+                    <label class="form-label">Base Salary</label>
+                    <div class="input-group">
+                        <span style="padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px 0 0 8px;font-size:14px;color:var(--text-muted)">৳</span>
+                        <input type="text" class="form-control" value="@Currency.Format(Model.BaseSalary)" readonly disabled 
+                               style="border-radius:0 8px 8px 0;background:var(--bg);color:var(--text-muted)" />
+                    </div>
+                </div>
+
+                @* Overtime Details *@
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                    <div class="form-group">
+                        <label class="form-label" for="OvertimeHours">Overtime Hours</label>
+                        <input asp-for="OvertimeHours" type="number" step="0.5" min="0" max="500" class="form-control" id="otHoursInput" />
+                        <span asp-validation-for="OvertimeHours" class="form-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="OvertimePay">Overtime Pay (৳)</label>
+                        <input asp-for="OvertimePay" type="number" step="0.01" min="0" class="form-control" id="otPayInput" />
+                        <span asp-validation-for="OvertimePay" class="form-error"></span>
+                    </div>
+                </div>
+
+                @* Bonus & Deductions *@
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                    <div class="form-group">
+                        <label class="form-label" for="Bonus">Bonus & Incentives (৳)</label>
+                        <input asp-for="Bonus" type="number" step="0.01" min="0" class="form-control" id="bonusInput" />
+                        <span asp-validation-for="Bonus" class="form-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="Deductions">Deductions / Penalty (৳)</label>
+                        <input asp-for="Deductions" type="number" step="0.01" min="0" class="form-control" id="deductionsInput" />
+                        <span asp-validation-for="Deductions" class="form-error"></span>
+                    </div>
+                </div>
+
+                @* Live Calculations Box *@
+                <div>
+                    <span class="form-label">Calculation Breakdown</span>
+                    <div class="calculation-summary">
+                        <div class="calc-row">
+                            <span>Base Salary:</span>
+                            <span id="calcBaseSalary">৳0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Overtime Pay:</span>
+                            <span style="color:var(--success)" id="calcOtPay">+৳0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Bonus Incentives:</span>
+                            <span style="color:var(--success)" id="calcBonus">+৳0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Deductions:</span>
+                            <span style="color:var(--danger)" id="calcDeductions">-৳0.00</span>
+                        </div>
+                        <div class="calc-row total">
+                            <span>Net Payout:</span>
+                            <span id="calcNetSalary">৳0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                @* Payment Status *@
+                <div class="form-group" style="padding:10px 0">
+                    <div style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <input asp-for="IsPaid" type="checkbox" id="isPaidCheckbox" style="width:18px;height:18px;cursor:pointer" />
+                        <label for="isPaidCheckbox" style="font-weight:600;font-size:14px;cursor:pointer;margin:0">Mark this payroll slip as PAID / Cleared</label>
+                    </div>
+                    <span asp-validation-for="IsPaid" class="form-error"></span>
+                </div>
+
+                @* Form Buttons *@
+                <div style="display:flex;gap:10px;padding-top:6px;border-top:1px solid var(--border)">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Save Adjustments
+                    </button>
+                    <a href="/Payroll" class="btn btn-outline">Cancel</a>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const baseSalary = parseFloat(document.getElementById("baseSalaryHidden").value) || 0;
+            const otPayInput = document.getElementById("otPayInput");
+            const bonusInput = document.getElementById("bonusInput");
+            const deductionsInput = document.getElementById("deductionsInput");
+
+            const calcBaseSalary = document.getElementById("calcBaseSalary");
+            const calcOtPay = document.getElementById("calcOtPay");
+            const calcBonus = document.getElementById("calcBonus");
+            const calcDeductions = document.getElementById("calcDeductions");
+            const calcNetSalary = document.getElementById("calcNetSalary");
+            const netSalaryHidden = document.getElementById("netSalaryHidden");
+
+            // Format standard currency display
+            function formatCurrency(val) {
+                return "৳" + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function recalculate() {
+                const otPay = parseFloat(otPayInput.value) || 0;
+                const bonus = parseFloat(bonusInput.value) || 0;
+                const deductions = parseFloat(deductionsInput.value) || 0;
+
+                const netSalary = baseSalary + otPay + bonus - deductions;
+
+                // Update text elements
+                calcBaseSalary.textContent = formatCurrency(baseSalary);
+                calcOtPay.textContent = "+" + formatCurrency(otPay);
+                calcBonus.textContent = "+" + formatCurrency(bonus);
+                calcDeductions.textContent = "-" + formatCurrency(deductions);
+                calcNetSalary.textContent = formatCurrency(netSalary);
+
+                // Save net salary to hidden field
+                netSalaryHidden.value = netSalary.toFixed(2);
+            }
+
+            // Bind listeners
+            otPayInput.addEventListener("input", recalculate);
+            bonusInput.addEventListener("input", recalculate);
+            deductionsInput.addEventListener("input", recalculate);
+
+            // Initial calculation
+            recalculate();
+        });
+    </script>
+}

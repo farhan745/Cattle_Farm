@@ -1,0 +1,119 @@
+@model CattleFarm.ViewModels.EmployeeEditViewModel
+@inject CattleFarm.Services.Interfaces.ICurrencyService Currency
+@{
+    ViewData["Title"] = $"Edit Employee: {Model.FullName}";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✏️ Edit Employee Profile</h1>
+        <p class="page-subtitle">Update employee profile, contact information, salary, and active status</p>
+    </div>
+    <a href="/Employee" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
+</div>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
+        @* Left Column: Edit Details Form *@
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+            <!-- Profile Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">👤 Personal & Contact Info</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label class="form-label" asp-for="FullName">Full Name *</label>
+                            <input asp-for="FullName" class="form-control" placeholder="Full name" />
+                            <span asp-validation-for="FullName" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Email">Email Address *</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="email@cattlefarm.com" />
+                            <span asp-validation-for="Email" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="PhoneNumber">Phone Number</label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+8801XXXXXXXXX" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Assignment -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💼 Role & Salary Settings</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Department">Department</label>
+                            <input asp-for="Department" class="form-control" placeholder="Department" />
+                            <span asp-validation-for="Department" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Designation">Designation / Role</label>
+                            <input asp-for="Designation" class="form-control" placeholder="Designation" />
+                            <span asp-validation-for="Designation" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="Role">System Security Role *</label>
+                            <select asp-for="Role" class="form-control">
+                                <option value="Worker">Worker (Employee)</option>
+                                <option value="Owner">Owner (Manager/Owner)</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Doctor">Doctor</option>
+                            </select>
+                            <span asp-validation-for="Role" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="BaseSalary">Base Monthly Salary (@Currency.GetSettings().Symbol) *</label>
+                            <input asp-for="BaseSalary" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                            <span asp-validation-for="BaseSalary" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @* Right Column: Status & Submit Sidebar *@
+        <div style="display:flex;flex-direction:column;gap:20px">
+            
+            <!-- Account Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⚙️ Account Settings</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                            <input asp-for="IsActive" type="checkbox" style="accent-color:var(--primary);width:18px;height:18px" />
+                            <div>
+                                <span class="form-label" style="margin:0;font-weight:600">Active Profile Status</span>
+                                <span style="display:block;font-size:11px;color:var(--text-muted)">Allow this employee to log in and mark attendance.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit action -->
+            <div class="card">
+                <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                    <a href="/Employee" class="btn btn-outline w-100">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

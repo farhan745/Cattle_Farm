@@ -50,6 +50,7 @@ namespace CattleFarm.Models
 
         // Navigation
         public virtual ICollection<WorkerAttendance> Attendances      { get; set; } = new List<WorkerAttendance>();
+        public virtual ICollection<Attendance>       DailyAttendances { get; set; } = new List<Attendance>();
         public virtual ICollection<MilkProduction>   MilkProductions  { get; set; } = new List<MilkProduction>();
     }
 }

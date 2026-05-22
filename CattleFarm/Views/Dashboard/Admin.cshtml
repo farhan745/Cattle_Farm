@@ -1,7 +1,128 @@
 @model CattleFarm.ViewModels.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Admin Dashboard";
+    var activeColor = "#22c55e"; var sickColor = "#ef4444"; var soldColor = "#3b82f6"; var decColor = "#94a3b8";
 }
+
+<style>
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    @@media (min-width: 1200px) {
+        .dashboard-container {
+            grid-template-columns: 1fr 360px;
+        }
+    }
+
+    .dashboard-main-col {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .dashboard-sidebar-col {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: sticky;
+        top: 88px;
+    }
+
+    .right-panel-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .right-panel-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+    }
+
+    .right-panel-card .card-header-simple {
+        width: 100%;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    .right-panel-card .card-title-simple {
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Pulse Badge Styles for Live Performance Indicator */
+    .pulse-badge {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .pulse-badge.green {
+        background-color: #22c55e;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        animation: pulse-green 1.5s infinite;
+    }
+
+    .pulse-badge.red {
+        background-color: #ef4444;
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        animation: pulse-red 1.5s infinite;
+    }
+
+    @@keyframes pulse-green {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+        }
+    }
+
+    @@keyframes pulse-red {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+    }
+</style>
 
 <div class="page-header animate-in">
     <div>
@@ -14,114 +135,712 @@
     </div>
 </div>
 
-<!-- KPI Row -->
-<div class="stat-grid animate-in">
-    <div class="stat-card blue">
-        <div class="stat-icon blue"><i class="bi bi-people"></i></div>
-        <div>
-            <div class="stat-value">@Model.TotalUsers</div>
-            <div class="stat-label">Total Users</div>
-        </div>
-    </div>
-    <div class="stat-card green">
-        <div class="stat-icon green"><i class="bi bi-house-door"></i></div>
-        <div>
-            <div class="stat-value">@Model.TotalFarms</div>
-            <div class="stat-label">Registered Farms</div>
-            @if (Model.PendingFarms > 0)
-            {
-                <div class="stat-change down"><i class="bi bi-clock"></i> @Model.PendingFarms pending approval</div>
-            }
-        </div>
-    </div>
-    <div class="stat-card teal">
-        <div class="stat-icon teal"><i class="bi bi-collection"></i></div>
-        <div>
-            <div class="stat-value">@Model.TotalCattle</div>
-            <div class="stat-label">Total Cattle</div>
-        </div>
-    </div>
-    <div class="stat-card purple">
-        <div class="stat-icon purple"><i class="bi bi-people-fill"></i></div>
-        <div>
-            <div class="stat-value">@Model.TotalWorkers</div>
-            <div class="stat-label">Workers</div>
-        </div>
-    </div>
-    <div class="stat-card amber">
-        <div class="stat-icon amber"><i class="bi bi-person-badge"></i></div>
-        <div>
-            <div class="stat-value">@Model.TotalDoctors</div>
-            <div class="stat-label">Veterinarians</div>
-        </div>
-    </div>
-    <div class="stat-card red">
-        <div class="stat-icon red"><i class="bi bi-hourglass-split"></i></div>
-        <div>
-            <div class="stat-value">@Model.PendingFarms</div>
-            <div class="stat-label">Pending Approvals</div>
-            <div class="stat-change @(Model.PendingFarms > 0 ? "down" : "up")">
-                @(Model.PendingFarms > 0 ? "Action required" : "All cleared")
+<div class="dashboard-container">
+    <!-- Left Column (Center/Main Content) -->
+    <div class="dashboard-main-col animate-in">
+        <!-- KPI Row -->
+        <div class="stat-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+                <div>
+                    <div class="stat-value">@Model.TotalUsers</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-house-door"></i></div>
+                <div>
+                    <div class="stat-value">@Model.TotalFarms</div>
+                    <div class="stat-label">Registered Farms</div>
+                    @if (Model.PendingFarms > 0)
+                    {
+                        <div class="stat-change down"><i class="bi bi-clock"></i> @Model.PendingFarms pending approval</div>
+                    }
+                </div>
+            </div>
+            <div class="stat-card teal">
+                <div class="stat-icon teal"><i class="bi bi-collection"></i></div>
+                <div>
+                    <div class="stat-value">@Model.TotalCattle</div>
+                    <div class="stat-label">Total Cattle</div>
+                </div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-icon purple"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="stat-value">@Model.TotalWorkers</div>
+                    <div class="stat-label">Workers</div>
+                </div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber"><i class="bi bi-person-badge"></i></div>
+                <div>
+                    <div class="stat-value">@Model.TotalDoctors</div>
+                    <div class="stat-label">Veterinarians</div>
+                </div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-icon red"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="stat-value">@Model.PendingFarms</div>
+                    <div class="stat-label">Pending Approvals</div>
+                    <div class="stat-change @(Model.PendingFarms > 0 ? "down" : "up")">
+                        @(Model.PendingFarms > 0 ? "Action required" : "All cleared")
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="animate-in">
-    <!-- Recent Activity -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-activity" style="color:var(--primary)"></i> Recent Activity</h3>
-            <a href="/Admin/AuditLogs" class="btn btn-ghost btn-sm">View all</a>
+        <!-- Charts Row: Milk Line + Cattle Donut -->
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="chart-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-droplet" style="color:var(--info)"></i> Milk Production — Last 7 Days</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height:220px">
+                        <canvas id="milkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-pie-chart" style="color:var(--accent)"></i> Herd Status</h3>
+                </div>
+                <div class="card-body" style="display:flex;flex-direction:column;align-items:center">
+                    <div class="chart-container" style="height:180px;width:180px">
+                        <canvas id="herdChart"></canvas>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;width:100%;font-size:12px">
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@activeColor;display:inline-block"></span> Active (@Model.ActiveCount)</div>
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@sickColor;display:inline-block"></span> Sick/At-Risk (@Model.SickCount)</div>
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@soldColor;display:inline-block"></span> Sold (@Model.SoldCount)</div>
+                        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:@decColor;display:inline-block"></span> Deceased (@Model.DeceasedCount)</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        @if (Model.RecentActivity.Any())
-        {
-            <div style="padding:0">
-                @foreach (var log in Model.RecentActivity.Take(8))
+
+        <!-- Revenue vs Expense Bar Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color:var(--primary)"></i> Revenue vs Expenses — Last 6 Months</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height:240px">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity & Logs -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-activity" style="color:var(--primary)"></i> Recent Activity</h3>
+                    <a href="/Admin/AuditLogs" class="btn btn-ghost btn-sm">View all</a>
+                </div>
+                @if (Model.RecentActivity.Any())
                 {
-                    <div style="padding:11px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
-                        <div style="width:6px;height:6px;border-radius:50%;background:var(--primary);margin-top:6px;flex-shrink:0"></div>
-                        <div style="flex:1">
-                            <div style="font-size:13px;color:var(--text-primary)">@log.Description</div>
-                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">@log.Timestamp.ToString("MMM dd, yyyy HH:mm")</div>
-                        </div>
+                    <div style="padding:0">
+                        @foreach (var log in Model.RecentActivity.Take(8))
+                        {
+                            <div style="padding:11px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+                                <div style="width:6px;height:6px;border-radius:50%;background:var(--primary);margin-top:6px;flex-shrink:0"></div>
+                                <div style="flex:1">
+                                    <div style="font-size:13px;color:var(--text-primary)">@log.Description</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px">@log.Timestamp.ToString("MMM dd, yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
+                else
+                {
+                    <div class="card-body empty-state"><i class="bi bi-inbox" style="font-size:32px;opacity:.3"></i><h3 style="margin-top:8px">No recent activity</h3></div>
+                }
             </div>
-        }
-        else
-        {
-            <div class="card-body empty-state"><i class="bi bi-inbox" style="font-size:32px;opacity:.3"></i><h3 style="margin-top:8px">No recent activity</h3></div>
-        }
+
+            <!-- Audit Logs -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-journal-text" style="color:var(--accent)"></i> Audit Log</h3>
+                    <a href="/Admin/AuditLogs" class="btn btn-ghost btn-sm">View all</a>
+                </div>
+                @if (Model.RecentAuditLogs.Any())
+                {
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Action</th><th>Entity</th><th>Time</th></tr></thead>
+                            <tbody>
+                                @foreach (var log in Model.RecentAuditLogs.Take(8))
+                                {
+                                    <tr>
+                                        <td><span style="font-weight:600;font-size:12px">@log.Action</span></td>
+                                        <td><span class="badge badge-gray">@log.EntityName</span></td>
+                                        <td style="color:var(--text-muted);font-size:12px">@log.Timestamp.ToString("MMM dd HH:mm")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-body empty-state"><i class="bi bi-shield-check" style="font-size:32px;opacity:.3"></i><h3 style="margin-top:8px">No audit records</h3></div>
+                }
+            </div>
+        </div>
     </div>
 
-    <!-- Audit Logs -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-journal-text" style="color:var(--accent)"></i> Audit Log</h3>
-            <a href="/Admin/AuditLogs" class="btn btn-ghost btn-sm">View all</a>
-        </div>
-        @if (Model.RecentAuditLogs.Any())
-        {
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead><tr><th>Action</th><th>Entity</th><th>Time</th></tr></thead>
-                    <tbody>
-                        @foreach (var log in Model.RecentAuditLogs.Take(8))
-                        {
-                            <tr>
-                                <td><span style="font-weight:600;font-size:12px">@log.Action</span></td>
-                                <td><span class="badge badge-gray">@log.EntityName</span></td>
-                                <td style="color:var(--text-muted);font-size:12px">@log.Timestamp.ToString("MMM dd HH:mm")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    <!-- Right Sidebar Column (360px) -->
+    <div class="dashboard-sidebar-col animate-in">
+        <!-- Live Farm Performance Card -->
+        <div class="right-panel-card live-performance-card" style="align-items: stretch; width: 100%;">
+            <div class="card-header-simple" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <span class="card-title-simple" style="font-family: var(--font-heading); font-size: 14px; font-weight: 800; color: var(--text-primary);">
+                    <i class="bi bi-activity" style="color: var(--primary)"></i> Live Farm Performance
+                </span>
+                <span id="liveCounter" style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Last updated: 0s ago</span>
             </div>
-        }
-        else
-        {
-            <div class="card-body empty-state"><i class="bi bi-shield-check" style="font-size:32px;opacity:.3"></i><h3 style="margin-top:8px">No audit records</h3></div>
-        }
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start;">
+                <!-- Column 1: Top Farms by Profit -->
+                <div style="display: flex; flex-direction: column; align-items: center; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; width: 100%; justify-content: center; flex-wrap: wrap;">
+                        <span style="font-family: var(--font-heading); font-size: 11px; font-weight: 700; color: var(--text-primary); text-align: center; white-space: nowrap;">🏆 Top Farms by Profit</span>
+                        <span style="background: rgba(34, 197, 94, 0.1); color: #16a34a; font-size: 8px; font-weight: 800; padding: 1.5px 5px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.5px; line-height: 1;">
+                            <span class="pulse-badge green" style="width: 6px; height: 6px;"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <div style="width: 120px; height: 120px; position: relative;">
+                        <canvas id="liveProfitChart"></canvas>
+                    </div>
+                    <div id="liveProfitLegend" style="margin-top: 12px; font-size: 10px; font-weight: 600; width: 100%; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Inserted via JS -->
+                    </div>
+                </div>
+
+                <!-- Column 2: Farms in Loss -->
+                <div style="display: flex; flex-direction: column; align-items: center; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; width: 100%; justify-content: center; flex-wrap: wrap;">
+                        <span style="font-family: var(--font-heading); font-size: 11px; font-weight: 700; color: var(--text-primary); text-align: center; white-space: nowrap;">⚠️ Farms in Loss</span>
+                        <span style="background: rgba(239, 68, 68, 0.1); color: #dc2626; font-size: 8px; font-weight: 800; padding: 1.5px 5px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.5px; line-height: 1;">
+                            <span class="pulse-badge red" style="width: 6px; height: 6px;"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <div style="width: 120px; height: 120px; position: relative;">
+                        <canvas id="liveLossChart"></canvas>
+                    </div>
+                    <div id="liveLossLegend" style="margin-top: 12px; font-size: 10px; font-weight: 600; width: 100%; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Inserted via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Farm Profit & Loss Pie Chart -->
+        <div class="right-panel-card">
+            <div class="card-header-simple">
+                <span class="card-title-simple"><i class="bi bi-pie-chart-fill" style="color:#22c55e"></i> Farm P&L Overview</span>
+            </div>
+            <div style="width: 180px; height: 180px; position: relative;">
+                <canvas id="plPieChart"></canvas>
+            </div>
+            @{
+                var totalPL = Model.TotalRevenue + Model.TotalExpenses;
+                var profitPct = totalPL > 0 ? ((Model.TotalRevenue / totalPL) * 100).ToString("F0") : "0";
+                var lossPct = totalPL > 0 ? ((Model.TotalExpenses / totalPL) * 100).ToString("F0") : "0";
+            }
+            <div class="custom-legend" style="text-align:center; font-size:12px; font-weight:700; margin-top:16px; color:var(--text-secondary)">
+                <span style="color:#22c55e">Profit @(profitPct)%</span>
+                <span style="color:var(--text-muted); margin:0 8px">|</span>
+                <span style="color:#ef4444">Loss @(lossPct)%</span>
+            </div>
+        </div>
+
+        <!-- 2. News by Category Pie Chart -->
+        <div class="right-panel-card">
+            <div class="card-header-simple">
+                <span class="card-title-simple"><i class="bi bi-newspaper" style="color:#3b82f6"></i> News by Category</span>
+            </div>
+            <div style="width: 180px; height: 180px; position: relative;">
+                <canvas id="newsPieChart"></canvas>
+            </div>
+            <div class="news-legend" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px 12px; margin-top:16px; font-size:11px; font-weight:600; color:var(--text-secondary)">
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#3b82f6"></span> Weather 40%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#f97316"></span> Market 25%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#ef4444"></span> Disease 15%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#8b5cf6"></span> Policy 10%</div>
+                <div style="display:flex; align-items:center; gap:4px"><span style="width:8px; height:8px; border-radius:50%; background:#94a3b8"></span> General 10%</div>
+            </div>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+// Weekly milk data serialized from Model
+const milkLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MilkWeeklyTrend.Select(t => t.Day)));
+const milkData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MilkWeeklyTrend.Select(t => t.Liters)));
+
+// Chart.js helper to dynamically check current theme grid/text colors
+function getChartColors() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+        gridColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
+        textColor: isDark ? '#94a3b8' : '#475569',
+        borderColor: isDark ? '#1e293b' : '#ffffff'
+    };
+}
+
+const chartColors = getChartColors();
+
+// Custom Plugin to draw percentages directly on pie/doughnut slices
+const percentageLabelsPlugin = {
+    id: 'percentageLabels',
+    afterDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.visible) return;
+            const total = dataset.data.reduce((sum, val) => sum + (val || 0), 0);
+            if (total === 0) return;
+            
+            meta.data.forEach((element, index) => {
+                const value = dataset.data[index];
+                if (value === null || value === undefined || value === 0) return;
+                const percentage = ((value / total) * 100).toFixed(0) + '%';
+                
+                // Get safe center position of slice
+                const { x, y } = typeof element.tooltipPosition === 'function' ? element.tooltipPosition() : element;
+                
+                // Only draw if slice angle is wide enough to avoid overlap
+                const angle = element.endAngle - element.startAngle;
+                if (angle > 0.15) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px "DM Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Shadow for readability
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    
+                    ctx.fillText(percentage, x, y);
+                }
+            });
+        });
+        ctx.restore();
+    }
+};
+
+// 1. Milk Production Line Chart
+const milkChartObj = new Chart(document.getElementById('milkChart'), {
+    type: 'line',
+    data: {
+        labels: milkLabels,
+        datasets: [{
+            label: 'Litres',
+            data: milkData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#3b82f6',
+            pointHoverBackgroundColor: '#22c55e',
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { 
+                beginAtZero: true, 
+                grid: { color: chartColors.gridColor }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 10 } } 
+            },
+            x: { 
+                grid: { display: false }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 11 } } 
+            }
+        }
+    }
+});
+
+// 2. Herd Status Donut
+const herdChartObj = new Chart(document.getElementById('herdChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Active', 'Sick/At-Risk', 'Sold', 'Deceased'],
+        datasets: [{
+            data: [@Model.ActiveCount, @Model.SickCount, @Model.SoldCount, @Model.DeceasedCount],
+            backgroundColor: ['#22c55e', '#ef4444', '#3b82f6', '#94a3b8'],
+            borderWidth: 2, 
+            borderColor: chartColors.borderColor
+        }]
+    },
+    options: {
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { 
+            legend: { display: false }, 
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } } 
+        },
+        cutout: '72%'
+    }
+});
+
+// 3. Revenue vs Expense Bar Chart
+const rLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Month)));
+const revenues  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Revenue)));
+const expenses  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrend.Select(t => t.Expense)));
+const revenueChartObj = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: rLabels,
+        datasets: [
+            { label: 'Revenue',  data: revenues, backgroundColor: 'rgba(34, 197, 94, 0.85)',  borderRadius: 6 },
+            { label: 'Expenses', data: expenses, backgroundColor: 'rgba(239, 68, 68, 0.85)', borderRadius: 6 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { 
+            legend: { 
+                position: 'top', 
+                labels: { color: chartColors.textColor, font: { family: 'DM Sans', size: 12, weight: '600' } } 
+            } 
+        },
+        scales: {
+            y: { 
+                beginAtZero: true, 
+                grid: { color: chartColors.gridColor }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 10 } } 
+            },
+            x: { 
+                grid: { display: false }, 
+                ticks: { color: chartColors.textColor, font: { family: 'DM Sans', size: 11 } } 
+            }
+        }
+    }
+});
+
+// 4. Farm Profit & Loss Pie Chart (Right Panel)
+const profitVal = Number('@Model.TotalRevenue');
+const expenseVal = Number('@Model.TotalExpenses');
+const plChartObj = new Chart(document.getElementById('plPieChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Profit', 'Loss'],
+        datasets: [{
+            data: [profitVal, expenseVal],
+            backgroundColor: ['#22c55e', '#ef4444'],
+            borderWidth: 2,
+            borderColor: chartColors.borderColor
+        }]
+    },
+    plugins: [percentageLabelsPlugin],
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${Number(ctx.raw).toLocaleString()}` } }
+        }
+    }
+});
+
+// 5. News by Category Pie Chart (Right Panel)
+const newsChartObj = new Chart(document.getElementById('newsPieChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Weather', 'Market Price', 'Pest & Disease', 'Government Policy', 'General'],
+        datasets: [{
+            data: [40, 25, 15, 10, 10],
+            backgroundColor: ['#3b82f6', '#f97316', '#ef4444', '#8b5cf6', '#94a3b8'],
+            borderWidth: 2,
+            borderColor: chartColors.borderColor
+        }]
+    },
+    plugins: [percentageLabelsPlugin],
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` } }
+        }
+    }
+});
+
+// ==========================================
+// LIVE FARM PERFORMANCE PIE CHARTS COMPONENT
+// ==========================================
+
+const farmNames = ["Green Valley", "Meadowbrook", "Sunnyside", "Willow Creek", "Oakridge", "Riverview", "Whispering Pines"];
+
+function generateLivePerformanceData() {
+    const shuffled = [...farmNames].sort(() => 0.5 - Math.random());
+    const selectedFarms = shuffled.slice(0, 6);
+    
+    const profitFarms = [];
+    const lossFarms = [];
+    
+    selectedFarms.forEach((name, idx) => {
+        if (idx % 2 === 0) {
+            const profit = Math.floor(Math.random() * 85000) + 10000;
+            profitFarms.push({ name, value: profit });
+        } else {
+            const loss = Math.floor(Math.random() * 43000) + 2000;
+            lossFarms.push({ name, value: loss });
+        }
+    });
+    
+    profitFarms.sort((a, b) => b.value - a.value);
+    lossFarms.sort((a, b) => b.value - a.value);
+    
+    return { profitFarms, lossFarms };
+}
+
+const liveLabelsPlugin = {
+    id: 'liveLabelsPlugin',
+    afterDraw(chart) {
+        const { ctx } = chart;
+        ctx.save();
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.visible) return;
+            const total = dataset.data.reduce((sum, val) => sum + (val || 0), 0);
+            if (total === 0) return;
+            
+            meta.data.forEach((element, index) => {
+                const value = dataset.data[index];
+                if (value === null || value === undefined || value === 0) return;
+                const percentage = ((value / total) * 100).toFixed(0) + '%';
+                const name = chart.data.labels[index];
+                
+                const { x, y } = typeof element.tooltipPosition === 'function' ? element.tooltipPosition() : element;
+                const angle = element.endAngle - element.startAngle;
+                
+                if (angle > 0.45) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    
+                    ctx.font = 'bold 8px "DM Sans", sans-serif';
+                    ctx.fillText(name.substring(0, 7) + (name.length > 7 ? '.' : ''), x, y - 5);
+                    ctx.font = 'bold 9px "DM Sans", sans-serif';
+                    ctx.fillText(percentage, x, y + 5);
+                } else if (angle > 0.22) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px "DM Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText(percentage, x, y);
+                }
+            });
+        });
+        ctx.restore();
+    }
+};
+
+let secondsSinceUpdate = 0;
+let liveProfitChartObj = null;
+let liveLossChartObj = null;
+
+function refreshLiveCharts() {
+    const data = generateLivePerformanceData();
+    const profitLabels = data.profitFarms.map(f => f.name);
+    const profitValues = data.profitFarms.map(f => f.value);
+    
+    const lossLabels = data.lossFarms.map(f => f.name);
+    const lossValues = data.lossFarms.map(f => f.value);
+    
+    if (liveProfitChartObj && liveLossChartObj) {
+        liveProfitChartObj.data.labels = profitLabels;
+        liveProfitChartObj.data.datasets[0].data = profitValues;
+        liveProfitChartObj.update();
+        
+        liveLossChartObj.data.labels = lossLabels;
+        liveLossChartObj.data.datasets[0].data = lossValues;
+        liveLossChartObj.update();
+    } else {
+        initLiveCharts(profitLabels, profitValues, lossLabels, lossValues);
+    }
+    
+    updateLiveLegends(data.profitFarms, data.lossFarms);
+    
+    secondsSinceUpdate = 0;
+    document.getElementById('liveCounter').textContent = `Last updated: 0s ago`;
+}
+
+function initLiveCharts(profitLabels, profitValues, lossLabels, lossValues) {
+    const profitColors = ['#15803d', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
+    const lossColors = ['#991b1b', '#ef4444', '#f97316', '#fca5a5', '#fed7aa'];
+    const currentColors = getChartColors();
+    
+    liveProfitChartObj = new Chart(document.getElementById('liveProfitChart'), {
+        type: 'pie',
+        data: {
+            labels: profitLabels,
+            datasets: [{
+                data: profitValues,
+                backgroundColor: profitColors,
+                borderWidth: 2,
+                borderColor: currentColors.borderColor
+            }]
+        },
+        plugins: [liveLabelsPlugin],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${Number(ctx.raw).toLocaleString()}` } }
+            }
+        }
+    });
+
+    liveLossChartObj = new Chart(document.getElementById('liveLossChart'), {
+        type: 'pie',
+        data: {
+            labels: lossLabels,
+            datasets: [{
+                data: lossValues,
+                backgroundColor: lossColors,
+                borderWidth: 2,
+                borderColor: currentColors.borderColor
+            }]
+        },
+        plugins: [liveLabelsPlugin],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 800,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${Number(ctx.raw).toLocaleString()}` } }
+            }
+        }
+    });
+}
+
+function updateLiveLegends(profitFarms, lossFarms) {
+    const profitTotal = profitFarms.reduce((sum, f) => sum + f.value, 0);
+    const lossTotal = lossFarms.reduce((sum, f) => sum + f.value, 0);
+    
+    const profitColors = ['#15803d', '#22c55e', '#4ade80', '#86efac', '#bbf7d0'];
+    const profitContainer = document.getElementById('liveProfitLegend');
+    profitContainer.innerHTML = '';
+    profitFarms.forEach((farm, idx) => {
+        const color = profitColors[idx % profitColors.length];
+        const pct = profitTotal > 0 ? ((farm.value / profitTotal) * 100).toFixed(0) : 0;
+        profitContainer.innerHTML += `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: ${color}; display: inline-block; flex-shrink: 0;"></span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${farm.name}</span>
+                </div>
+                <span style="color: var(--text-primary); flex-shrink: 0;">$${farm.value.toLocaleString()} (${pct}%)</span>
+            </div>
+        `;
+    });
+
+    const lossColors = ['#991b1b', '#ef4444', '#f97316', '#fca5a5', '#fed7aa'];
+    const lossContainer = document.getElementById('liveLossLegend');
+    lossContainer.innerHTML = '';
+    lossFarms.forEach((farm, idx) => {
+        const color = lossColors[idx % lossColors.length];
+        const pct = lossTotal > 0 ? ((farm.value / lossTotal) * 100).toFixed(0) : 0;
+        lossContainer.innerHTML += `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: ${color}; display: inline-block; flex-shrink: 0;"></span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${farm.name}</span>
+                </div>
+                <span style="color: var(--text-primary); flex-shrink: 0;">$${farm.value.toLocaleString()} (${pct}%)</span>
+            </div>
+        `;
+    });
+}
+
+// Start 30s Live Auto-Refresh Tick
+setInterval(() => {
+    secondsSinceUpdate++;
+    document.getElementById('liveCounter').textContent = `Last updated: ${secondsSinceUpdate}s ago`;
+    if (secondsSinceUpdate >= 30) {
+        refreshLiveCharts();
+    }
+}, 1000);
+
+// Initial Load execution
+refreshLiveCharts();
+
+
+// Premium Theme Toggle Integration & Live Updates
+window.addEventListener('theme-changed', (e) => {
+    const isDark = e.detail.theme === 'dark';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+    const textColor = isDark ? '#94a3b8' : '#475569';
+    const borderColor = isDark ? '#1e293b' : '#ffffff';
+
+    // Update Milk Chart
+    milkChartObj.options.scales.y.grid.color = gridColor;
+    milkChartObj.options.scales.y.ticks.color = textColor;
+    milkChartObj.options.scales.x.ticks.color = textColor;
+    milkChartObj.update();
+
+    // Update Herd Chart
+    herdChartObj.data.datasets[0].borderColor = borderColor;
+    herdChartObj.update();
+
+    // Update Revenue Chart
+    revenueChartObj.options.plugins.legend.labels.color = textColor;
+    revenueChartObj.options.scales.y.grid.color = gridColor;
+    revenueChartObj.options.scales.y.ticks.color = textColor;
+    revenueChartObj.options.scales.x.ticks.color = textColor;
+    revenueChartObj.update();
+
+    // Update P&L Pie Chart
+    plChartObj.data.datasets[0].borderColor = borderColor;
+    plChartObj.update();
+
+    // Update News Pie Chart
+    newsPieChartObj.data.datasets[0].borderColor = borderColor;
+    newsPieChartObj.update();
+
+    // Update Live Performance Charts border color
+    if (liveProfitChartObj) {
+        liveProfitChartObj.data.datasets[0].borderColor = borderColor;
+        liveProfitChartObj.update();
+    }
+    if (liveLossChartObj) {
+        liveLossChartObj.data.datasets[0].borderColor = borderColor;
+        liveLossChartObj.update();
+    }
+});
+</script>
+}

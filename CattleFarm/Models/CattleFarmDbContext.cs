@@ -31,6 +31,7 @@ namespace CattleFarm.Models
         public DbSet<Appointment>      Appointments      { get; set; }
         public DbSet<Breeding>         Breedings         { get; set; }
         public DbSet<FeedRecord>       FeedRecords       { get; set; }
+        public DbSet<Attendance>       Attendances       { get; set; }
 
         // ── Transport Module ──────────────────────────────────────────────────
         public DbSet<Vehicle>           Vehicles          { get; set; }
@@ -55,6 +56,21 @@ namespace CattleFarm.Models
                 e.HasIndex(c => new { c.TagId, c.FarmId }).IsUnique();
                 e.Property(c => c.Name).HasMaxLength(100).IsRequired();
                 e.Property(c => c.Breed).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Attendance>(e =>
+            {
+                e.HasIndex(a => new { a.WorkerId, a.Date }).IsUnique();
+
+                e.HasOne(a => a.Worker)
+                 .WithMany(w => w.DailyAttendances)
+                 .HasForeignKey(a => a.WorkerId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(a => a.MarkedByUser)
+                 .WithMany()
+                 .HasForeignKey(a => a.MarkedByUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ── Global soft-delete query filters ──────────────────────────────

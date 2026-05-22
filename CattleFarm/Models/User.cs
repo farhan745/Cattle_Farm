@@ -41,6 +41,10 @@ namespace CattleFarm.Models
         public bool TwoFactorEnabled { get; set; } = false;
         public string? TwoFactorSecret { get; set; }
 
+        // Password reset (token-based, no OTP expiry issues)
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiry { get; set; }
+
         // Preferences
         public string PreferredLanguage { get; set; } = "en";   // "en" | "bn"
 

@@ -46,6 +46,10 @@ builder.Services.AddScoped<ISubscriptionService,    SubscriptionService>();
 builder.Services.AddScoped<IAppointmentService,     AppointmentService>();
 builder.Services.AddScoped<IDashboardService,       DashboardService>();
 builder.Services.AddScoped<ITransportService,        TransportService>();
+builder.Services.AddScoped<IAttendanceService,       AttendanceService>();
+builder.Services.AddScoped<IEmployeeService,         EmployeeService>();
+builder.Services.AddScoped<IPayrollService,          PayrollService>();
+builder.Services.AddScoped<ITaskAssignmentService,   TaskAssignmentService>();
 
 // ── Currency Services ──────────────────────────────────────────────
 builder.Services.Configure<CurrencySettings>(builder.Configuration.GetSection("CurrencySettings"));

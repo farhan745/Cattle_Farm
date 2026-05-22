@@ -310,6 +310,13 @@ namespace CattleFarm.ViewModels
         public int PendingFarms   { get; set; }
         public int ActiveOrders   { get; set; }
         public decimal TotalRevenue { get; set; }
+        public decimal TotalExpenses { get; set; }
+        public decimal NetProfit      { get; set; }
+        public int ActiveCount   { get; set; }
+        public int SickCount     { get; set; }
+        public int SoldCount     { get; set; }
+        public int DeceasedCount { get; set; }
+        public List<DailyMilkTrend>   MilkWeeklyTrend { get; set; } = new();
         public List<ActivityLog>  RecentActivity  { get; set; } = new();
         public List<AuditLog>     RecentAuditLogs { get; set; } = new();
         public List<MonthlyTrendItem> MonthlyTrend { get; set; } = new();
@@ -362,6 +369,10 @@ namespace CattleFarm.ViewModels
         public int           TotalAttendanceDays { get; set; }
         public int           PresentThisMonth  { get; set; }
         public List<MilkProduction> RecentMilkLogs { get; set; } = new();
+        public List<TaskViewModel>  MyTasks         { get; set; } = new();
+        public int           PendingTasks      { get; set; }
+        public int           InProgressTasks   { get; set; }
+        public int           CompletedTasks    { get; set; }
     }
 
     public class DoctorDashboardViewModel
