@@ -22,6 +22,12 @@ namespace CattleFarm.Models
         [Range(1, 100_000)]
         public int Capacity { get; set; }
 
+        [Range(1, 10_000)]
+        public int MaximumWorkers { get; set; } = 50;
+
+        [Range(1, 100_000)]
+        public int MaximumCattle { get; set; } = 500;
+
         [StringLength(1000)]
         public string? Description { get; set; }
 
@@ -46,6 +52,7 @@ namespace CattleFarm.Models
         // Navigation
         public virtual ICollection<Cattle>          Cattles          { get; set; } = new List<Cattle>();
         public virtual ICollection<Worker>          Workers          { get; set; } = new List<Worker>();
+        public virtual ICollection<FarmWorker>      FarmWorkers      { get; set; } = new List<FarmWorker>();
         public virtual ICollection<Doctor>          Doctors          { get; set; } = new List<Doctor>();
         public virtual ICollection<Product>         Products         { get; set; } = new List<Product>();
         public virtual ICollection<Expense>         Expenses         { get; set; } = new List<Expense>();

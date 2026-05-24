@@ -1,64 +1,164 @@
 @model CattleFarm.ViewModels.TaskAssignViewModel
 @{
-    ViewData["Title"] = "Assign Task";
-    var workers = ViewBag.Workers as List<CattleFarm.Models.Worker> ?? new List<CattleFarm.Models.Worker>();
+    ViewData["Title"] = "Create Task";
+    var farms = ViewBag.Farms as List<CattleFarm.Models.Farm> ?? new List<CattleFarm.Models.Farm>();
+}
+
+@section Styles {
+<style>
+    .form-card { max-width: 680px; margin: 0 auto; }
+    .form-section { margin-bottom: 28px; }
+    .form-label { font-weight: 600; display: block; margin-bottom: 6px; font-size: 13.5px; }
+    .form-input {
+        width: 100%; padding: 10px 12px;
+        border: 1px solid var(--border); border-radius: 8px;
+        background: var(--bg); color: var(--text);
+        font-family: inherit; font-size: 14px; outline: none;
+    }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb),.1); }
+    .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .form-error { color: var(--danger); font-size: 12px; margin-top: 4px; display: block; }
+
+    .priority-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    }
+    .priority-btn {
+        border: 2px solid var(--border); border-radius: 10px;
+        padding: 12px 8px; text-align: center; cursor: pointer;
+        transition: all .2s; background: var(--bg);
+    }
+    .priority-btn:hover { transform: translateY(-1px); }
+    .priority-btn input[type=radio] { display: none; }
+    .priority-btn .p-icon { font-size: 22px; margin-bottom: 4px; }
+    .priority-btn .p-label { font-size: 12px; font-weight: 700; }
+
+    .priority-btn.selected-Low       { border-color: #6366f1; background: rgba(99,102,241,.08); }
+    .priority-btn.selected-Medium    { border-color: #f59e0b; background: rgba(245,158,11,.08); }
+    .priority-btn.selected-High      { border-color: #ef4444; background: rgba(239,68,68,.08); }
+    .priority-btn.selected-Emergency { border-color: #dc2626; background: rgba(220,38,38,.12); box-shadow: 0 0 0 2px rgba(220,38,38,.25); }
+
+    .bonus-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-muted); margin-bottom: 14px; }
+</style>
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">📋 Assign Task</h1>
-        <p class="page-subtitle">Create a new task assignment for a worker</p>
+        <h1 class="page-title">Create Smart Task</h1>
+        <p class="page-subtitle">Post work to available farm workers. First qualified acceptance wins.</p>
     </div>
-    <div>
-        <a href="/TaskAssignment" class="btn btn-outline">
-            <i class="bi bi-arrow-left"></i> Cancel & Back
-        </a>
-    </div>
+    <a href="/TaskAssignment" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
 </div>
 
-<div style="max-width:600px;margin:0 auto">
-    <div class="card" style="padding:28px">
+<div class="form-card">
+    <div class="card" style="padding:32px">
         <form asp-action="Assign" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="Status" value="Pending" />
+            <input type="hidden" asp-for="TaskType" value="Open" />
+            <input type="hidden" asp-for="AssignedWorkerId" value="0" />
 
-            <div style="margin-bottom:20px">
-                <label asp-for="AssignedWorkerId" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Assign To Worker</label>
-                <select asp-for="AssignedWorkerId" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none" required>
-                    <option value="">-- Select a Worker --</option>
-                    @foreach (var w in workers)
+            <div class="form-section">
+                <label class="form-label" asp-for="FarmId">Farm</label>
+                <select asp-for="FarmId" class="form-input" required>
+                    <option value="">-- Select farm --</option>
+                    @foreach (var farm in farms)
                     {
-                        <option value="@w.Id">@w.FullName</option>
+                        <option value="@farm.Id">@farm.Name - @farm.Location</option>
                     }
                 </select>
-                <span asp-validation-for="AssignedWorkerId" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+                <span asp-validation-for="FarmId" class="form-error"></span>
             </div>
 
-            <div style="margin-bottom:20px">
-                <label asp-for="Title" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Task Title</label>
-                <input asp-for="Title" placeholder="e.g. Clean Cattle Barn 3" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none" required />
-                <span asp-validation-for="Title" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            <hr class="divider" />
+
+            @* ── Priority ── *@
+            <div class="form-section">
+                <div class="section-title">Priority</div>
+                <div class="priority-grid">
+                    @foreach (var p in new[] { ("Low","Low"), ("Medium","Medium"), ("High","High"), ("Emergency","Emergency") })
+                    {
+                        <label class="priority-btn" id="pbtn-@p.Item1" onclick="selectPriority('@p.Item1')">
+                            <input type="radio" asp-for="Priority" value="@p.Item1" />
+                            <div class="p-label" style="color:@(p.Item1=="Emergency"?"#dc2626":p.Item1=="High"?"#ef4444":p.Item1=="Medium"?"#f59e0b":"#6366f1")">@p.Item2</div>
+                        </label>
+                    }
+                </div>
             </div>
 
-            <div style="margin-bottom:20px">
-                <label asp-for="Description" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Description & Instructions</label>
-                <textarea asp-for="Description" rows="4" placeholder="Describe instructions and details for this task..." style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none;resize:vertical" required></textarea>
-                <span asp-validation-for="Description" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            <hr class="divider" />
+
+            @* ── Title ── *@
+            <div class="form-section">
+                <label class="form-label" asp-for="Title">Task Title</label>
+                <input asp-for="Title" class="form-input" placeholder="e.g. Clean Cattle Barn 3" required />
+                <span asp-validation-for="Title" class="form-error"></span>
             </div>
 
-            <div style="margin-bottom:28px">
-                <label asp-for="DueDate" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Due Date</label>
-                <input type="date" asp-for="DueDate" value="@Model.DueDate.ToString("yyyy-MM-dd")" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none" required />
-                <span asp-validation-for="DueDate" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            @* ── Description ── *@
+            <div class="form-section">
+                <label class="form-label" asp-for="Description">Instructions</label>
+                <textarea asp-for="Description" class="form-input" rows="4" placeholder="Describe what needs to be done..."></textarea>
+                <span asp-validation-for="Description" class="form-error"></span>
+            </div>
+
+            @* ── Dates ── *@
+            <div class="bonus-row">
+                <div class="form-section">
+                    <label class="form-label" asp-for="DueDate">Due Date</label>
+                    <input type="date" asp-for="DueDate" class="form-input"
+                           value="@Model.DueDate.ToString("yyyy-MM-dd")" required />
+                    <span asp-validation-for="DueDate" class="form-error"></span>
+                </div>
+                <div class="form-section" id="expiresSection">
+                    <label class="form-label" asp-for="ExpiresAt">Auto-Expire At (optional)</label>
+                    <input type="datetime-local" asp-for="ExpiresAt" class="form-input"
+                           value="@(Model.ExpiresAt?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") ?? "")" />
+                    <div class="form-hint">Task auto-closes if no one accepts by this time.</div>
+                </div>
+            </div>
+
+            <hr class="divider" />
+
+            @* ── Bonus ── *@
+            <div class="form-section">
+                <div class="section-title">Bonus <span style="font-weight:400;text-transform:none">(optional)</span></div>
+                <div style="position:relative;max-width:260px">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:700">৳</span>
+                    <input type="number" asp-for="BonusAmount" class="form-input" min="0" step="1"
+                           placeholder="0" style="padding-left:28px" />
+                </div>
+                <div class="form-hint">Bonus is paid after owner approves submitted proof.</div>
+                <span asp-validation-for="BonusAmount" class="form-error"></span>
             </div>
 
             <div style="display:flex;justify-content:end;gap:12px;border-top:1px solid var(--border);padding-top:20px">
                 <a href="/TaskAssignment" class="btn btn-outline">Cancel</a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Assign Task
+                    <i class="bi bi-plus-circle"></i> Create Task
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Initial state
+    const initialPriority = '@Model.Priority' || 'Medium';
+    selectPriority(initialPriority);
+
+    function selectPriority(val) {
+        document.querySelectorAll('.priority-btn').forEach(btn => {
+            btn.className = btn.className.replace(/selected-\S+/, '').trim();
+        });
+        const btn = document.getElementById('pbtn-' + val);
+        if (btn) btn.classList.add('selected-' + val);
+        // Check the radio
+        const radio = document.querySelector(`input[name="Priority"][value="${val}"]`);
+        if (radio) radio.checked = true;
+    }
+
+</script>
+}

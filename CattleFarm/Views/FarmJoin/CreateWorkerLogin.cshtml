@@ -1,0 +1,78 @@
+@model CattleFarm.ViewModels.CreateWorkerLoginViewModel
+@{ ViewData["Title"] = "Worker Login তৈরি করো"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔑 Worker Login তৈরি</h1>
+        <p class="page-subtitle">@Model.WorkerName এর জন্য login account বানাচ্ছো</p>
+    </div>
+    <a href="/Worker" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:520px;margin:0 auto">
+    <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:13px">
+        <i class="bi bi-info-circle me-2" style="color:#d97706"></i>
+        এই account তৈরি হলে worker এই email ও password দিয়ে login করতে পারবে এবং task দেখতে পারবে।
+        <strong>Password টা worker কে জানিয়ে দাও।</strong>
+    </div>
+
+    <div class="card" style="padding:28px">
+        <form asp-action="CreateWorkerLogin" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="WorkerId" />
+            <input type="hidden" asp-for="WorkerName" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" style="margin-bottom:16px">
+                    @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div><i class="bi bi-x-circle me-1"></i>@err.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <div style="margin-bottom:18px">
+                <label style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Worker</label>
+                <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-weight:600">
+                    @Model.WorkerName
+                </div>
+            </div>
+
+            <div style="margin-bottom:18px">
+                <label asp-for="Username" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Username</label>
+                <input asp-for="Username" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none"
+                       placeholder="e.g. karim.mia" required />
+                <span asp-validation-for="Username" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="margin-bottom:18px">
+                <label asp-for="Email" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Email</label>
+                <input asp-for="Email" type="email" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none"
+                       placeholder="worker@example.com" required />
+                <span asp-validation-for="Email" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="margin-bottom:18px">
+                <label asp-for="Password" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Password</label>
+                <input asp-for="Password" type="password" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none"
+                       placeholder="কমপক্ষে ৬ অক্ষর" required />
+                <span asp-validation-for="Password" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="margin-bottom:28px">
+                <label asp-for="ConfirmPassword" style="font-weight:600;display:block;margin-bottom:6px;font-size:13.5px">Password আবার লেখো</label>
+                <input asp-for="ConfirmPassword" type="password" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit;font-size:14px;outline:none"
+                       required />
+                <span asp-validation-for="ConfirmPassword" style="color:var(--danger);font-size:12px;margin-top:4px;display:block"></span>
+            </div>
+
+            <div style="display:flex;justify-content:end;gap:12px;border-top:1px solid var(--border);padding-top:20px">
+                <a href="/Worker" class="btn btn-outline">বাতিল</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-key"></i> Login তৈরি করো
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

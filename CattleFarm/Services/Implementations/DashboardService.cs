@@ -92,7 +92,8 @@ namespace CattleFarm.Services.Implementations
                 SoldCount       = soldCount,
                 DeceasedCount   = deceasedCount,
                 MilkWeeklyTrend = milkTrend,
-                MonthlyTrend    = trend
+                MonthlyTrend    = trend,
+                Farms           = farms.ToList()
             };
         }
 
@@ -216,8 +217,14 @@ namespace CattleFarm.Services.Implementations
 
         public async Task<WorkerDashboardViewModel> GetWorkerDashboardAsync(int userId)
         {
-            var worker       = (await _uow.Workers.GetAllAsync()).FirstOrDefault(w => w.UserId == userId);
-            var milkLogs     = await _uow.MilkProductions.GetByFarmIdAsync(worker?.FarmId ?? 0);
+            var worker = await _db.Workers
+                .Include(w => w.Farm)
+                .FirstOrDefaultAsync(w => w.UserId == userId && !w.IsDeleted);
+            var membership = await _db.FarmWorkers
+                .Include(fw => fw.Farm)
+                .FirstOrDefaultAsync(fw => fw.WorkerUserId == userId && fw.IsActive && !fw.IsDeleted);
+            var farmId = worker?.FarmId ?? membership?.FarmId;
+            var milkLogs     = await _uow.MilkProductions.GetByFarmIdAsync(farmId ?? 0);
             var myTasks      = (await _tasks.GetTasksByUserIdAsync(userId)).ToList();
             var startOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
             var presentDays  = 0;
@@ -229,6 +236,8 @@ namespace CattleFarm.Services.Implementations
             return new WorkerDashboardViewModel
             {
                 WorkerProfile    = worker,
+                MyFarmId         = farmId,
+                MyFarmName       = worker?.Farm?.Name ?? membership?.Farm?.Name,
                 RecentMilkLogs   = milkLogs.Take(10).ToList(),
                 PresentThisMonth = presentDays,
                 MyTasks          = myTasks,
@@ -257,11 +266,12 @@ namespace CattleFarm.Services.Implementations
         {
             var orders   = await _uow.Orders.GetByCustomerIdAsync(customerId);
             // Show all available products on the website (not just featured ones)
-            var products = (await _uow.Products.GetAllAsync())
-                .Where(p => p.IsAvailable)
+            var products = await _db.Products
+                .Include(p => p.Farm)
+                .Where(p => p.IsAvailable && !p.IsDeleted)
                 .OrderByDescending(p => p.IsFeatured)
                 .ThenBy(p => p.Name)
-                .Take(8).ToList();
+                .Take(8).ToListAsync();
             return new CustomerDashboardViewModel
             {
                 RecentOrders     = orders.Take(5).ToList(),

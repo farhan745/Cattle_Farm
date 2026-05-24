@@ -13,12 +13,12 @@ namespace CattleFarm.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IAuthService            _authService;
-        private readonly IEmailService           _emailService;
-        private readonly IImageService           _imageService;
-        private readonly IUserManagementService  _userService;
-        private readonly CattleFarmDbContext      _db;
-        private readonly IAuditService           _auditService;
+        private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
+        private readonly IImageService _imageService;
+        private readonly IUserManagementService _userService;
+        private readonly CattleFarmDbContext _db;
+        private readonly IAuditService _auditService;
 
         public AccountController(
             IAuthService authService,
@@ -28,11 +28,11 @@ namespace CattleFarm.Controllers
             CattleFarmDbContext db,
             IAuditService auditService)
         {
-            _authService  = authService;
+            _authService = authService;
             _emailService = emailService;
             _imageService = imageService;
-            _userService  = userService;
-            _db           = db;
+            _userService = userService;
+            _db = db;
             _auditService = auditService;
         }
 
@@ -70,12 +70,12 @@ namespace CattleFarm.Controllers
                 new("FullName",                user.FullName),
                 new("ProfileImage",            user.ProfileImagePath ?? "")
             };
-            var identity  = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
             var authProps = new AuthenticationProperties
             {
                 IsPersistent = model.RememberMe,
-                ExpiresUtc   = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
+                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
             };
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProps);
 
@@ -110,7 +110,13 @@ namespace CattleFarm.Controllers
                 return View(model);
             }
 
-            var success = await _authService.RegisterAsync(model.Username, model.Email, model.Password, model.Role);
+            var success = await _authService.RegisterAsync(
+                model.Username,
+                model.Email,
+                model.Password,
+                model.Role,
+                model.FullName,
+                model.PhoneNumber);
             if (!success)
             {
                 ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
@@ -133,29 +139,25 @@ namespace CattleFarm.Controllers
                     }
                 }
 
-                // Auto-create a Worker record so self-registered workers appear in the Worker list
-                if (model.Role == AppRoles.Worker)
+                if (newUser.Role == AppRoles.Worker &&
+                    !await _db.Workers.IgnoreQueryFilters().AnyAsync(w => w.UserId == newUser.Id))
                 {
-                    var defaultFarm = await _db.Farms.FirstOrDefaultAsync(f => f.IsActive && !f.IsDeleted);
-                    if (defaultFarm != null)
+                    await _db.Workers.AddAsync(new Worker
                     {
-                        var worker = new Worker
-                        {
-                            FullName = model.FullName,
-                            Role = "Worker",
-                            Phone = model.PhoneNumber,
-                            Email = model.Email,
-                            Salary = 0,
-                            IsActive = true,
-                            IsAvailable = true,
-                            FarmId = defaultFarm.Id,
-                            UserId = newUser.Id,
-                            HiredAt = DateTime.UtcNow,
-                            CreatedAt = DateTime.UtcNow
-                        };
-                        await _db.Workers.AddAsync(worker);
-                        await _db.SaveChangesAsync();
-                    }
+                        FullName = newUser.FullName,
+                        Role = WorkerPosition.Feeder,
+                        Email = newUser.Email,
+                        Phone = newUser.PhoneNumber,
+                        FarmId = null,
+                        UserId = newUser.Id,
+                        ImagePath = newUser.ProfileImagePath,
+                        IsActive = true,
+                        IsAvailable = true,
+                        HiredAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        Notes = "Self-registered worker. Waiting to join a farm."
+                    });
+                    await _db.SaveChangesAsync();
                 }
             }
 
@@ -252,7 +254,7 @@ namespace CattleFarm.Controllers
             user.PhoneNumber = null;
             user.Address = null;
             user.ProfileImagePath = null;
-            
+
             user.IsActive = false;
             user.IsEmailVerified = false;
             user.IsDeleted = true;
@@ -291,10 +293,10 @@ namespace CattleFarm.Controllers
             var user = await _db.Users.FindAsync(GetUserId());
             if (user == null) return NotFound();
 
-            user.FullName    = fullName;
+            user.FullName = fullName;
             user.PhoneNumber = phone;
-            user.Address     = address;
-            user.UpdatedAt   = DateTime.UtcNow;
+            user.Address = address;
+            user.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Profile updated successfully!";
@@ -320,7 +322,7 @@ namespace CattleFarm.Controllers
                 return Json(new { success = false, error = "Upload failed." });
 
             user.ProfileImagePath = path;
-            user.UpdatedAt        = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
             return Json(new { success = true, url = path });
@@ -353,7 +355,7 @@ namespace CattleFarm.Controllers
             {
                 var token = Guid.NewGuid().ToString("N");
                 user.PasswordResetToken = token;
-                user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+                user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(24);
                 await _db.SaveChangesAsync();
 
                 var resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme);
@@ -393,8 +395,8 @@ namespace CattleFarm.Controllers
             var user = await _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && !u.IsDeleted);
             if (user == null || !user.PasswordResetTokenExpiry.HasValue || user.PasswordResetTokenExpiry.Value < DateTime.UtcNow)
             {
-                ModelState.AddModelError(string.Empty, "Invalid or expired password reset token.");
-                return View(model);
+                TempData["ErrorMessage"] = "This password reset link has expired or is invalid. Please request a new one.";
+                return RedirectToAction(nameof(ForgotPassword));
             }
 
             // Hash using BCrypt

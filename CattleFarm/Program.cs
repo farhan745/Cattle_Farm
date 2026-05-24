@@ -1,10 +1,14 @@
 using CattleFarm.Data;
+using CattleFarm.Authorization;
+using CattleFarm.Hubs;
 using CattleFarm.Models;
 using CattleFarm.Services.Implementations;
 using CattleFarm.Services.Interfaces;
 using CattleFarm.UnitOfWork;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Serilog;
 
 // ── Serilog ───────────────────────────────────────────────────────────────────
@@ -19,45 +23,49 @@ builder.Host.UseSerilog();
 
 // ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<CattleFarmDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .ConfigureWarnings(warnings =>
+            warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // ── Unit of Work ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IUnitOfWork, CattleFarm.UnitOfWork.UnitOfWork>();
 
 // ── Infrastructure Services ───────────────────────────────────────────────────
-builder.Services.AddScoped<IImageService,        ImageService>();
-builder.Services.AddScoped<IAuditService,        AuditService>();
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // ── Domain Services ───────────────────────────────────────────────────────────
-builder.Services.AddScoped<IAuthService,            AuthService>();
-builder.Services.AddScoped<IUserManagementService,  UserManagementService>();
-builder.Services.AddScoped<IFarmService,            FarmService>();
-builder.Services.AddScoped<ICattleService,          CattleService>();
-builder.Services.AddScoped<IWorkerService,          WorkerService>();
-builder.Services.AddScoped<IDoctorService,          DoctorService>();
-builder.Services.AddScoped<IHealthService,          HealthService>();
-builder.Services.AddScoped<IVaccinationService,     VaccinationService>();
-builder.Services.AddScoped<IMilkService,            MilkService>();
-builder.Services.AddScoped<IProductService,         ProductService>();
-builder.Services.AddScoped<IOrderService,           OrderService>();
-builder.Services.AddScoped<IFinancialService,       FinancialService>();
-builder.Services.AddScoped<ISubscriptionService,    SubscriptionService>();
-builder.Services.AddScoped<IAppointmentService,     AppointmentService>();
-builder.Services.AddScoped<IDashboardService,       DashboardService>();
-builder.Services.AddScoped<ITransportService,        TransportService>();
-builder.Services.AddScoped<IAttendanceService,       AttendanceService>();
-builder.Services.AddScoped<IEmployeeService,         EmployeeService>();
-builder.Services.AddScoped<IPayrollService,          PayrollService>();
-builder.Services.AddScoped<ITaskAssignmentService,   TaskAssignmentService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IFarmService, FarmService>();
+builder.Services.AddScoped<ICattleService, CattleService>();
+builder.Services.AddScoped<IWorkerService, WorkerService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IHealthService, HealthService>();
+builder.Services.AddScoped<IVaccinationService, VaccinationService>();
+builder.Services.AddScoped<IMilkService, MilkService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IFinancialService, FinancialService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<ITransportService, TransportService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IPayrollService, PayrollService>();
+builder.Services.AddScoped<ITaskAssignmentService, TaskAssignmentService>();
+builder.Services.AddScoped<IFarmJoinService, FarmJoinService>();
 
-// ── Currency Services ──────────────────────────────────────────────
+// ── Currency Services ─────────────────────────────────────────────────────────
 builder.Services.Configure<CurrencySettings>(builder.Configuration.GetSection("CurrencySettings"));
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
-// ── Email + Payment Services ───────────────────────────────────────
-builder.Services.AddScoped<IEmailService,           EmailService>();
-builder.Services.AddScoped<IPaymentGatewayService,  SslCommerzService>();
+// ── Email + Payment Services ──────────────────────────────────────────────────
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPaymentGatewayService, SslCommerzService>();
+
 builder.Services.AddHttpClient("SSLCommerz");
 
 // ── HTTP Context Accessor (for audit logging in services) ─────────────────────
@@ -67,14 +75,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath        = "/Account/Login";
-        options.LogoutPath       = "/Account/Logout";
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
-        options.Cookie.Name      = "CattleFarm.Auth";
-        options.Cookie.HttpOnly  = true;
+        options.Cookie.Name = "CattleFarm.Auth";
+        options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
-        options.SlidingExpiration   = true;
-        options.ExpireTimeSpan      = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
 // ── File Upload Size Limit (50 MB) ────────────────────────────────────────────
@@ -84,17 +92,29 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
 });
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+
+builder.Services.AddScoped<IAuthorizationHandler, FarmOwnershipHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(FarmPolicyNames.RequireFarmOwnership, policy =>
+        policy.Requirements.Add(new FarmOwnershipRequirement()));
+    options.AddPolicy(FarmPolicyNames.RequireWorkerRole, policy =>
+        policy.RequireRole(AppRoles.Worker));
+    options.AddPolicy(FarmPolicyNames.RequireOwnerRole, policy =>
+        policy.RequireRole(AppRoles.Owner, AppRoles.Admin));
+});
 
 var app = builder.Build();
 
 // ── Seed Database ─────────────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var db  = scope.ServiceProvider.GetRequiredService<CattleFarmDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<CattleFarmDbContext>();
     var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
     await DbSeeder.SeedAsync(db, env.IsDevelopment());
     // Ensure upload folders exist
-    foreach (var folder in new[] { "avatars", "cattle", "farms", "products" })
+    foreach (var folder in new[] { "avatars", "cattle", "farms", "products", "workers", "task-proofs" })
         Directory.CreateDirectory(Path.Combine(env.WebRootPath, "uploads", folder));
 }
 
@@ -123,5 +143,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+app.MapHub<FarmDashboardHub>("/hubs/farm-dashboard");
 
 app.Run();

@@ -24,7 +24,7 @@ namespace CattleFarm.Services.Implementations
             {
                 FullName = vm.FullName, Role = vm.Role, Phone = vm.Phone, Email = vm.Email,
                 Skills = vm.Skills, ExperienceYears = vm.ExperienceYears, Salary = vm.Salary,
-                IsAvailable = vm.IsAvailable, FarmId = vm.FarmId, Notes = vm.Notes, ImagePath = imagePath
+                IsAvailable = vm.IsAvailable, FarmId = vm.FarmId > 0 ? vm.FarmId : null, Notes = vm.Notes, ImagePath = imagePath
             };
             await _uow.Workers.AddAsync(worker);
             await _uow.SaveChangesAsync();
@@ -37,7 +37,7 @@ namespace CattleFarm.Services.Implementations
             if (w is null) return false;
             w.FullName = vm.FullName; w.Role = vm.Role; w.Phone = vm.Phone; w.Email = vm.Email;
             w.Skills = vm.Skills; w.ExperienceYears = vm.ExperienceYears; w.Salary = vm.Salary;
-            w.IsAvailable = vm.IsAvailable; w.Notes = vm.Notes; w.UpdatedAt = DateTime.UtcNow;
+            w.IsAvailable = vm.IsAvailable; w.FarmId = vm.FarmId > 0 ? vm.FarmId : null; w.Notes = vm.Notes; w.UpdatedAt = DateTime.UtcNow;
             if (vm.ImageFile != null) { _img.DeleteImage(w.ImagePath); w.ImagePath = await _img.SaveImageAsync(vm.ImageFile, "workers"); }
             _uow.Workers.Update(w);
             await _uow.SaveChangesAsync();

@@ -3,6 +3,7 @@ using CattleFarm.Services.Interfaces;
 using CattleFarm.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CattleFarm.Controllers
@@ -44,6 +45,19 @@ namespace CattleFarm.Controllers
             ViewData["Search"]      = search;
             ViewData["FarmId"]      = farmId;
             ViewData["Status"]      = status;
+            var ids = items.Select(c => c.Id).ToList();
+            ViewBag.LikeCounts = await _db.CattleLikes
+                .Where(l => ids.Contains(l.CattleId))
+                .GroupBy(l => l.CattleId)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+            ViewBag.CommentCounts = await _db.CattleComments
+                .Where(c => ids.Contains(c.CattleId))
+                .GroupBy(c => c.CattleId)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+            ViewBag.ShareCounts = await _db.CattleShares
+                .Where(s => ids.Contains(s.CattleId))
+                .GroupBy(s => s.CattleId)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
             return View(items);
         }
 
@@ -52,6 +66,18 @@ namespace CattleFarm.Controllers
         {
             var cattle = await _cattleService.GetWithDetailsAsync(id);
             if (cattle is null) return NotFound();
+
+            var userId = GetUserId();
+            ViewBag.LikeCount = await _db.CattleLikes.CountAsync(l => l.CattleId == id);
+            ViewBag.HasLiked = userId.HasValue &&
+                await _db.CattleLikes.AnyAsync(l => l.CattleId == id && l.UserId == userId.Value);
+            ViewBag.Comments = await _db.CattleComments
+                .Where(c => c.CattleId == id)
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(25)
+                .ToListAsync();
+            ViewBag.ShareUrl = Url.Action(nameof(Details), "Cattle", new { id }, Request.Scheme);
+
             return View(cattle);
         }
 
@@ -67,7 +93,12 @@ namespace CattleFarm.Controllers
         [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> Create(CattleViewModel vm)
         {
+            var farmCheck = await ValidateFarmAccessAsync(vm.FarmId);
+            if (!farmCheck.Allowed)
+                ModelState.AddModelError(nameof(vm.FarmId), farmCheck.Message);
+
             if (!ModelState.IsValid) { await LoadFarmsAsync(); return View(vm); }
+
             var cattle = await _cattleService.CreateAsync(vm);
             await _auditService.LogActivityAsync(GetUserId(), $"Created cattle record: {cattle.Name} (Tag: {cattle.TagId})", "Cattle", cattle.Id);
             TempData["SuccessMessage"] = $"'{cattle.Name}' added successfully.";
@@ -90,6 +121,12 @@ namespace CattleFarm.Controllers
         public async Task<IActionResult> Edit(int id, CattleViewModel vm)
         {
             if (id != vm.Id) return BadRequest();
+            var existing = await _db.Cattles.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+            if (existing == null) return NotFound();
+            var farmCheck = await ValidateFarmAccessAsync(vm.FarmId, existing.Id);
+            if (!farmCheck.Allowed)
+                ModelState.AddModelError(nameof(vm.FarmId), farmCheck.Message);
+
             if (!ModelState.IsValid) { await LoadFarmsAsync(); return View(vm); }
             await _cattleService.UpdateAsync(id, vm);
             await _auditService.LogActivityAsync(GetUserId(), $"Updated cattle record: {vm.Name}", "Cattle", id);
@@ -110,10 +147,93 @@ namespace CattleFarm.Controllers
         [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cattle = await _db.Cattles.Include(c => c.Farm).FirstOrDefaultAsync(c => c.Id == id);
+            if (cattle == null) return NotFound();
+            if (!User.IsInRole(AppRoles.Admin) && cattle.Farm?.OwnerId != GetUserId())
+                return Forbid();
+
             await _cattleService.DeleteAsync(id);
             await _auditService.LogActivityAsync(GetUserId(), $"Soft-deleted cattle ID {id}", "Cattle", id);
             TempData["SuccessMessage"] = "Cattle record deleted.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleLike(int id)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue) return Challenge();
+
+            var cattleExists = await _db.Cattles.AnyAsync(c => c.Id == id && !c.IsDeleted);
+            if (!cattleExists) return NotFound();
+
+            var like = await _db.CattleLikes.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(l => l.CattleId == id && l.UserId == userId.Value);
+
+            if (like == null)
+            {
+                await _db.CattleLikes.AddAsync(new CattleLike { CattleId = id, UserId = userId.Value });
+            }
+            else
+            {
+                like.IsDeleted = !like.IsDeleted;
+                like.DeletedAt = like.IsDeleted ? DateTime.UtcNow : null;
+            }
+
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(int id, string comment)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue) return Challenge();
+
+            comment = (comment ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                TempData["ErrorMessage"] = "Comment cannot be empty.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var recentSpam = await _db.CattleComments.AnyAsync(c =>
+                c.CattleId == id &&
+                c.UserId == userId.Value &&
+                c.CreatedAt > DateTime.UtcNow.AddSeconds(-30));
+            if (recentSpam)
+            {
+                TempData["ErrorMessage"] = "Please wait before commenting again.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            await _db.CattleComments.AddAsync(new CattleComment
+            {
+                CattleId = id,
+                UserId = userId.Value,
+                Comment = comment
+            });
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Share(int id, string channel = "Link")
+        {
+            var cattleExists = await _db.Cattles.AnyAsync(c => c.Id == id && !c.IsDeleted);
+            if (!cattleExists) return NotFound();
+
+            var url = Url.Action(nameof(Details), "Cattle", new { id }, Request.Scheme) ?? string.Empty;
+            await _db.CattleShares.AddAsync(new CattleShare
+            {
+                CattleId = id,
+                UserId = GetUserId(),
+                Channel = string.IsNullOrWhiteSpace(channel) ? "Link" : channel,
+                ShareUrl = url
+            });
+            await _db.SaveChangesAsync();
+
+            return Redirect(url);
         }
 
         // ── BUY CATTLE ────────────────────────────────────────────────────────
@@ -302,7 +422,31 @@ namespace CattleFarm.Controllers
         // ── Helpers ───────────────────────────────────────────────────────────
         private async Task LoadFarmsAsync()
         {
-            ViewBag.Farms = await _farmService.GetAllAsync();
+            var farms = await _farmService.GetAllAsync();
+            var userId = GetUserId();
+            if (!User.IsInRole(AppRoles.Admin) && userId.HasValue)
+                farms = farms.Where(f => f.OwnerId == userId.Value);
+
+            ViewBag.Farms = farms;
+        }
+
+        private async Task<(bool Allowed, string Message)> ValidateFarmAccessAsync(int farmId, int? existingCattleId = null)
+        {
+            var farm = await _db.Farms
+                .Include(f => f.Cattles)
+                .FirstOrDefaultAsync(f => f.Id == farmId && !f.IsDeleted);
+
+            if (farm == null)
+                return (false, "Farm was not found.");
+
+            if (!User.IsInRole(AppRoles.Admin) && farm.OwnerId != GetUserId())
+                return (false, "You can only manage cattle for your own farm.");
+
+            var cattleCount = farm.Cattles.Count(c => !c.IsDeleted && (!existingCattleId.HasValue || c.Id != existingCattleId.Value));
+            if (cattleCount >= farm.MaximumCattle)
+                return (false, "This farm has reached its maximum cattle limit.");
+
+            return (true, string.Empty);
         }
 
         private static CattleViewModel MapToViewModel(Cattle c) => new()

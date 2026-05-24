@@ -172,7 +172,7 @@
                         <td>
                             <div style="display:flex;align-items:center;gap:8px">
                                 <div style="width:30px;height:30px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--primary);flex-shrink:0">
-                                    @(!string.IsNullOrEmpty(p.WorkerName) ? string.Join("", p.WorkerName.Split(' ').Take(2).Select(w => w[0])).ToUpper() : "W")
+                                    @(!string.IsNullOrWhiteSpace(p.WorkerName) ? string.Join("", p.WorkerName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper() : "W")
                                 </div>
                                 <span style="font-weight:600">@p.WorkerName</span>
                             </div>

@@ -1,6 +1,19 @@
 @model CattleFarm.Models.Farm
 @{
     ViewData["Title"] = Model.Name;
+    var canManageFarm = User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager");
+    var activeFarmWorkers = Model.FarmWorkers.Where(fw => fw.IsActive && !fw.IsDeleted).ToList();
+    var membershipUserIds = activeFarmWorkers.Select(fw => fw.WorkerUserId).ToHashSet();
+    var membershipEmails = activeFarmWorkers
+        .Select(fw => fw.WorkerUser?.Email)
+        .Where(email => !string.IsNullOrWhiteSpace(email))
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    var directWorkers = Model.Workers
+        .Where(w => w.IsActive && !w.IsDeleted &&
+            (!w.UserId.HasValue || !membershipUserIds.Contains(w.UserId.Value)) &&
+            (string.IsNullOrWhiteSpace(w.Email) || !membershipEmails.Contains(w.Email)))
+        .ToList();
+    var workerCount = activeFarmWorkers.Count + directWorkers.Count;
 }
 <div class="page-header">
     <div>
@@ -8,7 +21,7 @@
         <p class="page-subtitle">@Model.Location — @Model.FarmType Farm</p>
     </div>
     <div class="page-actions" style="display:flex;gap:8px;align-items:center">
-        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+        @if (canManageFarm)
         {
             <a href="/Farm/Edit/@Model.Id" class="btn btn-outline"><i class="bi bi-pencil"></i> Edit</a>
         }
@@ -38,7 +51,10 @@
         <div class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
                 <h3 class="card-title">🐄 Cattle (@Model.Cattles.Count)</h3>
-                <a href="/Cattle/Create?farmId=@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Add</a>
+                @if (canManageFarm)
+                {
+                    <a href="/Cattle/Create?farmId=@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Add</a>
+                }
             </div>
             <div class="table-wrapper">
                 @if (!Model.Cattles.Any())
@@ -69,20 +85,64 @@
         <!-- Workers -->
         <div class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                <h3 class="card-title">👷 Workers (@Model.Workers.Count)</h3>
-                <a href="/Worker/Create?farmId=@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Hire</a>
+                <h3 class="card-title">👷 Workers (@workerCount)</h3>
+                @if (canManageFarm)
+                {
+                    <a href="/Worker/Create?farmId=@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Hire</a>
+                }
             </div>
             <div class="card-body">
-                @if (!Model.Workers.Any())
+                @if (workerCount == 0)
                 { <div class="empty-state" style="padding:16px"><div class="empty-icon">👷</div><p>No workers assigned</p></div> }
                 else
                 {
                     <div style="display:flex;flex-wrap:wrap;gap:10px">
-                        @foreach (var w in Model.Workers.Take(6))
+                        @foreach (var fw in activeFarmWorkers.Take(6))
                         {
+                            var profile = Model.Workers.FirstOrDefault(w => w.UserId == fw.WorkerUserId && !w.IsDeleted)
+                                ?? Model.Workers.FirstOrDefault(w => !w.IsDeleted &&
+                                    w.FarmId == Model.Id &&
+                                    !string.IsNullOrWhiteSpace(w.Email) &&
+                                    w.Email == fw.WorkerUser?.Email);
+                            var name = profile?.FullName ?? fw.WorkerUser?.FullName ?? "Worker";
+                            var roleText = profile?.Role ?? fw.Position;
+                            var salary = (profile?.Salary ?? 0) > 0 ? profile!.Salary : fw.Salary;
+                            var imagePath = profile?.ImagePath ?? fw.WorkerUser?.ProfileImagePath;
+                            var initial = string.IsNullOrWhiteSpace(name) ? "W" : name.Trim()[0].ToString().ToUpperInvariant();
+                            var workerUrl = profile != null ? $"/Worker/Details/{profile.Id}" : "#";
+
+                            <a href="@workerUrl" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:8px;text-decoration:none;border:1px solid var(--border)">
+                                @if (!string.IsNullOrWhiteSpace(imagePath))
+                                {
+                                    <img src="@imagePath" alt="@name" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border)" />
+                                }
+                                else
+                                {
+                                    <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);font-size:13px">@initial</div>
+                                }
+                                <div>
+                                    <div style="font-size:13px;font-weight:600;color:var(--text-primary)">@name</div>
+                                    <div style="font-size:11px;color:var(--text-muted)">@roleText · @Currency.Format(salary)</div>
+                                </div>
+                            </a>
+                        }
+                        @foreach (var w in directWorkers.Take(Math.Max(0, 6 - activeFarmWorkers.Count)))
+                        {
+                            var imagePath = w.ImagePath;
+                            var initial = string.IsNullOrWhiteSpace(w.FullName) ? "W" : w.FullName.Trim()[0].ToString().ToUpperInvariant();
                             <a href="/Worker/Details/@w.Id" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:8px;text-decoration:none;border:1px solid var(--border)">
-                                <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);font-size:13px">@w.FullName.FirstOrDefault()</div>
-                                <div><div style="font-size:13px;font-weight:600;color:var(--text-primary)">@w.FullName</div><div style="font-size:11px;color:var(--text-muted)">@w.Role</div></div>
+                                @if (!string.IsNullOrWhiteSpace(imagePath))
+                                {
+                                    <img src="@imagePath" alt="@w.FullName" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border)" />
+                                }
+                                else
+                                {
+                                    <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);font-size:13px">@initial</div>
+                                }
+                                <div>
+                                    <div style="font-size:13px;font-weight:600;color:var(--text-primary)">@w.FullName</div>
+                                    <div style="font-size:11px;color:var(--text-muted)">@w.Role · @Currency.Format(w.Salary)</div>
+                                </div>
                             </a>
                         }
                     </div>

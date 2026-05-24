@@ -8,6 +8,9 @@ namespace CattleFarm.Repositories.Implementations
     {
         public ProductRepository(CattleFarmDbContext context) : base(context) { }
 
+        public override async Task<Product?> GetByIdAsync(int id)
+            => await _dbSet.Include(p => p.Farm).FirstOrDefaultAsync(p => p.Id == id);
+
         public async Task<IEnumerable<Product>> GetByFarmIdAsync(int farmId)
             => await _dbSet.Where(p => p.FarmId == farmId).Include(p => p.Farm).ToListAsync();
 

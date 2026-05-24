@@ -11,7 +11,7 @@ namespace CattleFarm.Services.Implementations
         private readonly CurrencySettings _defaultSettings;
         private readonly IWebHostEnvironment _env;
         private readonly string _settingsFilePath;
-        private CurrencySettings _cachedSettings;
+        private CurrencySettings? _cachedSettings;
         private readonly object _lock = new object();
 
         public CurrencyService(IOptions<CurrencySettings> defaultSettings, IWebHostEnvironment env)
@@ -33,7 +33,7 @@ namespace CattleFarm.Services.Implementations
                 {
                     LoadSettings();
                 }
-                return _cachedSettings;
+                return _cachedSettings ?? _defaultSettings;
             }
         }
 

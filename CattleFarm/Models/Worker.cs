@@ -40,7 +40,7 @@ namespace CattleFarm.Models
         public string? Notes { get; set; }
 
         // FK
-        public int FarmId { get; set; }
+        public int? FarmId { get; set; }
         [ForeignKey(nameof(FarmId))]
         public virtual Farm? Farm { get; set; }
 

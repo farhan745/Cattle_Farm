@@ -320,6 +320,7 @@ namespace CattleFarm.ViewModels
         public List<ActivityLog>  RecentActivity  { get; set; } = new();
         public List<AuditLog>     RecentAuditLogs { get; set; } = new();
         public List<MonthlyTrendItem> MonthlyTrend { get; set; } = new();
+        public List<Farm> Farms { get; set; } = new();
     }
 
     public class OwnerDashboardViewModel
@@ -366,6 +367,8 @@ namespace CattleFarm.ViewModels
     public class WorkerDashboardViewModel
     {
         public Worker?       WorkerProfile     { get; set; }
+        public int?          MyFarmId          { get; set; }
+        public string?       MyFarmName        { get; set; }
         public int           TotalAttendanceDays { get; set; }
         public int           PresentThisMonth  { get; set; }
         public List<MilkProduction> RecentMilkLogs { get; set; } = new();

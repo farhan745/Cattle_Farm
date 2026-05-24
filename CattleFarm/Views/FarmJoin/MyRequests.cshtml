@@ -1,0 +1,66 @@
+@model IEnumerable<CattleFarm.ViewModels.MyJoinRequestViewModel>
+@{ ViewData["Title"] = "আমার Applications"; }
+
+<div class="page-header">
+    <div><h1 class="page-title">📋 আমার Applications</h1></div>
+    <a href="/FarmJoin/Browse" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Browse Farms</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:64px 20px;color:var(--text-muted)">
+        <div style="font-size:48px;margin-bottom:12px">📭</div>
+        <div style="font-weight:700">কোনো application নেই</div>
+        <a href="/FarmJoin/Browse" class="btn btn-primary" style="margin-top:16px">Farm খোঁজো</a>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Farm</th>
+                        <th>Apply করেছি</th>
+                        <th>Status</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        var badgeCss = r.Status switch
+                        {
+                            "Applied"  => "badge-warning",
+                            "Accepted" => "badge-success",
+                            "Rejected" => "badge-danger",
+                            _          => "badge-gray"
+                        };
+                        var statusLabel = r.Status switch
+                        {
+                            "Applied"  => "⏳ Pending",
+                            "Accepted" => "✅ Accepted",
+                            "Rejected" => "❌ Rejected",
+                            _          => r.Status
+                        };
+                        <tr>
+                            <td style="font-weight:600">@r.FarmName</td>
+                            <td style="font-size:12px">@r.AppliedAt.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="badge @badgeCss">@statusLabel</span>
+                                @if (r.Status == "Rejected" && r.CooldownEnds.HasValue && r.CooldownEnds > DateTime.UtcNow)
+                                {
+                                    <div style="font-size:11px;color:#ef4444;margin-top:4px">
+                                        <i class="bi bi-clock"></i> @r.CooldownEnds.Value.ToLocalTime().ToString("MMM dd") পর্যন্ত cooldown
+                                    </div>
+                                }
+                            </td>
+                            <td style="font-size:12px;color:var(--text-muted)">@(r.ReviewNote ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -10,7 +10,33 @@ namespace CattleFarm.Models
     public enum PaymentStatus     { Pending, Completed, Failed, Refunded }
     public enum PaymentMethod     { Cash, BankTransfer, Bkash, Nagad, Visa, MasterCard, IslamiBank, CityBank, BracBank }
     public enum SubscriptionPlan  { Free, Member, Owner, Enterprise }
-    public enum NotificationType  { Vaccination, HealthAlert, OrderUpdate, Payment, Subscription, System, Appointment, WorkerAlert, MilkDrop, WeightLoss, TripStarted, TripCompleted, TransportBooked }
+    public enum NotificationType
+    {
+        Vaccination,
+        HealthAlert,
+        OrderUpdate,
+        Payment,
+        Subscription,
+        System,
+        Appointment,
+        WorkerAlert,
+        MilkDrop,
+        WeightLoss,
+        TripStarted,
+        TripCompleted,
+        TransportBooked,
+        FarmJoinRequest,
+        JoinAccepted,
+        JoinRejected,
+        NewTask,
+        TaskAccepted,
+        TaskCompleted,
+        BonusAdded,
+        SalaryUpdate,
+        LeaveRequest,
+        Warning,
+        EmergencyTask
+    }
     public enum AppointmentStatus { Scheduled, Completed, Cancelled, NoShow }
     public enum ProductCategory   { Milk, Beef, Manure, BreedingService, Other }
     public enum ApprovalStatus    { Pending, Approved, Rejected }

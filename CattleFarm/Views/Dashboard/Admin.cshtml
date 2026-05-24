@@ -587,10 +587,11 @@ const newsChartObj = new Chart(document.getElementById('newsPieChart'), {
 // LIVE FARM PERFORMANCE PIE CHARTS COMPONENT
 // ==========================================
 
-const farmNames = ["Green Valley", "Meadowbrook", "Sunnyside", "Willow Creek", "Oakridge", "Riverview", "Whispering Pines"];
+const farmNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Farms.Select(f => f.Name).ToList()));
 
 function generateLivePerformanceData() {
-    const shuffled = [...farmNames].sort(() => 0.5 - Math.random());
+    const sourceFarms = farmNames.length ? farmNames : ["No registered farms"];
+    const shuffled = [...sourceFarms].sort(() => 0.5 - Math.random());
     const selectedFarms = shuffled.slice(0, 6);
     
     const profitFarms = [];

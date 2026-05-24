@@ -12,18 +12,19 @@
     <meta name="description" content="Register a new account on Smart Cattle Farm to manage livestock, breeding logs, milk records, and more." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         body {
-            font-family: 'DM Sans', sans-serif;
-            background-color: #f8fafc;
+            font-family: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
+            background-color: #f3f6f4;
             background-image: 
-                linear-gradient(rgba(34, 197, 94, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(34, 197, 94, 0.04) 1px, transparent 1px);
+                linear-gradient(rgba(23, 33, 27, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(23, 33, 27, 0.04) 1px, transparent 1px),
+                linear-gradient(180deg, #ffffff 0%, #edf4ef 100%);
             background-size: 32px 32px;
-            color: #0f172a;
+            color: #17211b;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -32,29 +33,6 @@
             margin: 0;
             position: relative;
             overflow-x: hidden;
-        }
-
-        /* Decorative background gradient blobs */
-        .bg-blob-1 {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, transparent 70%);
-            top: -200px;
-            left: -150px;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .bg-blob-2 {
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
-            bottom: -250px;
-            right: -150px;
-            pointer-events: none;
-            z-index: 1;
         }
 
         .register-wrapper {
@@ -79,28 +57,28 @@
         .brand-logo-icon {
             width: 52px;
             height: 52px;
-            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
-            border-radius: 14px;
+            background: #137a3a;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
             font-size: 26px;
-            box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.3);
+            box-shadow: 0 10px 22px rgba(19, 122, 58, 0.18);
         }
 
         .brand-logo-name {
-            font-family: 'Bricolage Grotesque', sans-serif;
+            font-family: 'Inter', 'IBM Plex Sans', system-ui, sans-serif;
             font-size: 24px;
             font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.5px;
+            color: #17211b;
+            letter-spacing: 0;
         }
 
         .brand-logo-sub {
             font-size: 14px;
-            color: #64748b;
-            font-weight: 500;
+            color: #506058;
+            font-weight: 600;
             margin-top: -4px;
         }
 
@@ -112,9 +90,9 @@
 
         .auth-card-premium {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            border: 1px solid #dbe3de;
+            border-radius: 8px;
+            box-shadow: 0 18px 40px rgba(18, 31, 24, 0.12);
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -125,26 +103,27 @@
 
         .auth-card-premium:hover {
             transform: translateY(-2px);
-            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.08), 0 15px 15px -5px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 22px 46px rgba(18, 31, 24, 0.14);
         }
 
         .auth-header-premium {
             padding: 32px 32px 20px;
             text-align: center;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid #dbe3de;
+            background: #fbfdfc;
         }
 
         .auth-header-premium h2 {
-            font-family: 'Bricolage Grotesque', sans-serif;
+            font-family: 'Inter', 'IBM Plex Sans', system-ui, sans-serif;
             font-size: 22px;
             font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.3px;
+            color: #17211b;
+            letter-spacing: 0;
         }
 
         .auth-header-premium p {
             font-size: 14px;
-            color: #64748b;
+            color: #506058;
             margin-top: 4px;
         }
 
@@ -155,11 +134,11 @@
 
         .auth-footer-premium {
             padding: 20px 32px;
-            background: #f8fafc;
-            border-top: 1px solid #f1f5f9;
+            background: #fbfdfc;
+            border-top: 1px solid #dbe3de;
             text-align: center;
             font-size: 13.5px;
-            color: #64748b;
+            color: #506058;
         }
 
         .form-group {
@@ -170,17 +149,17 @@
             display: block;
             font-size: 13.5px;
             font-weight: 600;
-            color: #334155;
+            color: #405049;
             margin-bottom: 6px;
         }
 
         .form-control {
             width: 100%;
             padding: 11px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
+            border: 1px solid #b9c7c0;
+            border-radius: 6px;
             background: #ffffff;
-            color: #0f172a;
+            color: #17211b;
             font-size: 14px;
             font-family: inherit;
             transition: all 0.2s ease;
@@ -188,22 +167,22 @@
 
         .form-control:focus {
             outline: none;
-            border-color: #22c55e;
-            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+            border-color: #137a3a;
+            box-shadow: 0 0 0 3px rgba(19, 122, 58, 0.14);
         }
 
         .btn-primary {
-            background: #22c55e;
+            background: #137a3a;
             color: #ffffff;
             border: none;
             padding: 12px 24px;
             font-size: 14.5px;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 6px;
             width: 100%;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+            box-shadow: 0 8px 18px rgba(19, 122, 58, 0.16);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -211,8 +190,8 @@
         }
 
         .btn-primary:hover {
-            background: #16a34a;
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+            background: #0f5f2e;
+            box-shadow: 0 10px 22px rgba(19, 122, 58, 0.2);
             transform: translateY(-1px);
         }
 
@@ -225,7 +204,7 @@
 
         .form-hint {
             font-size: 12px;
-            color: #64748b;
+            color: #506058;
             margin-top: 6px;
         }
 
@@ -259,8 +238,8 @@
         }
         
         .avatar-upload-zone:hover {
-            border-color: #22c55e;
-            background: #f0fdf4;
+            border-color: #137a3a;
+            background: #eef5f1;
         }
         
         .avatar-upload-zone img {
@@ -278,7 +257,7 @@
         }
 
         .avatar-upload-zone:hover .upload-icon {
-            color: #22c55e;
+            color: #137a3a;
         }
 
         @@keyframes fadeInUp {
@@ -294,9 +273,6 @@
     </style>
 </head>
 <body>
-    <div class="bg-blob-1"></div>
-    <div class="bg-blob-2"></div>
-
     <div class="register-wrapper">
         <!-- Logo and brand at top center -->
         <div class="brand-header-center">
@@ -338,7 +314,7 @@
                                 <img id="avatarPreview" style="display:none" alt="Preview" />
                             </div>
                             <input type="file" name="ProfileImage" id="ProfileImage" accept=".jpg,.jpeg,.png,.webp" style="display:none" onchange="previewAvatar(this)" />
-                            <div style="font-size:11px;color:#64748b">JPG, PNG, WEBP · Max 5MB</div>
+                            <div style="font-size:11px;color:#506058">JPG, PNG, WEBP · Max 5MB</div>
                         </div>
 
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -373,20 +349,24 @@
                             </div>
                             <div class="form-group" style="grid-column:1/-1">
                                 <label class="form-label">Account Type</label>
-                                <select asp-for="Role" class="form-control">
+                                <select asp-for="Role" class="form-control" id="roleSelect" onchange="onRoleChange(this.value)">
                                     <option value="User">👤 Customer / General User</option>
                                     <option value="Owner">🏡 Farm Owner</option>
                                     <option value="Worker">👷 Farm Worker</option>
                                     <option value="Doctor">👨‍⚕️ Veterinarian</option>
                                 </select>
-                                <div class="form-hint">Farm Owners can register and manage multiple farms.</div>
+                                <div class="form-hint" id="roleHint">Farm Owners can register and manage multiple farms.</div>
+                                <div id="workerNote" style="display:none;margin-top:8px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12.5px;color:#92400e;">
+                                    <i class="bi bi-info-circle-fill" style="color:#d97706;margin-right:6px;"></i>
+                                    Workers are assigned to a farm by the farm owner after registration. No farm selection is required during sign-up.
+                                </div>
                             </div>
                         </div>
 
                         <div style="margin:20px 0">
-                            <label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:#475569;cursor:pointer;line-height:1.5">
-                                <input type="checkbox" required style="accent-color:#22c55e;margin-top:3px;flex-shrink:0;width:16px;height:16px" />
-                                <span>I agree to the <a href="#" style="color:#22c55e;text-decoration:none;font-weight:600">Terms of Service</a> and <a href="#" style="color:#22c55e;text-decoration:none;font-weight:600">Privacy Policy</a></span>
+                            <label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:#506058;cursor:pointer;line-height:1.5">
+                                <input type="checkbox" required style="accent-color:#137a3a;margin-top:3px;flex-shrink:0;width:16px;height:16px" />
+                                <span>I agree to the <a href="#" style="color:#137a3a;text-decoration:none;font-weight:700">Terms of Service</a> and <a href="#" style="color:#137a3a;text-decoration:none;font-weight:700">Privacy Policy</a></span>
                             </label>
                         </div>
 
@@ -397,7 +377,7 @@
                 </div>
                 <div class="auth-footer-premium">
                     Already have an account? 
-                    <a href="/Account/Login" style="font-weight:700;color:#22c55e;text-decoration:none">Sign in &rarr;</a>
+                    <a href="/Account/Login" style="font-weight:700;color:#137a3a;text-decoration:none">Sign in &rarr;</a>
                 </div>
             </div>
         </div>
@@ -415,6 +395,29 @@
         };
         reader.readAsDataURL(input.files[0]);
     }
+
+    const roleHints = {
+        'User':   'Customers can browse products, place orders, and track deliveries.',
+        'Owner':  'Farm Owners can register and manage multiple farms.',
+        'Worker': '',
+        'Doctor': 'Veterinarians can manage health records and appointments for cattle.'
+    };
+
+    function onRoleChange(role) {
+        const hint = document.getElementById('roleHint');
+        const workerNote = document.getElementById('workerNote');
+        if (role === 'Worker') {
+            hint.style.display = 'none';
+            workerNote.style.display = 'block';
+        } else {
+            workerNote.style.display = 'none';
+            hint.style.display = 'block';
+            hint.textContent = roleHints[role] || '';
+        }
+    }
+
+    // Run on page load in case of model re-bind after validation error
+    onRoleChange(document.getElementById('roleSelect').value);
     </script>
 </body>
 </html>

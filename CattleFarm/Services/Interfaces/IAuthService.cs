@@ -16,7 +16,7 @@ namespace CattleFarm.Services.Interfaces
         /// <summary>
         /// Creates a new user account. Returns false if the email or username is taken.
         /// </summary>
-        Task<bool> RegisterAsync(string username, string email, string password, string role = "User");
+        Task<bool> RegisterAsync(string username, string email, string password, string role = "User", string? fullName = null, string? phoneNumber = null);
 
         /// <summary>Returns true if a user with the given email already exists.</summary>
         Task<bool> EmailExistsAsync(string email);

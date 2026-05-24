@@ -2,9 +2,13 @@
 @{
     ViewData["Title"] = "My Profile";
     var user = Model;
-    var initials = string.IsNullOrEmpty(user.FullName)
+    var initials = string.IsNullOrWhiteSpace(user.FullName)
         ? (user.Username.Length >= 2 ? user.Username.Substring(0, 2).ToUpper() : user.Username.ToUpper())
-        : string.Join("", user.FullName.Split(' ').Take(2).Select(w => w[0])).ToUpper();
+        : string.Join("", user.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper();
+    if (string.IsNullOrWhiteSpace(initials))
+    {
+        initials = "U";
+    }
 }
 
 <div class="page-header">

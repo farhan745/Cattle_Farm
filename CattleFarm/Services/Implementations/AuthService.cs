@@ -29,7 +29,7 @@ namespace CattleFarm.Services.Implementations
         }
 
         /// <inheritdoc/>
-        public async Task<bool> RegisterAsync(string username, string email, string password, string role = "User")
+        public async Task<bool> RegisterAsync(string username, string email, string password, string role = "User", string? fullName = null, string? phoneNumber = null)
         {
             // Reject duplicate email or username
             if (await _unitOfWork.Users.EmailExistsAsync(email))     return false;
@@ -38,10 +38,12 @@ namespace CattleFarm.Services.Implementations
             var user = new User
             {
                 Username     = username,
+                FullName     = string.IsNullOrWhiteSpace(fullName) ? username : fullName.Trim(),
                 Email        = email,
                 // Work factor 12 — good balance of security vs. performance
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12),
                 Role         = role,
+                PhoneNumber  = phoneNumber,
                 IsEmailVerified = true,
                 CreatedAt    = DateTime.UtcNow
             };

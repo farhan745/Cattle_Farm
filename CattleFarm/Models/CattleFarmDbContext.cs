@@ -7,6 +7,15 @@ namespace CattleFarm.Models
         public CattleFarmDbContext(DbContextOptions<CattleFarmDbContext> options) : base(options) { }
 
         // ── DbSets ────────────────────────────────────────────────────────────
+        public DbSet<FarmJoinRequest> FarmJoinRequests { get; set; }
+        public DbSet<FarmWorker> FarmWorkers { get; set; }
+        public DbSet<TaskAssignment> TaskAssignments { get; set; }
+        public DbSet<LeaveRequest> LeaveRequests { get; set; }
+        public DbSet<SalaryHistory> SalaryHistories { get; set; }
+        public DbSet<CattleLike> CattleLikes { get; set; }
+        public DbSet<CattleComment> CattleComments { get; set; }
+        public DbSet<CattleShare> CattleShares { get; set; }
+        public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<User>             Users             { get; set; }
         public DbSet<Farm>             Farms             { get; set; }
         public DbSet<Cattle>           Cattles           { get; set; }
@@ -54,8 +63,115 @@ namespace CattleFarm.Models
             modelBuilder.Entity<Cattle>(e =>
             {
                 e.HasIndex(c => new { c.TagId, c.FarmId }).IsUnique();
+                e.HasIndex(c => c.FarmId);
                 e.Property(c => c.Name).HasMaxLength(100).IsRequired();
                 e.Property(c => c.Breed).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Worker>(e =>
+            {
+                e.HasIndex(w => w.FarmId);
+                e.HasIndex(w => w.UserId);
+            });
+
+            modelBuilder.Entity<Notification>(e =>
+            {
+                e.HasIndex(n => n.UserId);
+                e.HasQueryFilter(n => !n.IsDeleted);
+            });
+
+            modelBuilder.Entity<TaskAssignment>(e =>
+            {
+                e.HasIndex(t => t.FarmId);
+                e.HasIndex(t => t.AssignedWorkerId);
+                e.HasIndex(t => t.AssignedUserId);
+                e.HasIndex(t => t.Status);
+                e.HasQueryFilter(t => !t.IsDeleted);
+
+                e.HasOne(t => t.Worker)
+                 .WithMany()
+                 .HasForeignKey(t => t.AssignedWorkerId)
+                 .IsRequired(false)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(t => t.Farm)
+                 .WithMany()
+                 .HasForeignKey(t => t.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FarmJoinRequest>(e =>
+            {
+                e.HasIndex(r => new { r.FarmId, r.WorkerUserId, r.Status });
+                e.HasQueryFilter(r => !r.IsDeleted);
+            });
+
+            modelBuilder.Entity<FarmWorker>(e =>
+            {
+                e.HasIndex(fw => new { fw.FarmId, fw.WorkerUserId });
+                e.HasQueryFilter(fw => !fw.IsDeleted);
+            });
+
+            modelBuilder.Entity<LeaveRequest>(e =>
+            {
+                e.HasIndex(l => new { l.FarmId, l.WorkerUserId, l.Status });
+                e.HasQueryFilter(l => !l.IsDeleted);
+
+                e.HasOne(l => l.Farm)
+                 .WithMany()
+                 .HasForeignKey(l => l.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(l => l.WorkerUser)
+                 .WithMany()
+                 .HasForeignKey(l => l.WorkerUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<SalaryHistory>(e =>
+            {
+                e.HasIndex(s => new { s.WorkerId, s.Year, s.Month });
+                e.HasIndex(s => s.FarmId);
+
+                e.HasOne(s => s.Farm)
+                 .WithMany()
+                 .HasForeignKey(s => s.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(s => s.Worker)
+                 .WithMany()
+                 .HasForeignKey(s => s.WorkerId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CattleLike>(e =>
+            {
+                e.HasIndex(l => new { l.CattleId, l.UserId }).IsUnique();
+                e.HasQueryFilter(l => !l.IsDeleted);
+
+                e.HasOne(l => l.Cattle)
+                 .WithMany()
+                 .HasForeignKey(l => l.CattleId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CattleComment>(e =>
+            {
+                e.HasIndex(c => new { c.CattleId, c.UserId, c.CreatedAt });
+                e.HasQueryFilter(c => !c.IsDeleted);
+
+                e.HasOne(c => c.Cattle)
+                 .WithMany()
+                 .HasForeignKey(c => c.CattleId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CattleShare>(e =>
+            {
+                e.HasOne(s => s.Cattle)
+                 .WithMany()
+                 .HasForeignKey(s => s.CattleId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Attendance>(e =>
@@ -95,6 +211,7 @@ namespace CattleFarm.Models
                 .HasMany(f => f.Workers)
                 .WithOne(w => w.Farm)
                 .HasForeignKey(w => w.FarmId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Farm>()
@@ -345,6 +462,47 @@ namespace CattleFarm.Models
                  .HasForeignKey(r => r.RequestedByUserId)
                  .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // ── FarmJoinRequest / FarmWorker / Payroll / TaskAssignment relationships ──────────────────────
+            modelBuilder.Entity<FarmJoinRequest>(e =>
+            {
+                e.HasOne(f => f.Farm)
+                 .WithMany()
+                 .HasForeignKey(f => f.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(f => f.WorkerUser)
+                 .WithMany()
+                 .HasForeignKey(f => f.WorkerUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FarmWorker>(e =>
+            {
+                e.HasOne(f => f.Farm)
+                 .WithMany(f => f.FarmWorkers)
+                 .HasForeignKey(f => f.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(f => f.WorkerUser)
+                 .WithMany()
+                 .HasForeignKey(f => f.WorkerUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Payroll>(e =>
+            {
+                e.HasOne(p => p.Farm)
+                 .WithMany()
+                 .HasForeignKey(p => p.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(p => p.Worker)
+                 .WithMany()
+                 .HasForeignKey(p => p.WorkerId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
         }
     }
 }

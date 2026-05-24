@@ -1,21 +1,20 @@
-// Smart Cattle Farm — Premium Ranch Heritage JavaScript
+// Smart Cattle Farm — professional light UI JavaScript
 
 // ── Theme Toggle ─────────────────────────────────────────────────────────────
 function toggleTheme() {
     const html  = document.documentElement;
     const icon  = document.getElementById('themeIcon');
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    if (icon) icon.className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    html.setAttribute('data-theme', 'light');
+    if (icon) icon.className = 'bi bi-brightness-high';
+    localStorage.setItem('theme', 'light');
 }
 
-// Apply saved theme on load
+// Always use light mode for client-facing consistency.
 (function () {
-    const saved = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
+    localStorage.setItem('theme', 'light');
+    document.documentElement.setAttribute('data-theme', 'light');
     const icon = document.getElementById('themeIcon');
-    if (icon) icon.className = saved === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+    if (icon) icon.className = 'bi bi-brightness-high';
 })();
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────

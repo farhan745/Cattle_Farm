@@ -3,6 +3,7 @@ using CattleFarm.Services.Interfaces;
 using CattleFarm.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CattleFarm.Controllers
@@ -13,10 +14,11 @@ namespace CattleFarm.Controllers
         private readonly IWorkerService _workerService;
         private readonly IFarmService   _farmService;
         private readonly IAuditService  _auditService;
+        private readonly CattleFarmDbContext _db;
         private const int PageSize = 10;
 
-        public WorkerController(IWorkerService workerService, IFarmService farmService, IAuditService auditService)
-        { _workerService = workerService; _farmService = farmService; _auditService = auditService; }
+        public WorkerController(IWorkerService workerService, IFarmService farmService, IAuditService auditService, CattleFarmDbContext db)
+        { _workerService = workerService; _farmService = farmService; _auditService = auditService; _db = db; }
 
         public async Task<IActionResult> Index(int page = 1, int? farmId = null, string? search = null)
         {
@@ -32,6 +34,14 @@ namespace CattleFarm.Controllers
         {
             var worker = await _workerService.GetByIdAsync(id);
             if (worker is null) return NotFound();
+            await SyncSalaryHistoryFromPayrollAsync(worker);
+
+            ViewBag.SalaryHistory = await _db.SalaryHistories
+                .Where(s => s.WorkerId == id)
+                .OrderByDescending(s => s.Year)
+                .ThenByDescending(s => s.Month)
+                .Take(12)
+                .ToListAsync();
             return View(worker);
         }
 
@@ -56,7 +66,7 @@ namespace CattleFarm.Controllers
             var worker = await _workerService.GetByIdAsync(id);
             if (worker is null) return NotFound();
             await LoadFarmsAsync();
-            var vm = new WorkerViewModel { Id = worker.Id, FullName = worker.FullName, Role = worker.Role, Phone = worker.Phone, Email = worker.Email, Skills = worker.Skills, ExperienceYears = worker.ExperienceYears, Salary = worker.Salary, IsAvailable = worker.IsAvailable, FarmId = worker.FarmId, Notes = worker.Notes, ExistingImagePath = worker.ImagePath };
+            var vm = new WorkerViewModel { Id = worker.Id, FullName = worker.FullName, Role = worker.Role, Phone = worker.Phone, Email = worker.Email, Skills = worker.Skills, ExperienceYears = worker.ExperienceYears, Salary = worker.Salary, IsAvailable = worker.IsAvailable, FarmId = worker.FarmId ?? 0, Notes = worker.Notes, ExistingImagePath = worker.ImagePath };
             return View(vm);
         }
 
@@ -85,6 +95,62 @@ namespace CattleFarm.Controllers
                 ? await _farmService.GetByOwnerAsync(userId)
                 : await _farmService.GetAllAsync();
         }
+
+        private async Task SyncSalaryHistoryFromPayrollAsync(Worker worker)
+        {
+            var payrolls = await _db.Payrolls
+                .Where(p => p.WorkerId == worker.Id && !p.IsDeleted)
+                .ToListAsync();
+            if (!payrolls.Any()) return;
+
+            var histories = await _db.SalaryHistories
+                .Where(s => s.WorkerId == worker.Id)
+                .ToListAsync();
+            var changed = false;
+
+            foreach (var payroll in payrolls)
+            {
+                var history = histories.FirstOrDefault(s => s.Year == payroll.Year && s.Month == payroll.Month);
+                if (history == null)
+                {
+                    history = new SalaryHistory
+                    {
+                        FarmId = payroll.FarmId,
+                        WorkerId = payroll.WorkerId,
+                        WorkerUserId = payroll.UserId > 0 ? payroll.UserId : worker.UserId ?? 0,
+                        Year = payroll.Year,
+                        Month = payroll.Month,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _db.SalaryHistories.AddAsync(history);
+                    histories.Add(history);
+                    changed = true;
+                }
+
+                var payrollBonus = payroll.Bonus + payroll.OvertimePay;
+                var nextBonus = Math.Max(history.Bonus, payrollBonus);
+                var nextBaseSalary = payroll.BaseSalary > 0 ? payroll.BaseSalary : worker.Salary;
+                var nextTotal = nextBaseSalary + nextBonus;
+
+                if (history.FarmId != payroll.FarmId ||
+                    history.WorkerUserId == 0 ||
+                    history.BaseSalary != nextBaseSalary ||
+                    history.Bonus != nextBonus ||
+                    history.TotalSalary != nextTotal)
+                {
+                    history.FarmId = payroll.FarmId;
+                    history.WorkerUserId = payroll.UserId > 0 ? payroll.UserId : worker.UserId ?? 0;
+                    history.BaseSalary = nextBaseSalary;
+                    history.Bonus = nextBonus;
+                    history.TotalSalary = nextTotal;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                await _db.SaveChangesAsync();
+        }
+
         private int GetUserId() { var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; return int.TryParse(id, out var p) ? p : 0; }
     }
 }

@@ -81,64 +81,6 @@ namespace CattleFarm.ViewModels
         public string Role { get; set; } = "Worker";
     }
 
-    // ── Payroll ViewModels ────────────────────────────────────────────────────────
-    public class PayrollViewModel
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public int WorkerId { get; set; }
-        public int FarmId { get; set; }      // which farm this worker belongs to
-        public string WorkerName { get; set; } = string.Empty;
-        public int Year { get; set; }
-        public int Month { get; set; }
-        public double OvertimeHours { get; set; }
-        public decimal BaseSalary { get; set; }
-        public decimal OvertimePay { get; set; }
-        public decimal Deductions { get; set; }
-        public decimal Bonus { get; set; }
-        public decimal NetSalary { get; set; }
-        public bool IsPaid { get; set; }
-        public DateTime GeneratedAt { get; set; }
-    }
-
-    public class PayrollGenerateViewModel
-    {
-        [Required, Range(2000, 2100)]
-        public int Year { get; set; } = DateTime.UtcNow.Year;
-
-        [Required, Range(1, 12)]
-        public int Month { get; set; } = DateTime.UtcNow.Month;
-    }
-
-    public class PayrollEditViewModel
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public int WorkerId { get; set; }
-        public string WorkerName { get; set; } = string.Empty;
-        public int Year { get; set; }
-        public int Month { get; set; }
-
-        [Range(0, 10000000)]
-        public decimal BaseSalary { get; set; }
-
-        [Range(0, 500)]
-        public double OvertimeHours { get; set; }
-
-        [Range(0, 10000000)]
-        public decimal OvertimePay { get; set; }
-
-        [Range(0, 10000000)]
-        public decimal Deductions { get; set; }
-
-        [Range(0, 10000000)]
-        public decimal Bonus { get; set; }
-
-        [Range(0, 10000000)]
-        public decimal NetSalary { get; set; }
-        public bool IsPaid { get; set; }
-    }
-
     // ── Attendance ViewModels ─────────────────────────────────────────────────────
     public class AttendanceViewModel
     {
@@ -182,39 +124,5 @@ namespace CattleFarm.ViewModels
         public DateTime? CheckOut { get; set; }
         public AttendanceStatus Status { get; set; }
         public string? Notes { get; set; }
-    }
-
-    // ── Task ViewModels ───────────────────────────────────────────────────────────
-    public class TaskViewModel
-    {
-        public int Id { get; set; }
-        public int AssignedUserId { get; set; }
-        public int AssignedWorkerId { get; set; }
-        public string WorkerName { get; set; } = string.Empty;
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public DateTime DueDate { get; set; }
-        public string Status { get; set; } = "Pending"; // e.g. "Pending", "InProgress", "Completed"
-        public DateTime AssignedAt { get; set; }
-        public DateTime? CompletedAt { get; set; }
-    }
-
-    public class TaskAssignViewModel
-    {
-        public int Id { get; set; }
-
-        [Required]
-        public int AssignedWorkerId { get; set; }
-
-        [Required, StringLength(200)]
-        public string Title { get; set; } = string.Empty;
-
-        [Required, StringLength(1000)]
-        public string Description { get; set; } = string.Empty;
-
-        [Required]
-        public DateTime DueDate { get; set; } = DateTime.Today.AddDays(1);
-
-        public string Status { get; set; } = "Pending";
     }
 }

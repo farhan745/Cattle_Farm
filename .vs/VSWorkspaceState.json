@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\CattleFarm",
+    "\\CattleFarm\\Models",
+    "\\CattleFarm\\Services",
+    "\\CattleFarm\\Services\\Implementations",
+    "\\CattleFarm\\Views",
+    "\\CattleFarm\\Views\\Order"
+  ],
+  "SelectedNode": "\\CattleFarm\\CattleFarm.csproj",
+  "PreviewInSolutionExplorer": false
+}

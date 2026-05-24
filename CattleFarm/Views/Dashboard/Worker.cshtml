@@ -7,6 +7,18 @@
     var todayTasks = Model.MyTasks.Where(t => t.DueDate.Date == DateTime.Today || t.Status == "InProgress").ToList();
     var overdueTasks = Model.MyTasks.Where(t => t.DueDate.Date < DateTime.Today && t.Status != "Completed").Count();
 }
+@functions {
+    private static string GetInitials(string? name)
+    {
+        var initials = (name ?? string.Empty)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(part => char.ToUpperInvariant(part[0]))
+            .ToArray();
+
+        return initials.Length > 0 ? new string(initials) : "W";
+    }
+}
 
 @section Styles {
 <style>
@@ -119,7 +131,8 @@
 @* ── Hero Banner ────────────────────────────────────────────── *@
 <div class="worker-hero">
     <div class="worker-hero-avatar">
-        @string.Join("", workerName.Split(' ').Take(2).Select(w => w[0])).ToUpper()
+        @GetInitials(workerName)
+
     </div>
     <div>
         <h1>Welcome, @workerName 👋</h1>
@@ -136,6 +149,19 @@
         }
     </div>
 </div>
+
+@if (Model.MyFarmId.HasValue)
+{
+    <div style="margin-bottom:24px">
+        <a href="/Farm/Details/@Model.MyFarmId.Value" class="btn btn-primary" style="gap:10px">
+            <i class="bi bi-house-door"></i> My Farm
+            @if (!string.IsNullOrWhiteSpace(Model.MyFarmName))
+            {
+                <span style="font-size:12px;opacity:.85">@Model.MyFarmName</span>
+            }
+        </a>
+    </div>
+}
 
 @* ── Stats Row ───────────────────────────────────────────────── *@
 <div class="stat-grid-4">
@@ -249,6 +275,12 @@
                 <a href="/Attendance" class="btn btn-outline w-100" style="justify-content:flex-start;gap:10px;font-size:13px">
                     <i class="bi bi-calendar-check" style="color:#10b981"></i> My Attendance
                 </a>
+                @if (Model.MyFarmId.HasValue)
+                {
+                    <a href="/Farm/Details/@Model.MyFarmId.Value" class="btn btn-outline w-100" style="justify-content:flex-start;gap:10px;font-size:13px">
+                        <i class="bi bi-house-door" style="color:#0ea5e9"></i> My Farm
+                    </a>
+                }
                 <a href="/Payroll" class="btn btn-outline w-100" style="justify-content:flex-start;gap:10px;font-size:13px">
                     <i class="bi bi-credit-card" style="color:#6366f1"></i> My Salary Slips
                 </a>

@@ -1,6 +1,7 @@
 @model CattleFarm.Models.Worker
 @{
     ViewData["Title"] = $"{Model.FullName} — Details";
+    var salaryHistory = ViewBag.SalaryHistory as List<CattleFarm.Models.SalaryHistory> ?? new();
 }
 
 <div class="page-header">
@@ -107,9 +108,9 @@
                     <div>
                         <div style="color:var(--text-muted);font-size:11px;font-weight:700;text-transform:uppercase">Assigned Farm</div>
                         <div style="font-weight:600;margin-top:2px">
-                            @if (Model.Farm != null)
+                            @if (Model.Farm != null && Model.FarmId.HasValue)
                             {
-                                <a href="/Farm/Details/@Model.FarmId" style="color:var(--primary);font-weight:600"><i class="bi bi-building"></i> @Model.Farm.Name</a>
+                                <a href="/Farm/Details/@Model.FarmId.Value" style="color:var(--primary);font-weight:600"><i class="bi bi-building"></i> @Model.Farm.Name</a>
                             }
                             else
                             {
@@ -148,6 +149,42 @@
                               @Model.Notes
                           </div>
                       </div>
+                  }
+              </div>
+          </div>
+
+          <!-- Card: Salary History -->
+          <div class="card">
+              <div class="card-header">
+                  <h3 class="card-title">💳 Salary History</h3>
+              </div>
+              <div class="table-wrapper">
+                  @if (!salaryHistory.Any())
+                  {
+                      <div class="empty-state" style="padding:32px;text-align:center">
+                          <div style="font-size:36px;margin-bottom:8px">💳</div>
+                          <p style="color:var(--text-muted);font-size:13.5px">No salary history found for this worker</p>
+                      </div>
+                  }
+                  else
+                  {
+                      <table class="data-table">
+                          <thead>
+                              <tr><th>Month</th><th>Base Salary</th><th>Bonus</th><th>Total</th></tr>
+                          </thead>
+                          <tbody>
+                              @foreach (var s in salaryHistory)
+                              {
+                                  var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(s.Month);
+                                  <tr>
+                                      <td style="font-weight:600">@monthName @s.Year</td>
+                                      <td>@Currency.Format(s.BaseSalary)</td>
+                                      <td style="color:var(--success)">+@Currency.Format(s.Bonus)</td>
+                                      <td style="font-weight:700;color:var(--primary)">@Currency.Format(s.TotalSalary)</td>
+                                  </tr>
+                              }
+                          </tbody>
+                      </table>
                   }
               </div>
           </div>

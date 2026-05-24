@@ -17,6 +17,8 @@ namespace CattleFarm.Models
         public bool IsRead { get; set; } = false;
         public DateTime? ReadAt    { get; set; }
         public DateTime CreatedAt  { get; set; } = DateTime.UtcNow;
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
 
         // Generic pointer to the triggering entity
         [StringLength(100)]

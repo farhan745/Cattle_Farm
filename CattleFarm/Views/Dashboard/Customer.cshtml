@@ -48,11 +48,21 @@
         border-color: var(--primary);
     }
     .product-thumb {
-        height: 90px;
+        height: 110px;
         background: var(--card-bg);
         display: flex; align-items: center; justify-content: center;
         font-size: 36px;
         position: relative;
+        overflow: hidden;
+    }
+    .product-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover .product-thumb img {
+        transform: scale(1.08);
     }
     .product-featured-badge {
         position: absolute; top: 6px; right: 6px;
@@ -95,7 +105,7 @@
 <div class="customer-hero">
     <div>
         <h1>👋 Welcome, @User.Identity?.Name</h1>
-        <p>Browse fresh farm products and track your orders</p>
+        <p>Browse products sold on our website and track your orders</p>
     </div>
 </div>
 
@@ -124,7 +134,7 @@
     @* ── Products ────────────────────────────────────────── *@
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">🛍️ Products Available on Our Farm</h3>
+            <h3 class="card-title">🛍️ Products Available in Our Store</h3>
             <a href="/Product" class="btn btn-primary btn-sm"><i class="bi bi-shop"></i> Browse All</a>
         </div>
         @if (!Model.FeaturedProducts.Any())
@@ -132,6 +142,7 @@
             <div style="text-align:center;padding:48px 20px;color:var(--text-muted)">
                 <div style="font-size:48px;margin-bottom:12px">🏪</div>
                 <div style="font-weight:600">No products available yet</div>
+                <div style="font-size:13px;margin-top:4px">Check back soon for fresh farm products</div>
             </div>
         }
         else
@@ -149,7 +160,14 @@
                     };
                     <div class="product-card" onclick="window.location='/Product/Details/@p.Id'">
                         <div class="product-thumb">
-                            @emoji
+                            @if (!string.IsNullOrEmpty(p.ImagePath))
+                            {
+                                <img src="@p.ImagePath" alt="@p.Name" />
+                            }
+                            else
+                            {
+                                @emoji
+                            }
                             @if (p.IsFeatured)
                             {
                                 <span class="product-featured-badge">Featured</span>
@@ -157,11 +175,15 @@
                         </div>
                         <div class="product-info">
                             <div class="product-name" title="@p.Name">@p.Name</div>
-                            <div class="product-category">@p.Category</div>
-                            <div class="product-price">@Currency.Format(p.Price)</div>
+                            <div class="product-category" style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--text-muted); margin-top: 2px;">
+                                <i class="bi bi-tag-fill" style="font-size: 10px;"></i> @p.Category • <span style="font-weight: 500; color: var(--text-secondary);">@(p.Farm?.Name ?? "Our Farm")</span>
+                            </div>
+                            <div class="product-price" style="display: flex; align-items: baseline; gap: 2px; margin-top: 6px; font-weight: 800; color: var(--primary);">
+                                @Currency.Format(p.Price)<span style="font-size: 11px; font-weight: 400; color: var(--text-muted);"> / @p.Unit</span>
+                            </div>
                         </div>
-                        <a href="/Order/Create?productId=@p.Id" class="product-buy-btn" onclick="event.stopPropagation()">
-                            Buy Now
+                        <a href="/Order/Create?farmId=@p.FarmId&productId=@p.Id" class="product-buy-btn" onclick="event.stopPropagation()">
+                            <i class="bi bi-cart-plus"></i> Buy Now
                         </a>
                     </div>
                 }

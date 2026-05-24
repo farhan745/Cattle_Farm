@@ -23,6 +23,8 @@ namespace CattleFarm.Repositories.Implementations
                            .Include(f => f.Owner)
                            .Include(f => f.Cattles)
                            .Include(f => f.Workers)
+                           .Include(f => f.FarmWorkers)
+                               .ThenInclude(fw => fw.WorkerUser)
                            .Include(f => f.Doctors)
                            .Include(f => f.Products)
                            .FirstOrDefaultAsync();

@@ -1,0 +1,200 @@
+@model IEnumerable<CattleFarm.ViewModels.TaskViewModel>
+@{
+    ViewData["Title"] = "Review Proofs";
+    var tasks = Model.ToList();
+}
+
+@section Styles {
+<style>
+    .review-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        transition: box-shadow .2s;
+    }
+    .review-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+
+    .review-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 14px;
+    }
+
+    .review-card-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .review-proof-img {
+        width: 100%; border-radius: 10px;
+        object-fit: cover; max-height: 220px;
+        border: 1px solid var(--border);
+    }
+    .proof-note {
+        background: rgba(245,158,11,.06);
+        border: 1px solid rgba(245,158,11,.2);
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 13px;
+        font-style: italic;
+        margin-bottom: 14px;
+    }
+
+    .review-actions {
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+        background: var(--bg);
+        display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap;
+    }
+
+    .review-note-input {
+        flex: 1; min-width: 220px;
+        padding: 9px 12px;
+        border: 1px solid var(--border); border-radius: 8px;
+        background: var(--card-bg); color: var(--text);
+        font-family: inherit; font-size: 13px; outline: none;
+    }
+    .review-note-input:focus { border-color: var(--primary); }
+
+    @@media (max-width: 640px) { .review-card-body { grid-template-columns: 1fr; } }
+</style>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔍 Review Proofs</h1>
+        <p class="page-subtitle">Approve or reject submitted task proofs</p>
+    </div>
+    <a href="/TaskAssignment" class="btn btn-outline"><i class="bi bi-arrow-left"></i> All Tasks</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger"><i class="bi bi-x-circle-fill me-2"></i>@TempData["ErrorMessage"]</div>
+}
+
+@if (!tasks.Any())
+{
+    <div style="text-align:center;padding:64px 20px;color:var(--text-muted)">
+        <div style="font-size:48px;margin-bottom:12px">🎉</div>
+        <div style="font-weight:700;font-size:16px">All caught up!</div>
+        <div style="font-size:13px;margin-top:6px">No pending proof submissions to review.</div>
+    </div>
+}
+else
+{
+    <div style="margin-bottom:16px;font-size:13px;color:var(--text-muted)">
+        <strong style="color:var(--text)">@tasks.Count</strong> submission@(tasks.Count != 1 ? "s" : "") awaiting review
+    </div>
+
+    @foreach (var task in tasks)
+    {
+        <div class="review-card">
+            <div class="review-card-header">
+                <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+                    📸
+                </div>
+                <div style="flex:1">
+                    <div style="font-weight:700;font-size:15px">@task.Title</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px">
+                        Assigned to <strong>@task.WorkerName</strong> ·
+                        Submitted @(task.ProofSubmittedAt.HasValue ? task.ProofSubmittedAt.Value.ToString("MMM dd 'at' HH:mm") : "—")
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:end;gap:6px">
+                    @{
+                        var chipCss = task.Priority switch
+                        {
+                            "Emergency" => "chip-Emergency",
+                            "High"      => "chip-High",
+                            "Medium"    => "chip-Medium",
+                            _           => "chip-Low"
+                        };
+                    }
+                    <span class="badge badge-@(task.Priority=="Emergency"||task.Priority=="High"?"danger":"warning")">@task.Priority</span>
+                    @if (task.BonusAmount > 0)
+                    {
+                        <span style="font-size:12px;color:#059669;font-weight:700"><i class="bi bi-cash-coin"></i> ৳@task.BonusAmount.ToString("N0") bonus</span>
+                    }
+                </div>
+            </div>
+
+            <div class="review-card-body">
+                @* Proof Image *@
+                <div>
+                    @if (!string.IsNullOrWhiteSpace(task.ProofImagePath))
+                    {
+                        <img src="@task.ProofImagePath" class="review-proof-img" alt="Proof photo" />
+                    }
+                    else
+                    {
+                        <div style="height:160px;background:var(--bg);border:1px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px">
+                            <div style="text-align:center">
+                                <i class="bi bi-image" style="font-size:28px;display:block;margin-bottom:6px"></i>
+                                No photo submitted
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @* Worker Note + Task Info *@
+                <div>
+                    @if (!string.IsNullOrWhiteSpace(task.ProofNote))
+                    {
+                        <div class="proof-note">
+                            <i class="bi bi-chat-quote me-1" style="color:#d97706"></i>
+                            @task.ProofNote
+                        </div>
+                    }
+                    <div style="font-size:13px;line-height:1.8;color:var(--text-muted)">
+                        <div><strong style="color:var(--text)">Due Date:</strong> @task.DueDate.ToString("MMM dd, yyyy") @(task.IsOverdue ? "<span style='color:#ef4444'>⚠️ Overdue</span>" : "")</div>
+                        <div><strong style="color:var(--text)">Task Type:</strong> @task.TaskType</div>
+                        @if (!string.IsNullOrWhiteSpace(task.Description))
+                        {
+                            <div style="margin-top:8px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">@task.Description</div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Approve / Reject ── note can be filled for either *@
+            <div class="review-actions">
+                <input type="text" id="note-@task.Id" class="review-note-input"
+                       placeholder="Optional note (rejection reason or approval message)..." />
+
+                <form asp-action="ReviewProof" method="post" style="display:inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="TaskId"  value="@task.Id" />
+                    <input type="hidden" name="Approve" value="true" />
+                    <input type="hidden" id="note-approve-@task.Id" name="Note" value="" />
+                    <button type="submit" class="btn btn-success"
+                            onclick="syncNote(@task.Id,'approve');return confirm('Approve this task and grant bonus?')">
+                        <i class="bi bi-check-circle"></i> Approve@(task.BonusAmount > 0 ? $" + ৳{task.BonusAmount:N0} Bonus" : "")
+                    </button>
+                </form>
+
+                <form asp-action="ReviewProof" method="post" style="display:inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="TaskId"  value="@task.Id" />
+                    <input type="hidden" name="Approve" value="false" />
+                    <input type="hidden" id="note-reject-@task.Id" name="Note" value="" />
+                    <button type="submit" class="btn btn-danger"
+                            onclick="syncNote(@task.Id,'reject');return confirm('Reject and send back to worker?')">
+                        <i class="bi bi-x-circle"></i> Reject
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+}
+
+@section Scripts {
+<script>
+    function syncNote(taskId, action) {
+        const noteVal = document.getElementById('note-' + taskId)?.value ?? '';
+        document.getElementById('note-' + action + '-' + taskId).value = noteVal;
+    }
+</script>
+}

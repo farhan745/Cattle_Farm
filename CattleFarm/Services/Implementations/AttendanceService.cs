@@ -22,6 +22,7 @@ namespace CattleFarm.Services.Implementations
         {
             var query = _context.Attendances
                 .Include(a => a.Worker)
+                    .ThenInclude(w => w!.Farm)
                 .AsQueryable();
 
             if (currentUserRole != AppRoles.Admin && currentUserId.HasValue)
@@ -66,7 +67,7 @@ namespace CattleFarm.Services.Implementations
         {
             var query = _context.Attendances
                 .Include(a => a.Worker)
-                    .ThenInclude(w => w.Farm)
+                    .ThenInclude(w => w!.Farm)
                 .AsQueryable();
 
             if (currentUserRole != AppRoles.Admin && currentUserId.HasValue)
@@ -119,7 +120,7 @@ namespace CattleFarm.Services.Implementations
         {
             var attendance = await _context.Attendances
                 .Include(a => a.Worker)
-                    .ThenInclude(w => w.Farm)
+                    .ThenInclude(w => w!.Farm)
                 .FirstOrDefaultAsync(a => a.Id == model.Id);
 
             if (attendance != null)
@@ -144,7 +145,7 @@ namespace CattleFarm.Services.Implementations
         {
             var attendance = await _context.Attendances
                 .Include(a => a.Worker)
-                    .ThenInclude(w => w.Farm)
+                    .ThenInclude(w => w!.Farm)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (attendance != null)

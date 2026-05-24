@@ -1,6 +1,10 @@
 @model CattleFarm.Models.Cattle
 @{
     ViewData["Title"] = $"{Model.Name} — Details";
+    var likeCount = ViewBag.LikeCount as int? ?? 0;
+    var hasLiked = ViewBag.HasLiked as bool? ?? false;
+    var comments = ViewBag.Comments as List<CattleFarm.Models.CattleComment> ?? new List<CattleFarm.Models.CattleComment>();
+    var shareUrl = ViewBag.ShareUrl as string ?? "";
 }
 
 <div class="page-header">
@@ -47,6 +51,49 @@
                         <div style="font-size:11px;color:var(--text-muted)">SALE PRICE</div>
                         <div style="font-size:20px;font-weight:800;color:var(--primary)">@Currency.Format(Model.SalePrice)</div>
                         <a href="/Cattle/BuyCattle/@Model.Id" class="btn btn-primary w-100" style="margin-top:8px">💰 Buy Now</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div id="comments" class="card">
+            <div class="card-header"><h3 class="card-title">Social</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <form asp-action="ToggleLike" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn @(hasLiked ? "btn-primary" : "btn-outline")">
+                            <i class="bi bi-hand-thumbs-up"></i> Like @likeCount
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('commentBox').focus()">
+                        <i class="bi bi-chat-left-text"></i> Comment
+                    </button>
+                    <form asp-action="Share" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="channel" value="Link" />
+                        <button type="submit" class="btn btn-outline"><i class="bi bi-share"></i> Share</button>
+                    </form>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString(shareUrl)">Facebook</a>
+                    <a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://wa.me/?text=@Uri.EscapeDataString($"{Model.Name} - {shareUrl}")">WhatsApp</a>
+                </div>
+                <form asp-action="AddComment" asp-route-id="@Model.Id" method="post" style="display:flex;gap:8px">
+                    @Html.AntiForgeryToken()
+                    <input id="commentBox" name="comment" class="form-control" maxlength="1000" placeholder="Write a comment" />
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                </form>
+                @if (comments.Any())
+                {
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        @foreach (var comment in comments)
+                        {
+                            <div style="border-top:1px solid var(--border);padding-top:8px">
+                                <div style="font-size:12px;color:var(--text-muted)">@comment.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")</div>
+                                <div>@comment.Comment</div>
+                            </div>
+                        }
                     </div>
                 }
             </div>

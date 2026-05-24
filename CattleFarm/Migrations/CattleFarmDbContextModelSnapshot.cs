@@ -56,7 +56,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ActivityLogs");
+                    b.ToTable("ActivityLogs", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Appointment", b =>
@@ -113,7 +113,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Appointments");
+                    b.ToTable("Appointments", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Attendance", b =>
@@ -148,7 +148,7 @@ namespace CattleFarm.Migrations
                     b.HasIndex("WorkerId", "Date")
                         .IsUnique();
 
-                    b.ToTable("Attendances");
+                    b.ToTable("Attendances", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.AuditLog", b =>
@@ -196,7 +196,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Breeding", b =>
@@ -260,7 +260,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("SireId");
 
-                    b.ToTable("Breedings");
+                    b.ToTable("Breedings", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Cattle", b =>
@@ -351,7 +351,7 @@ namespace CattleFarm.Migrations
                     b.HasIndex("TagId", "FarmId")
                         .IsUnique();
 
-                    b.ToTable("Cattles");
+                    b.ToTable("Cattles", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Doctor", b =>
@@ -424,7 +424,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Doctors");
+                    b.ToTable("Doctors", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Driver", b =>
@@ -486,7 +486,7 @@ namespace CattleFarm.Migrations
                         .IsUnique()
                         .HasFilter("[AssignedVehicleId] IS NOT NULL");
 
-                    b.ToTable("Drivers");
+                    b.ToTable("Drivers", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Expense", b =>
@@ -537,7 +537,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Expenses");
+                    b.ToTable("Expenses", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Farm", b =>
@@ -605,7 +605,122 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Farms");
+                    b.ToTable("Farms", (string)null);
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.FarmJoinRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AppliedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CanReApplyAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OwnerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WorkerUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("WorkerUserId");
+
+                    b.ToTable("FarmJoinRequests", (string)null);
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.FarmWorker", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RemovalNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("RemovedByOwner")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Salary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WorkerStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("WorkerUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("WorkerUserId");
+
+                    b.ToTable("FarmWorkers", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.FeedRecord", b =>
@@ -661,7 +776,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("RecordedByWorkerId");
 
-                    b.ToTable("FeedRecords");
+                    b.ToTable("FeedRecords", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.HealthRecord", b =>
@@ -720,7 +835,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.ToTable("HealthRecords");
+                    b.ToTable("HealthRecords", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.MedicineRecord", b =>
@@ -769,7 +884,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("PrescribedByDoctorId");
 
-                    b.ToTable("MedicineRecords");
+                    b.ToTable("MedicineRecords", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.MilkProduction", b =>
@@ -813,7 +928,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("RecordedByWorkerId");
 
-                    b.ToTable("MilkProductions");
+                    b.ToTable("MilkProductions", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Notification", b =>
@@ -860,7 +975,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Order", b =>
@@ -912,7 +1027,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.OrderItem", b =>
@@ -944,7 +1059,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Payment", b =>
@@ -1000,7 +1115,72 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.Payroll", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BaseSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Bonus")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Deductions")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("NetSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<double>("OvertimeHours")
+                        .HasColumnType("float");
+
+                    b.Property<decimal>("OvertimePay")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorkerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("WorkerId");
+
+                    b.ToTable("Payrolls", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Product", b =>
@@ -1065,7 +1245,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Revenue", b =>
@@ -1115,7 +1295,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Revenues");
+                    b.ToTable("Revenues", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Review", b =>
@@ -1173,7 +1353,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Subscription", b =>
@@ -1219,7 +1399,103 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions");
+                    b.ToTable("Subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.TaskAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("AssignedUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AssignedWorkerId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BonusAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("BonusApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("BonusNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("BonusPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ProofImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProofNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProofSubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("TaskType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedWorkerId");
+
+                    b.ToTable("TaskAssignments", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.TransportRequest", b =>
@@ -1288,7 +1564,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("RequestedByUserId");
 
-                    b.ToTable("TransportRequests");
+                    b.ToTable("TransportRequests", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Trip", b =>
@@ -1362,7 +1638,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("Trips");
+                    b.ToTable("Trips", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.User", b =>
@@ -1467,7 +1743,7 @@ namespace CattleFarm.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Vaccination", b =>
@@ -1519,7 +1795,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.ToTable("Vaccinations");
+                    b.ToTable("Vaccinations", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Vehicle", b =>
@@ -1573,7 +1849,7 @@ namespace CattleFarm.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vehicles");
+                    b.ToTable("Vehicles", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Worker", b =>
@@ -1652,7 +1928,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Workers");
+                    b.ToTable("Workers", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.WorkerAttendance", b =>
@@ -1692,7 +1968,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("WorkerId");
 
-                    b.ToTable("WorkerAttendances");
+                    b.ToTable("WorkerAttendances", (string)null);
                 });
 
             modelBuilder.Entity("CattleFarm.Models.ActivityLog", b =>
@@ -1859,6 +2135,44 @@ namespace CattleFarm.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.FarmJoinRequest", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.User", "WorkerUser")
+                        .WithMany()
+                        .HasForeignKey("WorkerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("WorkerUser");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.FarmWorker", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.User", "WorkerUser")
+                        .WithMany()
+                        .HasForeignKey("WorkerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("WorkerUser");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.FeedRecord", b =>
                 {
                     b.HasOne("CattleFarm.Models.Cattle", "Cattle")
@@ -2013,6 +2327,25 @@ namespace CattleFarm.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.Payroll", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.Worker", "Worker")
+                        .WithMany()
+                        .HasForeignKey("WorkerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("Worker");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.Product", b =>
                 {
                     b.HasOne("CattleFarm.Models.Farm", "Farm")
@@ -2081,6 +2414,17 @@ namespace CattleFarm.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.TaskAssignment", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Worker", "Worker")
+                        .WithMany()
+                        .HasForeignKey("AssignedWorkerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.TransportRequest", b =>

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace CattleFarm.Models
 {
@@ -17,7 +18,9 @@ namespace CattleFarm.Models
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<CattleFarmDbContext>();
-            optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"));
+            optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"))
+                .ConfigureWarnings(warnings =>
+                    warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
 
             return new CattleFarmDbContext(optionsBuilder.Options);
         }

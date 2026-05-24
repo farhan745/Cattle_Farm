@@ -4,6 +4,9 @@
     int currentPage = (int)ViewData["CurrentPage"]!;
     int totalPages  = (int)ViewData["TotalPages"]!;
     int totalCount  = (int)ViewData["TotalCount"]!;
+    var likeCounts = ViewBag.LikeCounts as Dictionary<int, int> ?? new();
+    var commentCounts = ViewBag.CommentCounts as Dictionary<int, int> ?? new();
+    var shareCounts = ViewBag.ShareCounts as Dictionary<int, int> ?? new();
 }
 
 <div class="page-header">
@@ -93,6 +96,23 @@ else
                             @if (c.IsPremiumListing) { <span class="badge badge-warning" style="margin-left:4px">⭐ Premium</span> }
                         </div>
                     }
+                    <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+                        <form asp-action="ToggleLike" asp-route-id="@c.Id" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-ghost btn-sm" title="Like">
+                                <i class="bi bi-heart"></i> @(likeCounts.TryGetValue(c.Id, out var likes) ? likes : 0)
+                            </button>
+                        </form>
+                        <a href="/Cattle/Details/@c.Id#comments" class="btn btn-ghost btn-sm" title="Comments">
+                            <i class="bi bi-chat-dots"></i> @(commentCounts.TryGetValue(c.Id, out var comments) ? comments : 0)
+                        </a>
+                        <form asp-action="Share" asp-route-id="@c.Id" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-ghost btn-sm" title="Share">
+                                <i class="bi bi-share"></i> @(shareCounts.TryGetValue(c.Id, out var shares) ? shares : 0)
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 <div class="cattle-card-footer">
                     <span style="font-size:12px;color:var(--text-muted)">@c.Farm?.Name</span>
