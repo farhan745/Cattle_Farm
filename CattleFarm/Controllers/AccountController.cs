@@ -159,6 +159,7 @@ namespace CattleFarm.Controllers
                     });
                     await _db.SaveChangesAsync();
                 }
+
             }
 
             TempData["SuccessMessage"] = "Account created successfully! You can now log in.";
@@ -166,13 +167,19 @@ namespace CattleFarm.Controllers
         }
 
         // ─── LOGOUT ───────────────────────────────────────────────────────────
-
-        [HttpPost, ValidateAntiForgeryToken]
+        // GET + no antiforgery: avoids 400 when cookie/form tokens are stale after login switch.
+        [HttpGet]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (User.Identity?.IsAuthenticated == true)
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
         }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public Task<IActionResult> LogoutPost() => Logout();
 
         public class DeleteAccountRequest
         {

@@ -20,10 +20,9 @@ namespace CattleFarm.Services.Implementations
         /// <inheritdoc/>
         public async Task<User?> LoginAsync(string email, string password)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(email);
-            if (user is null) return null;
+            var user = await _unitOfWork.Users.GetByEmailAsync(email.Trim());
+            if (user is null || !user.IsActive) return null;
 
-            // BCrypt.Verify compares plain-text against stored hash
             bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
             return isValid ? user : null;
         }

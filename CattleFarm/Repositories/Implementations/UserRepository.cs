@@ -9,13 +9,29 @@ namespace CattleFarm.Repositories.Implementations
         public UserRepository(CattleFarmDbContext context) : base(context) { }
 
         public async Task<User?> GetByEmailAsync(string email)
-            => await _dbSet.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+            => await FindByEmailAsync(email, includeDeleted: false);
+
+        public async Task<User?> FindByEmailAsync(string email, bool includeDeleted = false)
+        {
+            var normalized = email.Trim().ToLower();
+            var query = includeDeleted ? _dbSet.IgnoreQueryFilters() : _dbSet;
+            return await query.FirstOrDefaultAsync(u => u.Email.ToLower() == normalized);
+        }
 
         public async Task<User?> GetByUsernameAsync(string username)
-            => await _dbSet.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+            => await _dbSet.FirstOrDefaultAsync(u => u.Username.ToLower() == username.Trim().ToLower());
 
         public async Task<bool> EmailExistsAsync(string email)
-            => await _dbSet.AnyAsync(u => u.Email.ToLower() == email.ToLower());
+        {
+            var normalized = email.Trim().ToLower();
+            return await _dbSet.AnyAsync(u => u.Email.ToLower() == normalized);
+        }
+
+        public async Task<bool> EmailExistsIncludingDeletedAsync(string email)
+        {
+            var normalized = email.Trim().ToLower();
+            return await _dbSet.IgnoreQueryFilters().AnyAsync(u => u.Email.ToLower() == normalized);
+        }
 
         public async Task<bool> UsernameExistsAsync(string username)
             => await _dbSet.AnyAsync(u => u.Username.ToLower() == username.ToLower());

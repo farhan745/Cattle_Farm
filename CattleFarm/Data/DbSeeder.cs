@@ -8,7 +8,7 @@ namespace CattleFarm.Data
     {
         public static async Task SeedAsync(CattleFarmDbContext db, bool isDevelopment = true)
         {
-            await db.Database.EnsureCreatedAsync();
+            await db.Database.MigrateAsync();
 
             // ── Admin User ──────────────────────────────────────────────────
             var admin = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@cattlefarm.com" || u.Username == "admin");
@@ -134,7 +134,7 @@ namespace CattleFarm.Data
                 await db.Workers.AddRangeAsync(worker1, worker2, worker3);
 
                 // ── Doctors ───────────────────────────────────────────────────
-                var doc1 = new Doctor { FarmId = farm1.Id, FullName = "Dr. Nasreen Akhter", Specialization = "Bovine Medicine", Phone = "+8801911000001", Email = "dr.nasreen@vet.com", LicenseNumber = "VET-BD-0012", ConsultationFee = 1500, IsAvailable = true, IsActive = true, UserId = doctorUser.Id };
+                var doc1 = new Doctor { FullName = "Dr. Nasreen Akhter", Specialization = "Bovine Medicine", Phone = "+8801911000001", Email = "dr.nasreen@vet.com", LicenseNumber = "VET-BD-0012", ConsultationFee = 1500, AvailableTimeSlot = "Mon-Fri 9am-5pm", IsAvailable = true, IsActive = true, UserId = doctorUser.Id };
                 var doc2 = new Doctor { FullName = "Dr. Tariq Hasan", Specialization = "Veterinary Surgery", Phone = "+8801911000002", Email = "dr.tariq@vet.com", LicenseNumber = "VET-BD-0034", ConsultationFee = 2500, IsAvailable = true, IsActive = true };
                 await db.Doctors.AddRangeAsync(doc1, doc2);
                 await db.SaveChangesAsync();

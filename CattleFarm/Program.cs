@@ -42,6 +42,7 @@ builder.Services.AddScoped<IFarmService, FarmService>();
 builder.Services.AddScoped<ICattleService, CattleService>();
 builder.Services.AddScoped<IWorkerService, WorkerService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<ICattleMedicalRecordService, CattleMedicalRecordService>();
 builder.Services.AddScoped<IHealthService, HealthService>();
 builder.Services.AddScoped<IVaccinationService, VaccinationService>();
 builder.Services.AddScoped<IMilkService, MilkService>();
@@ -57,7 +58,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
 builder.Services.AddScoped<ITaskAssignmentService, TaskAssignmentService>();
 builder.Services.AddScoped<IFarmJoinService, FarmJoinService>();
-
+builder.Services.AddScoped<IInvitationService, InvitationService>();
 // ── Currency Services ─────────────────────────────────────────────────────────
 builder.Services.Configure<CurrencySettings>(builder.Configuration.GetSection("CurrencySettings"));
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
@@ -91,6 +92,13 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
     o.MultipartBodyLengthLimit = 52_428_800; // 50 MB
 });
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.Name = ".CattleFarm.Antiforgery";
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
@@ -114,18 +122,21 @@ using (var scope = app.Services.CreateScope())
     var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
     await DbSeeder.SeedAsync(db, env.IsDevelopment());
     // Ensure upload folders exist
-    foreach (var folder in new[] { "avatars", "cattle", "farms", "products", "workers", "task-proofs" })
+    foreach (var folder in new[] { "avatars", "cattle", "farms", "products", "workers", "doctors", "task-proofs", "licenses" })
         Directory.CreateDirectory(Path.Combine(env.WebRootPath, "uploads", folder));
 }
 
 // ── Error Handling ────────────────────────────────────────────────────────────
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
-
-if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 

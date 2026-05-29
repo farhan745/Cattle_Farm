@@ -8,15 +8,12 @@ namespace CattleFarm.Repositories.Implementations
     {
         public DoctorRepository(CattleFarmDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Doctor>> GetByFarmIdAsync(int farmId)
-            => await _dbSet.Where(d => d.FarmId == farmId).ToListAsync();
-
         public async Task<IEnumerable<Doctor>> GetAvailableDoctorsAsync()
             => await _dbSet.Where(d => d.IsAvailable && d.IsActive).ToListAsync();
 
         public async Task<(IEnumerable<Doctor> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search = null)
         {
-            var q = _dbSet.AsQueryable();
+            var q = _dbSet.Where(d => !d.IsDeleted && d.IsActive).AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
                 q = q.Where(d => d.FullName.Contains(search) || d.Specialization.Contains(search));
             int total = await q.CountAsync();
@@ -24,6 +21,18 @@ namespace CattleFarm.Repositories.Implementations
             return (items, total);
         }
 
+        public override async Task<Doctor?> GetByIdAsync(int id)
+            => await _dbSet.Include(d => d.User).FirstOrDefaultAsync(d => d.Id == id);
+
         public async Task<int> CountAsync() => await _dbSet.CountAsync();
+
+        public async Task<Doctor?> GetByUserIdAsync(int userId)
+            => await _dbSet.FirstOrDefaultAsync(d => d.UserId == userId);
+
+        public async Task<Doctor?> GetByEmailAsync(string email)
+        {
+            var normalized = email.Trim().ToLower();
+            return await _dbSet.FirstOrDefaultAsync(d => d.Email != null && d.Email.ToLower() == normalized);
+        }
     }
 }

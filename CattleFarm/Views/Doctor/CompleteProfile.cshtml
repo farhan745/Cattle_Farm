@@ -1,0 +1,422 @@
+@model CattleFarm.ViewModels.CompleteDoctorProfileVM
+@{
+    Layout = null;
+    ViewData["Title"] = "Complete Professional Profile";
+    var formDisabled = ViewBag.InvitationError != null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Profile — Smart Cattle Farm</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <style>
+        /* Standalone page: site.css .animate-in starts at opacity:0 and needs site.js — show content immediately */
+        .complete-profile-page .card,
+        .complete-profile-page .animate-in {
+            opacity: 1 !important;
+            transform: none !important;
+            visibility: visible !important;
+        }
+        .complete-profile-page .form-control,
+        .complete-profile-page select.form-control,
+        .complete-profile-page textarea.form-control {
+            display: block;
+            width: 100%;
+            min-height: 42px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1C3A2A !important;
+            background: #FAF8F4 !important;
+            border: 1px solid #DDD5C8 !important;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .complete-profile-page input[readonly].form-control {
+            background: #F2EDE4 !important;
+            color: #475569 !important;
+        }
+        .complete-profile-page .btn-primary {
+            background: #2D5A3D;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="complete-profile-page" style="font-family:'IBM Plex Sans',system-ui,sans-serif;background:#f3f6f4;margin:0;min-height:100vh;color:#1C3A2A;">
+
+<div style="max-width: 800px; margin: 40px auto; padding: 0 16px;">
+
+    @if (ViewBag.InvitationError != null)
+    {
+        <div style="background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;padding:16px 20px;border-radius:10px;margin-bottom:24px;font-size:14px;line-height:1.5;">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> Invitation problem</strong><br />
+            @ViewBag.InvitationError
+            <div style="margin-top:12px;">
+                <a href="@Url.Action("Login", "Account")" style="color:#991B1B;font-weight:600;margin-right:16px;">Go to Login</a>
+                <a href="@Url.Action("RegisterVeterinarian", "Doctor")" style="color:#2D5A3D;font-weight:600;">Register without invitation</a>
+            </div>
+        </div>
+    }
+    
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: #D5E7D7; color: #2D5A3D; font-size: 28px; margin-bottom: 16px;">
+            <i class="bi bi-file-earmark-medical-fill"></i>
+        </div>
+        <h1 class="page-title" style="font-size: 28px; font-weight: 800; color: #1C3A2A; margin: 0 0 8px 0; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px;">Complete Veterinary Profile</h1>
+        <p class="page-subtitle" style="font-size: 15px; color: #6B6B66; max-width: 520px; margin: 0 auto;">Please provide your professional credentials, upload your veterinary license, and configure your clinic hours to complete your registration.</p>
+    </div>
+
+    <!-- Progress Indicator Bar -->
+    <div class="card" style="margin-bottom: 28px; border: 1px solid #E8E0D4; background:#fff;">
+        <div class="card-body" style="padding: 16px 24px;">
+            <!-- Step Labels -->
+            <div style="display: flex; justify-content: space-between; position: relative; margin-bottom: 12px;">
+                <!-- Step progress line -->
+                <div style="position: absolute; top: 18px; left: 10%; right: 10%; height: 3px; background: #E8E0D4; z-index: 1;">
+                    <div id="progressLine" style="width: 0%; height: 100%; background: var(--brand, #2D5A3D); transition: width 0.3s ease;"></div>
+                </div>
+
+                <div class="step-indicator active" data-step="1" style="display: flex; flex-direction: column; align-items: center; z-index: 2; cursor: pointer; width: 20%;">
+                    <div class="step-number" style="width: 36px; height: 36px; border-radius: 50%; background: #2D5A3D; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 3px solid #FFF; box-shadow: 0 0 0 1px #2D5A3D; transition: all 0.3s ease;">1</div>
+                    <span style="font-size: 11.5px; font-weight: 700; margin-top: 6px; color: #2D5A3D;">Personal</span>
+                </div>
+                <div class="step-indicator" data-step="2" style="display: flex; flex-direction: column; align-items: center; z-index: 2; cursor: pointer; width: 20%;">
+                    <div class="step-number" style="width: 36px; height: 36px; border-radius: 50%; background: #FAF8F4; color: #6B6B66; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 3px solid #FFF; box-shadow: 0 0 0 1px #DDD5C8; transition: all 0.3s ease;">2</div>
+                    <span style="font-size: 11.5px; font-weight: 600; margin-top: 6px; color: #6B6B66;">Professional</span>
+                </div>
+                <div class="step-indicator" data-step="3" style="display: flex; flex-direction: column; align-items: center; z-index: 2; cursor: pointer; width: 20%;">
+                    <div class="step-number" style="width: 36px; height: 36px; border-radius: 50%; background: #FAF8F4; color: #6B6B66; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 3px solid #FFF; box-shadow: 0 0 0 1px #DDD5C8; transition: all 0.3s ease;">3</div>
+                    <span style="font-size: 11.5px; font-weight: 600; margin-top: 6px; color: #6B6B66;">Availability</span>
+                </div>
+                <div class="step-indicator" data-step="4" style="display: flex; flex-direction: column; align-items: center; z-index: 2; cursor: pointer; width: 20%;">
+                    <div class="step-number" style="width: 36px; height: 36px; border-radius: 50%; background: #FAF8F4; color: #6B6B66; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; border: 3px solid #FFF; box-shadow: 0 0 0 1px #DDD5C8; transition: all 0.3s ease;">4</div>
+                    <span style="font-size: 11.5px; font-weight: 600; margin-top: 6px; color: #6B6B66;">Security</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Registration Form Card -->
+    <div class="card" style="background:#fff;">
+        <div class="card-body" style="padding: 32px;">
+            <form method="post" asp-action="CompleteProfile" asp-controller="Doctor" enctype="multipart/form-data" id="completeProfileForm" style="@(formDisabled ? "opacity:0.55;pointer-events:none" : "")">
+                <input type="hidden" asp-for="Token" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom: 24px; font-size: 14px; font-weight: 600;"></div>
+
+                <!-- ── STEP 1: Personal Info ── -->
+                <div class="form-wizard-section active" id="step1-section">
+                    <h3 style="font-size: 18px; font-weight: 700; color: #1C3A2A; margin: 0 0 20px 0; border-bottom: 1px solid #E8E0D4; padding-bottom: 10px;">
+                        <i class="bi bi-person-bounding-box" style="margin-right: 8px;"></i> 1. Personal Information
+                    </h3>
+
+                    <!-- Profile photo upload box with preview -->
+                    <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px; background: #FAF8F4; padding: 20px; border-radius: 12px; border: 1px dashed #DDD5C8;">
+                        <div style="position: relative; width: 100px; height: 100px; border-radius: 50%; overflow: hidden; background: #E8E0D4; border: 3px solid #2D5A3D; flex-shrink: 0;">
+                            <img id="photoPreview" src="" alt="Photo Preview" style="width:100%; height:100%; object-fit:cover; display:none;" />
+                            <div id="photoPlaceholder" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:32px; color: #2D5A3D;">
+                                <i class="bi bi-camera"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 4px; display: block;">Profile Photo</label>
+                            <span style="font-size: 12px; color: #6B6B66; display: block; margin-bottom: 12px;">JPEG, PNG, or WEBP up to 5MB. A professional square headshot is recommended.</span>
+                            <input asp-for="ProfilePhoto" type="file" accept=".jpg,.jpeg,.png,.webp" class="form-control" style="border-color: #DDD5C8;" id="photoInput" />
+                            <span asp-validation-for="ProfilePhoto" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Full Name <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="FullName" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="FullName" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Email <span style="color: #ef4444;">*</span></label>
+                            @if (!string.IsNullOrEmpty(Model.Token))
+                            {
+                                <input asp-for="Email" class="form-control" readonly style="background: #F2EDE4; color: #9CA3AF; border-color: #DDD5C8; width: 100%; cursor: not-allowed;" />
+                            }
+                            else
+                            {
+                                <input asp-for="Email" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" placeholder="doctor@email.com" required />
+                            }
+                            <span asp-validation-for="Email" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Phone Number <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="PhoneNumber" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="PhoneNumber" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Date of Birth <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="DateOfBirth" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="DateOfBirth" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Gender <span style="color: #ef4444;">*</span></label>
+                            <select asp-for="Gender" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%; height: 42px;" required>
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="PreferNotToSay">Prefer Not To Say</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Home / Chamber Address <span style="color: #ef4444;">*</span></label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Full mailing address..." style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required></textarea>
+                        <span asp-validation-for="Address" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                    </div>
+                </div>
+
+                <!-- ── STEP 2: Professional Info ── -->
+                <div class="form-wizard-section" id="step2-section">
+                    <h3 style="font-size: 18px; font-weight: 700; color: #1C3A2A; margin: 0 0 20px 0; border-bottom: 1px solid #E8E0D4; padding-bottom: 10px;">
+                        <i class="bi bi-award-fill" style="margin-right: 8px;"></i> 2. Professional Credentials
+                    </h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Veterinary License Number <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="LicenseNumber" class="form-control" placeholder="VET-XXXX-XXXX" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="LicenseNumber" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Upload License Document <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="LicenseDocument" type="file" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" id="licenseDocInput" required />
+                            <div class="form-hint" style="font-size: 11.5px; color: #6B6B66; margin-top: 4px;">Allowed formats: PDF, Word, or Images. Max size: 5MB.</div>
+                            <span asp-validation-for="LicenseDocument" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Specialization Area <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="Specialization" class="form-control" placeholder="e.g. Large Animal Veterinary Medicine, Surgery" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="Specialization" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Highest Degree / Qualification <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="Qualification" class="form-control" placeholder="e.g. DVM, MS in Animal Pathology" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="Qualification" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Graduating University / Institution <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="University" class="form-control" placeholder="e.g. Bangladesh Agricultural University" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="University" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Years of Active Experience <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="YearsOfExperience" type="number" min="0" max="60" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="YearsOfExperience" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Standard Consultation Fee (BDT) <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="ConsultationFee" type="number" step="10" min="0" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="ConsultationFee" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── STEP 3: Availability Schedule ── -->
+                <div class="form-wizard-section" id="step3-section">
+                    <h3 style="font-size: 18px; font-weight: 700; color: #1C3A2A; margin: 0 0 20px 0; border-bottom: 1px solid #E8E0D4; padding-bottom: 10px;">
+                        <i class="bi bi-calendar-week-fill" style="margin-right: 8px;"></i> 3. Availability & Scheduling
+                    </h3>
+
+                    <!-- Days Selection -->
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 10px; display: block;">Available Days of the Week <span style="color: #ef4444;">*</span></label>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;" id="availableDaysContainer">
+                            @{
+                                var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+                                foreach (var day in days)
+                                {
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 8px; background: #FAF8F4; cursor: pointer; transition: all 0.2s;" class="day-checkbox-label">
+                                        <input type="checkbox" name="AvailableDays" value="@day" style="width: 16px; height: 16px; accent-color: #2D5A3D;" />
+                                        <span style="font-size: 13.5px; font-weight: 600; color: #1C3A2A;">@day</span>
+                                    </label>
+                                }
+                            }
+                        </div>
+                        <span id="availDaysValidation" class="text-danger" style="font-size: 12.5px; display: none; margin-top: 6px; font-weight: 600;">Please select at least one day of availability.</span>
+                    </div>
+
+                    <!-- Hours & Emergency -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Consultation Start Time <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="AvailableTimeFrom" type="time" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="AvailableTimeFrom" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Consultation End Time <span style="color: #ef4444;">*</span></label>
+                            <input asp-for="AvailableTimeTo" type="time" class="form-control" style="border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            <span asp-validation-for="AvailableTimeTo" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="background: #F1F6F2; border: 1px solid #C4DBC7; padding: 16px 20px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 2px; display: block;"><i class="bi bi-lightning-charge-fill" style="color: #D97706; margin-right: 4px;"></i> Emergency On-Call Availability</label>
+                            <span style="font-size: 12.5px; color: #2D5A3D;">Check this if you are available for cattle health emergencies outside normal hours.</span>
+                        </div>
+                        <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
+                            <input asp-for="EmergencyAvailable" type="checkbox" style="opacity: 0; width: 0; height: 0;" id="emergencyToggle" />
+                            <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CCC; transition: .4s; border-radius: 34px;"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ── STEP 4: Password Setup ── -->
+                <div class="form-wizard-section" id="step4-section">
+                    <h3 style="font-size: 18px; font-weight: 700; color: #1C3A2A; margin: 0 0 20px 0; border-bottom: 1px solid #E8E0D4; padding-bottom: 10px;">
+                        <i class="bi bi-shield-lock-fill" style="margin-right: 8px;"></i> 4. Account Security
+                    </h3>
+
+                    <p style="font-size: 13.5px; color: #6B6B66; line-height: 1.5; margin-bottom: 20px;">
+                        Create a secure password to access the Cattle Farm portal. Your email (<strong>@Model.Email</strong>) will serve as your username.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">New Password <span style="color: #ef4444;">*</span></label>
+                            <div style="position: relative;">
+                                <i class="bi bi-lock-fill" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9CA3AF;"></i>
+                                <input asp-for="Password" type="password" class="form-control" style="padding-left: 40px; border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" style="font-weight: 700; color: #1C3A2A; margin-bottom: 6px; display: block;">Confirm Password <span style="color: #ef4444;">*</span></label>
+                            <div style="position: relative;">
+                                <i class="bi bi-key-fill" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9CA3AF;"></i>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" style="padding-left: 40px; border-color: #DDD5C8; background: #FAF8F4; width: 100%;" required />
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger" style="font-size: 12.5px; display: block; margin-top: 4px;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div style="display: flex; justify-content: flex-end; border-top: 1px solid #E8E0D4; padding-top: 24px; margin-top: 28px;">
+                    <button type="submit" class="btn btn-primary" id="submitBtn" style="padding: 12px 32px; font-weight: 700; background: #D97706; border-color: #D97706;">
+                        <i class="bi bi-check-circle-fill"></i> Complete & Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Show all sections on one page so fields are always visible */
+    .form-wizard-section {
+        display: block;
+        margin-bottom: 32px;
+    }
+
+    /* Switch slider styling */
+    .switch input:checked + .slider {
+        background-color: #2D5A3D;
+    }
+    .switch input:focus + .slider {
+        box-shadow: 0 0 1px #2D5A3D;
+    }
+    .switch input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    /* Custom styles for checkbox items */
+    .day-checkbox-label:has(input:checked) {
+        background: #D5E7D7 !important;
+        border-color: #2D5A3D !important;
+        box-shadow: 0 0 0 1px #2D5A3D;
+    }
+</style>
+
+@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("completeProfileForm");
+            const progressLine = document.getElementById("progressLine");
+            if (progressLine) progressLine.style.width = "100%";
+
+            const photoInput = document.getElementById("photoInput");
+            const photoPreview = document.getElementById("photoPreview");
+            const photoPlaceholder = document.getElementById("photoPlaceholder");
+
+            if (photoInput) {
+                photoInput.addEventListener("change", function () {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            photoPreview.src = e.target.result;
+                            photoPreview.style.display = "block";
+                            photoPlaceholder.style.display = "none";
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            if (!form) return;
+
+            form.addEventListener("submit", function (e) {
+                const selectedDays = form.querySelectorAll("input[name='AvailableDays']:checked");
+                const errValidation = document.getElementById("availDaysValidation");
+                if (selectedDays.length === 0) {
+                    e.preventDefault();
+                    if (errValidation) errValidation.style.display = "block";
+                    document.getElementById("step3-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
+                }
+                if (errValidation) errValidation.style.display = "none";
+            });
+        });
+</script>
+</body>
+</html>

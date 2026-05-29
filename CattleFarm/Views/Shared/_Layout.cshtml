@@ -85,6 +85,12 @@
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Doctor" ? "active" : "")" href="/Doctor">
                             <i class="bi bi-person-badge nav-icon"></i><span class="nav-text">Veterinarians</span>
                         </a>
+                        @if (User.IsInRole("Owner"))
+                        {
+                            <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Invitation" ? "active" : "")" href="/Invitation">
+                                <i class="bi bi-envelope-paper nav-icon"></i><span class="nav-text">Invitations</span>
+                            </a>
+                        }
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Appointment" ? "active" : "")" href="/Appointment">
                             <i class="bi bi-calendar-check nav-icon"></i><span class="nav-text">Appointments</span>
                         </a>
@@ -201,6 +207,9 @@
                         <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["action"]?.ToString() == "Farms" ? "active" : "")" href="/Admin/Farms">
                             <i class="bi bi-check2-circle nav-icon"></i><span class="nav-text">Approvals</span>
                         </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Invitation" ? "active" : "")" href="/Invitation">
+                            <i class="bi bi-envelope-paper nav-icon"></i><span class="nav-text">Invitations</span>
+                        </a>
                         <a class="nav-item" href="/Admin/Subscriptions">
                             <i class="bi bi-credit-card nav-icon"></i><span class="nav-text">Subscriptions</span>
                         </a>
@@ -240,12 +249,9 @@
                             <div class="user-name">@User.Identity?.Name</div>
                             <div class="user-role">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</div>
                         </div>
-                        <form method="post" asp-controller="Account" asp-action="Logout" style="display:inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" title="Sign Out" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:15px;padding:0;display:flex;align-items:center">
-                                <i class="bi bi-box-arrow-right"></i>
-                            </button>
-                        </form>
+                        <a href="@Url.Action("Logout", "Account")" title="Sign Out" style="display:flex;align-items:center;color:var(--text-muted);font-size:15px;text-decoration:none">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </nav>
@@ -282,12 +288,9 @@
                                 <div id="navAvatar" style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">@hInitials</div>
                             }
                             <span>@User.Identity?.Name</span>
-                            <form method="post" asp-controller="Account" asp-action="Logout" style="display:inline" onclick="event.stopPropagation()">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" title="Sign Out" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;color:var(--text-muted)">
-                                    <i class="bi bi-box-arrow-right"></i>
-                                </button>
-                            </form>
+                            <a href="@Url.Action("Logout", "Account")" title="Sign Out" onclick="event.stopPropagation()" style="display:flex;align-items:center;color:var(--text-muted);text-decoration:none;padding:0 4px">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </header>
