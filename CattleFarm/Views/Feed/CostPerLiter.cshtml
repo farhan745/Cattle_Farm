@@ -1,0 +1,211 @@
+@model IEnumerable<CattleFarm.ViewModels.CostPerLiterViewModel>
+@{
+    ViewData["Title"] = "Feed Cost Analytics";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    int selectedFarmId = (int)(ViewBag.FarmId ?? 0);
+    var records = Model.ToList();
+    
+    decimal avgFeedCost = records.Any() ? records.Average(x => x.TotalFeedCost) : 0;
+    double avgMilkLiters = records.Any() ? records.Average(x => x.TotalMilkLiters) : 0;
+    decimal avgCostPerLiter = records.Any() && records.Sum(x => (decimal)x.TotalMilkLiters) > 0 
+        ? records.Sum(x => x.TotalFeedCost) / records.Sum(x => (decimal)x.TotalMilkLiters) 
+        : 0;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-bar-chart-line-fill" style="color:var(--primary)"></i> Feed Cost per Liter</h1>
+        <p class="page-subtitle">Track operational feed efficiency by matching feed costs with milk yields</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px">
+        <a href="/Feed" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Logs</a>
+        <a href="/Feed/SeasonalRecommendations?farmId=@(selectedFarmId > 0 ? selectedFarmId.ToString() : "")" class="btn btn-outline-info"><i class="bi bi-sun"></i> Seasonal Advice</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card animate-fade-in" style="margin-bottom:24px">
+    <div class="card-body" style="padding:16px 24px">
+        <form method="get" action="/Feed/CostPerLiter" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Farm:</label>
+                <select name="farmId" class="form-control" style="width:200px" onchange="this.form.submit()">
+                    @foreach (var farm in farms)
+                    {
+                        if (farm.Id == selectedFarmId)
+                        {
+                            <option value="@farm.Id" selected="selected">@farm.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@farm.Id">@farm.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">From:</label>
+                <input type="date" name="from" value="@ViewBag.From" class="form-control" style="width:160px" />
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">To:</label>
+                <input type="date" name="to" value="@ViewBag.To" class="form-control" style="width:160px" />
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-filter"></i> Apply Filters</button>
+        </form>
+    </div>
+</div>
+
+@if (!records.Any())
+{
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:60px 20px">
+            <i class="bi bi-calculator" style="font-size:48px;color:var(--text-muted);display:block;margin-bottom:16px"></i>
+            <h3 style="font-weight:700;margin-bottom:8px">No data available</h3>
+            <p style="color:var(--text-muted)">Record feed transactions and milk production logs to see cost per liter calculations.</p>
+        </div>
+    </div>
+}
+else
+{
+    <!-- KPIs -->
+    <div class="stat-grid animate-fade-in" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+        <div class="stat-card blue">
+            <div class="stat-icon blue"><i class="bi bi-currency-dollar"></i></div>
+            <div>
+                <div class="stat-value">@Currency.Format(avgFeedCost)</div>
+                <div class="stat-label">Avg Daily Feed Expense</div>
+            </div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon green"><i class="bi bi-droplet-half"></i></div>
+            <div>
+                <div class="stat-value">@avgMilkLiters.ToString("F1") L</div>
+                <div class="stat-label">Avg Daily Milk Yield</div>
+            </div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-icon amber"><i class="bi bi-activity"></i></div>
+            <div>
+                <div class="stat-value" style="color:var(--accent)">@Currency.Format(avgCostPerLiter)/L</div>
+                <div class="stat-label">Avg Cost Per Liter of Milk</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start" class="animate-fade-in">
+        <!-- Interactive Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Cost per Liter Trend Analysis</h3>
+            </div>
+            <div class="card-body">
+                <div style="height:350px;position:relative">
+                    <canvas id="costLiterChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Daily Operations Breakdown</h3>
+            </div>
+            <div class="card-body" style="padding:0">
+                <div class="table-wrapper" style="border:none;max-height:350px;overflow-y:auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th style="text-align:right">Feed Cost</th>
+                                <th style="text-align:right">Milk Yield</th>
+                                <th style="text-align:right">Cost/L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in records.OrderByDescending(x => x.Date))
+                            {
+                                <tr>
+                                    <td>@r.Date.ToString("yyyy-MM-dd")</td>
+                                    <td style="text-align:right;color:var(--danger)">-@Currency.Format(r.TotalFeedCost)</td>
+                                    <td style="text-align:right;font-weight:600">@r.TotalMilkLiters.ToString("F1") L</td>
+                                    <td style="text-align:right;font-weight:700;color:var(--accent)">@Currency.Format(r.CostPerLiter)/L</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+@if (records.Any())
+{
+    <script>
+        const dates = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(records.Select(x => x.Date.ToString("MMM dd"))));
+        const costPerLiter = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(records.Select(x => x.CostPerLiter)));
+        const feedCosts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(records.Select(x => x.TotalFeedCost)));
+        
+        new Chart(document.getElementById('costLiterChart'), {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Cost Per Liter (@Html.Raw(Currency.GetSettings().Symbol))',
+                        data: costPerLiter,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.05)',
+                        borderWidth: 3,
+                        yAxisID: 'y',
+                        tension: 0.35,
+                        fill: true
+                    },
+                    {
+                        label: 'Total Feed Cost (@Html.Raw(Currency.GetSettings().Symbol))',
+                        data: feedCosts,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        yAxisID: 'y1',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cost per Liter' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Total Feed Expense' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+}
+}

@@ -1,7 +1,7 @@
-@model IEnumerable<CattleFarm.Models.Notification>
+﻿@model IEnumerable<CattleFarm.Models.Notification>
 @{ ViewData["Title"] = "Notifications"; }
 <div class="page-header">
-    <div><h1 class="page-title">🔔 Notifications</h1><p class="page-subtitle">@Model.Count(n => !n.IsRead) unread</p></div>
+    <div><h1 class="page-title">Notifications</h1><p class="page-subtitle">@Model.Count(n => !n.IsRead) unread</p></div>
     <div class="page-actions">
         @if (Model.Any(n => !n.IsRead))
         {
@@ -13,17 +13,17 @@
 </div>
 <div class="card">
     @if (!Model.Any())
-    { <div class="empty-state" style="padding:60px"><div class="empty-icon">🔔</div><h3>All caught up!</h3></div> }
+    { <div class="empty-state" style="padding:60px"><div class="empty-icon"></div><h3>All caught up!</h3></div> }
     @foreach (var n in Model)
     {
         var icon = n.Type switch {
-            CattleFarm.Models.NotificationType.HealthAlert => "🚨",
-            CattleFarm.Models.NotificationType.Vaccination => "💉",
-            CattleFarm.Models.NotificationType.Appointment => "📅",
-            CattleFarm.Models.NotificationType.OrderUpdate => "📦",
-            CattleFarm.Models.NotificationType.Payment => "💳",
-            CattleFarm.Models.NotificationType.Subscription => "⭐",
-            _ => "🔔"
+            CattleFarm.Models.NotificationType.HealthAlert => "",
+            CattleFarm.Models.NotificationType.Vaccination => "",
+            CattleFarm.Models.NotificationType.Appointment => "",
+            CattleFarm.Models.NotificationType.OrderUpdate => "",
+            CattleFarm.Models.NotificationType.Payment => "",
+            CattleFarm.Models.NotificationType.Subscription => "",
+            _ => ""
         };
         <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;background:@(n.IsRead?"var(--bg-card)":"var(--primary-light)")">
             <div style="font-size:22px;flex-shrink:0">@icon</div>

@@ -73,6 +73,33 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Users));
         }
 
+        // ── Veterinarian approvals ────────────────────────────────────────────
+        public async Task<IActionResult> PendingVeterinarians()
+        {
+            var pending = await _doctorService.GetPendingApprovalAsync();
+            return View(pending);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveVeterinarian(int id)
+        {
+            if (await _doctorService.ApproveAsync(id, GetUserId()))
+                TempData["SuccessMessage"] = "Veterinarian approved and added to the public directory.";
+            else
+                TempData["ErrorMessage"] = "Could not approve this application.";
+            return RedirectToAction(nameof(PendingVeterinarians));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectVeterinarian(int id)
+        {
+            if (await _doctorService.RejectAsync(id, GetUserId()))
+                TempData["SuccessMessage"] = "Veterinarian application rejected.";
+            else
+                TempData["ErrorMessage"] = "Could not reject this application.";
+            return RedirectToAction(nameof(PendingVeterinarians));
+        }
+
         // ── Farms ─────────────────────────────────────────────────────────────
         public async Task<IActionResult> Farms()
         {

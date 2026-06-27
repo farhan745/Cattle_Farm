@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.SubmitProofViewModel
+﻿@model CattleFarm.ViewModels.SubmitProofViewModel
 @{
     ViewData["Title"] = "Submit Proof";
     var task = ViewBag.Task as CattleFarm.ViewModels.TaskViewModel;
@@ -46,7 +46,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">📸 Submit Proof</h1>
+        <h1 class="page-title">Submit Proof</h1>
         <p class="page-subtitle">Upload proof of completion to receive owner approval</p>
     </div>
     <a href="/TaskAssignment" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
@@ -56,7 +56,7 @@
 {
     <div class="proof-card">
         <div class="task-summary">
-            <div class="task-icon">📋</div>
+            <div class="task-icon"></div>
             <div>
                 <div style="font-weight:700;font-size:15px">@task.Title</div>
                 @if (!string.IsNullOrWhiteSpace(task.Description))

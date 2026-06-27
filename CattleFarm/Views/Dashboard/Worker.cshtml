@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.WorkerDashboardViewModel
+﻿@model CattleFarm.ViewModels.WorkerDashboardViewModel
 @{
     ViewData["Title"] = "My Dashboard";
     var workerName = Model.WorkerProfile?.FullName ?? User.Identity?.Name ?? "Worker";
@@ -35,7 +35,7 @@
         overflow: hidden;
     }
     .worker-hero::after {
-        content: '👷';
+        content: '';
         position: absolute;
         right: 24px;
         top: 50%;
@@ -135,7 +135,7 @@
 
     </div>
     <div>
-        <h1>Welcome, @workerName 👋</h1>
+        <h1>Welcome, @workerName </h1>
         <p>
             <i class="bi bi-house-door"></i> @farm &nbsp;·&nbsp;
             <i class="bi bi-briefcase"></i> @role &nbsp;·&nbsp;
@@ -144,7 +144,7 @@
         @if (overdueTasks > 0)
         {
             <p style="margin-top:6px;background:rgba(239,68,68,.2);display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;">
-                ⚠ @overdueTasks overdue task@(overdueTasks > 1 ? "s" : "") — please update your status
+                @overdueTasks overdue task@(overdueTasks > 1 ? "s" : "") — please update your status
             </p>
         }
     </div>
@@ -196,7 +196,7 @@
         @if (!Model.MyTasks.Any())
         {
             <div class="empty-tasks">
-                <div class="icon">📋</div>
+                <div class="icon"></div>
                 <div style="font-weight:600;margin-bottom:6px">No tasks assigned yet</div>
                 <div style="font-size:13px">Your manager will assign tasks here</div>
             </div>
@@ -233,8 +233,8 @@
                             <input type="hidden" name="taskId" value="@t.Id" />
                             <select name="status" data-s="@t.Status" onchange="this.setAttribute('data-s',this.value);this.form.submit()">
                                 <option value="Pending" selected="@(t.Status == "Pending")">⏳ Pending</option>
-                                <option value="InProgress" selected="@(t.Status == "InProgress")">🔄 Doing</option>
-                                <option value="Completed" selected="@(t.Status == "Completed")">✅ Complete</option>
+                                <option value="InProgress" selected="@(t.Status == "InProgress")">Doing</option>
+                                <option value="Completed" selected="@(t.Status == "Completed")">Complete</option>
                             </select>
                         </form>
                     </div>
@@ -294,7 +294,7 @@
         @if (Model.RecentMilkLogs.Any())
         {
             <div class="card">
-                <div class="card-header"><h3 class="card-title">🥛 Recent Milk Logs</h3></div>
+                <div class="card-header"><h3 class="card-title">Recent Milk Logs</h3></div>
                 <div class="table-wrapper" style="margin:0">
                     <table class="data-table" style="font-size:12px">
                         <thead><tr><th>Date</th><th>Morning</th><th>Evening</th><th>Total</th></tr></thead>

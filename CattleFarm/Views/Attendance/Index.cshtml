@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.ViewModels.AttendanceViewModel>
+﻿@model IEnumerable<CattleFarm.ViewModels.AttendanceViewModel>
 @{
     ViewData["Title"] = "Attendance Records";
     var records    = Model.ToList();
@@ -81,7 +81,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">📋 Attendance Records</h1>
+        <h1 class="page-title">Attendance Records</h1>
         <p class="page-subtitle">Daily worker attendance log</p>
     </div>
     <div style="display:flex;gap:10px">
@@ -170,7 +170,7 @@
                 {
                     <tr>
                         <td colspan="@(isAdminOrOwner ? 4 : 3)" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
-                            <div style="font-size:48px;margin-bottom:12px">📋</div>
+                            <div style="font-size:48px;margin-bottom:12px"></div>
                             <div style="font-weight:600;margin-bottom:6px">No attendance records yet</div>
                             @if (isAdminOrOwner)
                             {

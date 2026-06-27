@@ -35,6 +35,7 @@ namespace CattleFarm.Controllers
         public async Task<IActionResult> Browse()
         {
             var vm = await _joinService.GetBrowseViewModelAsync(UserId());
+            ViewBag.JoinMode = "Worker";
             return View(vm);
         }
 
@@ -42,6 +43,7 @@ namespace CattleFarm.Controllers
         [Authorize(Roles = AppRoles.Worker)]
         public IActionResult Apply(int farmId, string farmName)
         {
+            ViewBag.JoinMode = "Worker";
             return View(new FarmJoinApplyViewModel { FarmId = farmId, FarmName = farmName });
         }
 
@@ -62,6 +64,7 @@ namespace CattleFarm.Controllers
         public async Task<IActionResult> MyRequests()
         {
             var list = await _joinService.GetMyRequestsAsync(UserId());
+            ViewBag.JoinMode = "Worker";
             return View(list);
         }
 
@@ -72,9 +75,73 @@ namespace CattleFarm.Controllers
         {
             var ok = await _joinService.LeaveAsync(farmId, UserId());
             TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok
-                ? "তুমি farm থেকে leave নিয়েছো।"
-                : "Leave করতে সমস্যা হয়েছে।";
+                ? "You have left the farm."
+                : "Could not leave the farm.";
             return RedirectToAction(nameof(Browse));
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  MANAGER SIDE (apply to farm like workers)
+        // ══════════════════════════════════════════════════════════
+
+        [Authorize(Roles = AppRoles.Manager)]
+        public async Task<IActionResult> ManagerBrowse()
+        {
+            var vm = await _joinService.GetManagerBrowseViewModelAsync(UserId());
+            ViewBag.JoinMode = "Manager";
+            return View("Browse", vm);
+        }
+
+        [Authorize(Roles = AppRoles.Manager)]
+        public IActionResult ManagerApply(int farmId, string farmName)
+        {
+            ViewBag.JoinMode = "Manager";
+            return View("Apply", new FarmJoinApplyViewModel { FarmId = farmId, FarmName = farmName });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = AppRoles.Manager)]
+        public async Task<IActionResult> ManagerApply(FarmJoinApplyViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.JoinMode = "Manager";
+                return View("Apply", model);
+            }
+
+            var (success, msg) = await _joinService.ApplyAsync(model.FarmId, UserId(), model.Message);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = msg;
+            return RedirectToAction(nameof(ManagerBrowse));
+        }
+
+        [Authorize(Roles = AppRoles.Manager)]
+        public async Task<IActionResult> ManagerRequests()
+        {
+            var list = await _joinService.GetManagerRequestsAsync(UserId());
+            ViewBag.JoinMode = "Manager";
+            return View("MyRequests", list);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = AppRoles.Manager)]
+        public async Task<IActionResult> LeaveManager(int farmId)
+        {
+            var ok = await _joinService.LeaveManagerAsync(farmId, UserId());
+            TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok
+                ? "You left the farm."
+                : "Could not leave the farm.";
+            return RedirectToAction(nameof(ManagerBrowse));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = AppRoles.AdminOrOwner)]
+        public async Task<IActionResult> RemoveManager(int farmManagerId)
+        {
+            var ok = await _joinService.RemoveManagerAsync(farmManagerId, UserId());
+            TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok
+                ? "Manager removed from farm."
+                : "Could not remove manager.";
+            return RedirectToAction(nameof(Incoming));
         }
 
         // ══════════════════════════════════════════════════════════
@@ -116,8 +183,8 @@ namespace CattleFarm.Controllers
         {
             var ok = await _joinService.RemoveWorkerAsync(farmWorkerId, UserId());
             TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok
-                ? "Worker সরানো হয়েছে।"
-                : "কিছু সমস্যা হয়েছে।";
+                ? "Worker removed from farm."
+                : "Could not remove worker.";
             return RedirectToAction(nameof(Incoming));
         }
 
@@ -138,7 +205,7 @@ namespace CattleFarm.Controllers
 
             if (worker.UserId.HasValue)
             {
-                TempData["InfoMessage"] = "এই worker এর ইতিমধ্যে একটি login account আছে।";
+                TempData["InfoMessage"] = "This worker already has a login account.";
                 return RedirectToAction("Index", "Worker");
             }
 

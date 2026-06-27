@@ -43,5 +43,21 @@ namespace CattleFarm.ViewModels
 
         [Display(Name = "Profile Photo")]
         public IFormFile? ProfileImage { get; set; }
+
+        // Veterinarian-only fields (when Role = Doctor)
+        [StringLength(200)]
+        public string? Specialization { get; set; }
+
+        [Range(0.01, 100000)]
+        public decimal ConsultationFee { get; set; } = 500;
+
+        [StringLength(500)]
+        public string? AvailableTimeSlot { get; set; }
+
+        [Range(0, 60)]
+        public int YearsOfExperience { get; set; }
+
+        [StringLength(100)]
+        public string? LicenseNumber { get; set; }
     }
 }

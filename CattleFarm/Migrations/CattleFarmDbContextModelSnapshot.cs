@@ -56,7 +56,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ActivityLogs", (string)null);
+                    b.ToTable("ActivityLogs");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Appointment", b =>
@@ -67,11 +67,18 @@ namespace CattleFarm.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CattleId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CompletionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -82,12 +89,18 @@ namespace CattleFarm.Migrations
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");
 
+                    b.Property<string>("EvidenceImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("FarmId")
                         .HasColumnType("int");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("PrescriptionPath")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Reason")
                         .IsRequired()
@@ -113,7 +126,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Appointments", (string)null);
+                    b.ToTable("Appointments");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Attendance", b =>
@@ -148,7 +161,7 @@ namespace CattleFarm.Migrations
                     b.HasIndex("WorkerId", "Date")
                         .IsUnique();
 
-                    b.ToTable("Attendances", (string)null);
+                    b.ToTable("Attendances");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.AuditLog", b =>
@@ -196,7 +209,53 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.AutomatedFeedingCommand", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ControllerId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FeedName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<double>("QuantityKg")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("ScheduledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId");
+
+                    b.HasIndex("FarmId", "ControllerId", "ScheduledAt");
+
+                    b.ToTable("AutomatedFeedingCommands");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Breeding", b =>
@@ -260,7 +319,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("SireId");
 
-                    b.ToTable("Breedings", (string)null);
+                    b.ToTable("Breedings");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Cattle", b =>
@@ -351,7 +410,223 @@ namespace CattleFarm.Migrations
                     b.HasIndex("TagId", "FarmId")
                         .IsUnique();
 
-                    b.ToTable("Cattles", (string)null);
+                    b.ToTable("Cattles");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId", "UserId", "CreatedAt");
+
+                    b.ToTable("CattleComments");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleExpense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("CattleExpenses");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("CattleLikes");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleMedicalRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ChiefComplaint")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Diagnosis")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DoseDurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DoseFrequency")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("ExaminationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MedicineDose")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("MedicineName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("NextVisitDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Prescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.ToTable("CattleMedicalRecords");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleShare", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ShareUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId");
+
+                    b.ToTable("CattleShares");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Doctor", b =>
@@ -362,10 +637,36 @@ namespace CattleFarm.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AvailableDays")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("AvailableTimeFrom")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("AvailableTimeSlot")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("AvailableTimeTo")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<decimal>("ConsultationFee")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -375,16 +676,22 @@ namespace CattleFarm.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int?>("FarmId")
-                        .HasColumnType("int");
+                    b.Property<bool>("EmergencyAvailable")
+                        .HasColumnType("bit");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("InvitationId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -394,6 +701,12 @@ namespace CattleFarm.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseDocumentPath")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LicenseNumber")
                         .HasMaxLength(100)
@@ -407,8 +720,16 @@ namespace CattleFarm.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Qualification")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Specialization")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("University")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -418,13 +739,100 @@ namespace CattleFarm.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("FarmId");
+                    b.HasIndex("InvitationId")
+                        .IsUnique()
+                        .HasFilter("[InvitationId] IS NOT NULL");
+
+                    b.HasIndex("LicenseNumber")
+                        .IsUnique()
+                        .HasFilter("[LicenseNumber] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Doctors", (string)null);
+                    b.ToTable("Doctors");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.DoctorInvitation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DoctorName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("ExpectedJoiningDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InvitationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RevokedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("RevokedByUserId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("DoctorInvitations");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Driver", b =>
@@ -486,7 +894,7 @@ namespace CattleFarm.Migrations
                         .IsUnique()
                         .HasFilter("[AssignedVehicleId] IS NOT NULL");
 
-                    b.ToTable("Drivers", (string)null);
+                    b.ToTable("Drivers");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Expense", b =>
@@ -537,7 +945,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Expenses", (string)null);
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Farm", b =>
@@ -587,6 +995,12 @@ namespace CattleFarm.Migrations
                     b.Property<double?>("Longitude")
                         .HasColumnType("float");
 
+                    b.Property<int>("MaximumCattle")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaximumWorkers")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -605,7 +1019,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Farms", (string)null);
+                    b.ToTable("Farms");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.FarmJoinRequest", b =>
@@ -615,6 +1029,11 @@ namespace CattleFarm.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicantRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("AppliedAt")
                         .HasColumnType("datetime2");
@@ -655,11 +1074,64 @@ namespace CattleFarm.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FarmId");
-
                     b.HasIndex("WorkerUserId");
 
-                    b.ToTable("FarmJoinRequests", (string)null);
+                    b.HasIndex("FarmId", "WorkerUserId", "Status");
+
+                    b.ToTable("FarmJoinRequests");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.FarmManager", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ManagerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RemovalNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("RemovedByOwner")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManagerUserId");
+
+                    b.HasIndex("FarmId", "ManagerUserId");
+
+                    b.ToTable("FarmManagers");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.FarmWorker", b =>
@@ -716,11 +1188,42 @@ namespace CattleFarm.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FarmId");
-
                     b.HasIndex("WorkerUserId");
 
-                    b.ToTable("FarmWorkers", (string)null);
+                    b.HasIndex("FarmId", "WorkerUserId");
+
+                    b.ToTable("FarmWorkers");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.FeedInventory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FeedType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("MinStockThresholdKg")
+                        .HasColumnType("float");
+
+                    b.Property<double>("StockQuantityKg")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId", "FeedType")
+                        .IsUnique();
+
+                    b.ToTable("FeedInventories");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.FeedRecord", b =>
@@ -776,7 +1279,47 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("RecordedByWorkerId");
 
-                    b.ToTable("FeedRecords", (string)null);
+                    b.ToTable("FeedRecords");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.GpsTrackerSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Latitude")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal>("Longitude")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("SpeedKph")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TrackerId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId");
+
+                    b.HasIndex("FarmId", "TrackerId", "RecordedAt");
+
+                    b.ToTable("GpsTrackerSnapshots");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.HealthRecord", b =>
@@ -835,7 +1378,67 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.ToTable("HealthRecords", (string)null);
+                    b.ToTable("HealthRecords");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.LeaveRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OwnerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReviewedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WorkerUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkerUserId");
+
+                    b.HasIndex("FarmId", "WorkerUserId", "Status");
+
+                    b.ToTable("LeaveRequests");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.MedicineRecord", b =>
@@ -884,7 +1487,50 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("PrescribedByDoctorId");
 
-                    b.ToTable("MedicineRecords", (string)null);
+                    b.ToTable("MedicineRecords");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.MilkMachineImport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CattleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CollectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("ConvertedToMilkRecord")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("FatPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("MachineId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<decimal?>("ProteinPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("YieldLiters")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CattleId");
+
+                    b.HasIndex("FarmId", "MachineId", "CollectedAt");
+
+                    b.ToTable("MilkMachineImports");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.MilkProduction", b =>
@@ -910,6 +1556,13 @@ namespace CattleFarm.Migrations
                     b.Property<int>("FarmId")
                         .HasColumnType("int");
 
+                    b.Property<decimal?>("FatPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("MilkQualityGrade")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<double>("MorningYieldLiters")
                         .HasColumnType("float");
 
@@ -917,8 +1570,14 @@ namespace CattleFarm.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<decimal?>("ProteinLevel")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<int?>("RecordedByWorkerId")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("SolidNotFat")
+                        .HasColumnType("decimal(5,2)");
 
                     b.HasKey("Id");
 
@@ -928,7 +1587,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("RecordedByWorkerId");
 
-                    b.ToTable("MilkProductions", (string)null);
+                    b.ToTable("MilkProductions");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Notification", b =>
@@ -941,6 +1600,12 @@ namespace CattleFarm.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
@@ -975,7 +1640,49 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.OfflineSyncItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId", "ClientId", "Status");
+
+                    b.ToTable("OfflineSyncItems");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Order", b =>
@@ -1027,7 +1734,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.OrderItem", b =>
@@ -1059,7 +1766,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Payment", b =>
@@ -1115,7 +1822,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Payroll", b =>
@@ -1180,7 +1887,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("WorkerId");
 
-                    b.ToTable("Payrolls", (string)null);
+                    b.ToTable("Payrolls");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Product", b =>
@@ -1245,7 +1952,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("FarmId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Revenue", b =>
@@ -1295,7 +2002,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Revenues", (string)null);
+                    b.ToTable("Revenues");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Review", b =>
@@ -1353,7 +2060,98 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.SalaryHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BaseSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Bonus")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TaskAssignmentId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("UpdatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorkerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorkerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("WorkerId", "Year", "Month");
+
+                    b.ToTable("SalaryHistories");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.SensorReading", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BarnZone")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReadingType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("Value")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId", "DeviceId", "RecordedAt");
+
+                    b.ToTable("SensorReadings");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Subscription", b =>
@@ -1399,7 +2197,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.TaskAssignment", b =>
@@ -1443,6 +2241,9 @@ namespace CattleFarm.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1452,6 +2253,9 @@ namespace CattleFarm.Migrations
 
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("FarmId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1493,9 +2297,15 @@ namespace CattleFarm.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedUserId");
+
                     b.HasIndex("AssignedWorkerId");
 
-                    b.ToTable("TaskAssignments", (string)null);
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("TaskAssignments");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.TransportRequest", b =>
@@ -1564,7 +2374,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("RequestedByUserId");
 
-                    b.ToTable("TransportRequests", (string)null);
+                    b.ToTable("TransportRequests");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Trip", b =>
@@ -1638,7 +2448,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("Trips", (string)null);
+                    b.ToTable("Trips");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.User", b =>
@@ -1743,7 +2553,7 @@ namespace CattleFarm.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Vaccination", b =>
@@ -1795,7 +2605,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.ToTable("Vaccinations", (string)null);
+                    b.ToTable("Vaccinations");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Vehicle", b =>
@@ -1849,7 +2659,7 @@ namespace CattleFarm.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vehicles", (string)null);
+                    b.ToTable("Vehicles");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Worker", b =>
@@ -1873,7 +2683,7 @@ namespace CattleFarm.Migrations
                     b.Property<int>("ExperienceYears")
                         .HasColumnType("int");
 
-                    b.Property<int>("FarmId")
+                    b.Property<int?>("FarmId")
                         .HasColumnType("int");
 
                     b.Property<string>("FullName")
@@ -1928,7 +2738,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Workers", (string)null);
+                    b.ToTable("Workers");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.WorkerAttendance", b =>
@@ -1968,7 +2778,7 @@ namespace CattleFarm.Migrations
 
                     b.HasIndex("WorkerId");
 
-                    b.ToTable("WorkerAttendances", (string)null);
+                    b.ToTable("WorkerAttendances");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.ActivityLog", b =>
@@ -2042,6 +2852,24 @@ namespace CattleFarm.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.AutomatedFeedingCommand", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany()
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+
+                    b.Navigation("Farm");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.Breeding", b =>
                 {
                     b.HasOne("CattleFarm.Models.Cattle", "Cattle")
@@ -2079,21 +2907,116 @@ namespace CattleFarm.Migrations
                     b.Navigation("Farm");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.CattleComment", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany()
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleExpense", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany("CattleExpenses")
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Cattle");
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleLike", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany()
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleMedicalRecord", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany("MedicalRecords")
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.User", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+
+                    b.Navigation("Doctor");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.CattleShare", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany()
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.Doctor", b =>
                 {
-                    b.HasOne("CattleFarm.Models.Farm", "Farm")
-                        .WithMany("Doctors")
-                        .HasForeignKey("FarmId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("CattleFarm.Models.DoctorInvitation", "Invitation")
+                        .WithOne("Doctor")
+                        .HasForeignKey("CattleFarm.Models.Doctor", "InvitationId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CattleFarm.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Farm");
+                    b.Navigation("Invitation");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.DoctorInvitation", b =>
+                {
+                    b.HasOne("CattleFarm.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CattleFarm.Models.User", "RevokedByUser")
+                        .WithMany()
+                        .HasForeignKey("RevokedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("RevokedByUser");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Driver", b =>
@@ -2154,10 +3077,29 @@ namespace CattleFarm.Migrations
                     b.Navigation("WorkerUser");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.FarmManager", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany("FarmManagers")
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.User", "ManagerUser")
+                        .WithMany()
+                        .HasForeignKey("ManagerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("ManagerUser");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.FarmWorker", b =>
                 {
                     b.HasOne("CattleFarm.Models.Farm", "Farm")
-                        .WithMany()
+                        .WithMany("FarmWorkers")
                         .HasForeignKey("FarmId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -2171,6 +3113,17 @@ namespace CattleFarm.Migrations
                     b.Navigation("Farm");
 
                     b.Navigation("WorkerUser");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.FeedInventory", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.FeedRecord", b =>
@@ -2198,6 +3151,24 @@ namespace CattleFarm.Migrations
                     b.Navigation("RecordedByWorker");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.GpsTrackerSnapshot", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany()
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+
+                    b.Navigation("Farm");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.HealthRecord", b =>
                 {
                     b.HasOne("CattleFarm.Models.Cattle", "Cattle")
@@ -2216,6 +3187,25 @@ namespace CattleFarm.Migrations
                     b.Navigation("Doctor");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.LeaveRequest", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.User", "WorkerUser")
+                        .WithMany()
+                        .HasForeignKey("WorkerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("WorkerUser");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.MedicineRecord", b =>
                 {
                     b.HasOne("CattleFarm.Models.Cattle", "Cattle")
@@ -2232,6 +3222,24 @@ namespace CattleFarm.Migrations
                     b.Navigation("Cattle");
 
                     b.Navigation("PrescribedByDoctor");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.MilkMachineImport", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Cattle", "Cattle")
+                        .WithMany()
+                        .HasForeignKey("CattleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cattle");
+
+                    b.Navigation("Farm");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.MilkProduction", b =>
@@ -2269,6 +3277,17 @@ namespace CattleFarm.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.OfflineSyncItem", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
                 });
 
             modelBuilder.Entity("CattleFarm.Models.Order", b =>
@@ -2405,6 +3424,36 @@ namespace CattleFarm.Migrations
                     b.Navigation("Reviewer");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.SalaryHistory", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CattleFarm.Models.Worker", "Worker")
+                        .WithMany()
+                        .HasForeignKey("WorkerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+
+                    b.Navigation("Worker");
+                });
+
+            modelBuilder.Entity("CattleFarm.Models.SensorReading", b =>
+                {
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.Subscription", b =>
                 {
                     b.HasOne("CattleFarm.Models.User", "User")
@@ -2421,8 +3470,15 @@ namespace CattleFarm.Migrations
                     b.HasOne("CattleFarm.Models.Worker", "Worker")
                         .WithMany()
                         .HasForeignKey("AssignedWorkerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CattleFarm.Models.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Farm");
 
                     b.Navigation("Worker");
                 });
@@ -2501,8 +3557,7 @@ namespace CattleFarm.Migrations
                     b.HasOne("CattleFarm.Models.Farm", "Farm")
                         .WithMany("Workers")
                         .HasForeignKey("FarmId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CattleFarm.Models.User", "User")
                         .WithMany()
@@ -2529,7 +3584,11 @@ namespace CattleFarm.Migrations
                 {
                     b.Navigation("Appointments");
 
+                    b.Navigation("CattleExpenses");
+
                     b.Navigation("HealthRecords");
+
+                    b.Navigation("MedicalRecords");
 
                     b.Navigation("MedicineRecords");
 
@@ -2549,6 +3608,11 @@ namespace CattleFarm.Migrations
                     b.Navigation("MedicineRecords");
                 });
 
+            modelBuilder.Entity("CattleFarm.Models.DoctorInvitation", b =>
+                {
+                    b.Navigation("Doctor");
+                });
+
             modelBuilder.Entity("CattleFarm.Models.Driver", b =>
                 {
                     b.Navigation("Trips");
@@ -2560,9 +3624,11 @@ namespace CattleFarm.Migrations
 
                     b.Navigation("Cattles");
 
-                    b.Navigation("Doctors");
-
                     b.Navigation("Expenses");
+
+                    b.Navigation("FarmManagers");
+
+                    b.Navigation("FarmWorkers");
 
                     b.Navigation("MilkProductions");
 

@@ -13,21 +13,26 @@
 
 <div class="page-header animate-in">
     <div>
-        <h1 class="page-title">Reports &amp; Analytics</h1>
-        <p class="page-subtitle">@(farm?.Name ?? "All Farms") &mdash; Financial and operational reporting</p>
+        <h1 class="page-title">Reports &amp; Analytics Hub</h1>
+        <p class="page-subtitle">@(farm?.Name ?? "All Farms") &mdash; Comprehensive financial and operational telemetry</p>
     </div>
     <div class="page-actions">
         <button onclick="window.print()" class="btn btn-outline"><i class="bi bi-printer"></i> Print Report</button>
-        <button onclick="exportReport('csv')" class="btn btn-accent"><i class="bi bi-file-earmark-spreadsheet"></i> Export CSV</button>
+        <a class="btn btn-accent" asp-action="ExportExcel" asp-route-farmId="@farm?.Id" asp-route-from="@ViewBag.From" asp-route-to="@ViewBag.To">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel
+        </a>
+        <a class="btn btn-primary" asp-action="ExportPdf" asp-route-farmId="@farm?.Id" asp-route-from="@ViewBag.From" asp-route-to="@ViewBag.To">
+            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+        </a>
     </div>
 </div>
 
 <!-- Filters -->
 <div class="card animate-in" style="margin-bottom: 24px;">
-    <div class="card-body" style="padding: 24px;">
-        <form method="get" style="display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end;">
-            <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
-                <label class="form-label" style="margin-bottom: 8px; font-family: var(--font-heading); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i class="bi bi-house-door" style="color: var(--primary);"></i> Farm Select</label>
+    <div class="card-body" style="padding: 20px;">
+        <form method="get" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+            <div class="form-group" style="margin: 0; flex: 1.5; min-width: 200px;">
+                <label class="form-label" style="margin-bottom: 8px; font-family: var(--font-heading); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i class="bi bi-house-door" style="color: var(--primary);"></i> Select Farm</label>
                 <select name="farmId" class="form-select" style="width: 100%;">
                     @foreach (var f in farms)
                     {
@@ -48,131 +53,329 @@
     </div>
 </div>
 
-<!-- KPI Summary -->
-<div class="stat-grid animate-in">
-    <div class="stat-card green">
-        <div class="stat-icon green"><i class="bi bi-arrow-up-circle"></i></div>
-        <div class="flex-1">
-            <div class="stat-value">@Currency.GetSettings().Symbol @((revenue/1000).ToString("F0"))K</div>
-            <div class="stat-label">Total Revenue</div>
-        </div>
-    </div>
-    <div class="stat-card red">
-        <div class="stat-icon red"><i class="bi bi-arrow-down-circle"></i></div>
-        <div class="flex-1">
-            <div class="stat-value">@Currency.GetSettings().Symbol @((expenses/1000).ToString("F0"))K</div>
-            <div class="stat-label">Total Expenses</div>
-        </div>
-    </div>
-    <div class="stat-card @(profit >= 0 ? "green" : "red")">
-        <div class="stat-icon @(profit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
-        <div class="flex-1">
-            <div class="stat-value">@Currency.GetSettings().Symbol @((Math.Abs(profit)/1000).ToString("F0"))K</div>
-            <div class="stat-label">Net Profit</div>
-            <div class="stat-change @(profit >= 0 ? "up" : "down")">@(profit >= 0 ? "Profitable" : "Net loss")</div>
-        </div>
-    </div>
-    <div class="stat-card blue">
-        <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
-        <div class="flex-1">
-            <div class="stat-value">@milkTotal.ToString("F0")<span style="font-size: 13px; font-weight: 400; font-family: var(--font-body);"> L</span></div>
-            <div class="stat-label">Total Milk Yield</div>
-        </div>
-    </div>
-    <div class="stat-card teal">
-        <div class="stat-icon teal"><i class="bi bi-collection"></i></div>
-        <div class="flex-1">
-            <div class="stat-value">@ViewBag.TotalCattle</div>
-            <div class="stat-label">Total Cattle</div>
-            <div class="stat-change up">@ViewBag.ActiveCattle active</div>
-        </div>
-    </div>
-    <div class="stat-card amber">
-        <div class="stat-icon amber"><i class="bi bi-percent"></i></div>
-        <div class="flex-1">
-            <div class="stat-value">@(expenses > 0 ? ((profit / expenses) * 100).ToString("F1") : "0.0")%</div>
-            <div class="stat-label">ROI</div>
-        </div>
+<!-- Tabs Navigation -->
+<div class="tabs-container animate-in" style="margin-bottom: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 6px; box-shadow: var(--shadow-sm);">
+    <div class="tabs-nav" style="display: flex; gap: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
+        <button class="tab-btn active" onclick="switchTab(event, 'financials-tab')" style="background: var(--primary); border: none; padding: 10px 20px; font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: white; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <i class="bi bi-wallet2"></i> Financial &amp; ROI
+        </button>
+        <button class="tab-btn" onclick="switchTab(event, 'herd-tab')" style="background: none; border: none; padding: 10px 20px; font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: var(--text-secondary); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <i class="bi bi-database"></i> Herd &amp; Milk Production
+        </button>
+        <button class="tab-btn" onclick="switchTab(event, 'health-tab')" style="background: none; border: none; padding: 10px 20px; font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: var(--text-secondary); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <i class="bi bi-heart-pulse"></i> Health &amp; Vets
+        </button>
+        <button class="tab-btn" onclick="switchTab(event, 'transport-tab')" style="background: none; border: none; padding: 10px 20px; font-family: var(--font-heading); font-weight: 700; font-size: 12px; color: var(--text-secondary); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <i class="bi bi-truck"></i> Transport Hub
+        </button>
     </div>
 </div>
 
-<!-- Revenue vs Expense Trend -->
-<div class="card animate-in" style="margin-bottom: 24px;">
-    <div class="card-header">
-        <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color: var(--primary);"></i> Revenue vs Expenses &mdash; Monthly Trend</h3>
-    </div>
-    <div class="card-body">
-        <div class="chart-container" style="height: 280px; position: relative;">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
-</div>
+<!-- Tab Content Container -->
+<div class="tabs-content-container">
 
-<!-- Breakdown Row -->
-<div class="chart-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;" class="animate-in">
-    <!-- Expense by Category -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-pie-chart" style="color: var(--danger);"></i> Expense Breakdown</h3>
-        </div>
-        <div class="breakdown-container" style="display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 16px; padding: 24px;">
-            <div>
-                <div class="chart-container" style="height: 200px; position: relative;">
-                    <canvas id="expenseChart"></canvas>
+    <!-- ── FINANCIALS TAB ── -->
+    <div id="financials-tab" class="tab-panel animate-in active">
+        <!-- KPI Row -->
+        <div class="stat-grid" style="margin-bottom: 24px;">
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-arrow-up-circle"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@Currency.GetSettings().Symbol@((revenue/1000).ToString("F1"))K</div>
+                    <div class="stat-label">Total Revenue</div>
                 </div>
             </div>
-            <div>
-                @{decimal expTotal = expBreakdown.Any() ? expBreakdown.Sum(x => (decimal)x.Total) : 1m;}
-                @foreach (var item in expBreakdown.Take(6))
-                {
-                    var pct = expTotal > 0 ? ((decimal)item.Total / expTotal * 100) : 0;
-                    <div style="margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                            <span style="font-weight: 600; font-family: var(--font-body);">@item.Category</span>
-                            <span style="color: var(--text-muted); font-family: var(--font-mono);">@pct.ToString("F0")%</span>
-                        </div>
-                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
-                            <div style="width: @pct.ToString("F0")%; height: 100%; background: var(--danger); border-radius: 4px; transition: width .4s;"></div>
-                        </div>
+            <div class="stat-card red">
+                <div class="stat-icon red"><i class="bi bi-arrow-down-circle"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@Currency.GetSettings().Symbol@((expenses/1000).ToString("F1"))K</div>
+                    <div class="stat-label">Total Expenses</div>
+                </div>
+            </div>
+            <div class="stat-card @(profit >= 0 ? "green" : "red")">
+                <div class="stat-icon @(profit >= 0 ? "green" : "red")"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@Currency.GetSettings().Symbol@((Math.Abs(profit)/1000).ToString("F1"))K</div>
+                    <div class="stat-label">Net Profit</div>
+                    <div class="stat-change @(profit >= 0 ? "up" : "down")">@(profit >= 0 ? "Profitable" : "Net Loss")</div>
+                </div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon amber"><i class="bi bi-percent"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@(expenses > 0 ? ((profit / expenses) * 100).ToString("F1") : "0.0")%</div>
+                    <div class="stat-label">ROI Ratio</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Trend Line -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-bar-chart-line" style="color: var(--primary);"></i> Revenue vs Expenses &mdash; Monthly Trend</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 280px; position: relative;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense/Revenue Doughnuts -->
+        <div class="chart-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-pie-chart" style="color: var(--danger);"></i> Expense Category Shares</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 16px; padding: 20px;">
+                    <div class="chart-container" style="height: 180px; position: relative;">
+                        <canvas id="expenseChart"></canvas>
                     </div>
-                }
+                    <div>
+                        @{decimal expTotal = expBreakdown.Any() ? expBreakdown.Sum(x => (decimal)x.Total) : 1m;}
+                        @foreach (var item in expBreakdown.Take(5))
+                        {
+                            var pct = expTotal > 0 ? ((decimal)item.Total / expTotal * 100) : 0;
+                            <div style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <span style="font-weight: 600; color: var(--text-primary);">@item.Category</span>
+                                    <span style="color: var(--text-muted); font-family: var(--font-mono);">@pct.ToString("F0")%</span>
+                                </div>
+                                <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: @pct.ToString("F0")%; height: 100%; background: var(--danger); border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="bi bi-pie-chart" style="color: var(--success);"></i> Income Revenue Shares</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 16px; padding: 20px;">
+                    <div class="chart-container" style="height: 180px; position: relative;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div>
+                        @{decimal revTotal = revBreakdown.Any() ? revBreakdown.Sum(x => (decimal)x.Total) : 1m;}
+                        @foreach (var item in revBreakdown.Take(5))
+                        {
+                            var pct = revTotal > 0 ? ((decimal)item.Total / revTotal * 100) : 0;
+                            <div style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <span style="font-weight: 600; color: var(--text-primary);">@item.Source</span>
+                                    <span style="color: var(--text-muted); font-family: var(--font-mono);">@pct.ToString("F0")%</span>
+                                </div>
+                                <div style="height: 5px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: @pct.ToString("F0")%; height: 100%; background: var(--success); border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Revenue by Source -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="bi bi-pie-chart" style="color: var(--success);"></i> Revenue Breakdown</h3>
-        </div>
-        <div class="breakdown-container" style="display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 16px; padding: 24px;">
-            <div>
-                <div class="chart-container" style="height: 200px; position: relative;">
-                    <canvas id="revenueChart"></canvas>
+    <!-- ── HERD & MILK TAB ── -->
+    <div id="herd-tab" class="tab-panel animate-in">
+        <div class="stat-grid" style="margin-bottom: 24px;">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-droplet-half"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@milkTotal.ToString("F0")<span style="font-size: 13px; font-weight: 400; font-family: var(--font-body);"> L</span></div>
+                    <div class="stat-label">Total Milk Yield</div>
                 </div>
             </div>
-            <div>
-                @{decimal revTotal = revBreakdown.Any() ? revBreakdown.Sum(x => (decimal)x.Total) : 1m;}
-                @foreach (var item in revBreakdown.Take(6))
-                {
-                    var pct = revTotal > 0 ? ((decimal)item.Total / revTotal * 100) : 0;
-                    <div style="margin-bottom: 12px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                            <span style="font-weight: 600; font-family: var(--font-body);">@item.Source</span>
-                            <span style="color: var(--text-muted); font-family: var(--font-mono);">@pct.ToString("F0")%</span>
-                        </div>
-                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
-                            <div style="width: @pct.ToString("F0")%; height: 100%; background: var(--success); border-radius: 4px; transition: width .4s;"></div>
-                        </div>
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-collection"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@ViewBag.TotalCattle</div>
+                    <div class="stat-label">Total Registered Cattle</div>
+                    <div class="stat-change up">@ViewBag.ActiveCattle active</div>
+                </div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-icon red"><i class="bi bi-heart-pulse"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@ViewBag.SickCattle</div>
+                    <div class="stat-label">Sick/At-Risk Animals</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+            <!-- Cattle Registry Card -->
+            <div class="card hover-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:20px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                <div>
+                    <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(34,197,94,0.1); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:16px;">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
                     </div>
-                }
+                    <h4 style="font-weight:700; font-family:var(--font-heading); margin-bottom:8px; color:var(--text-primary)">Cattle Registry Reports</h4>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">Full active livestock directory with breeds, tagging, birth weights, and transfer records.</p>
+                </div>
+                <a href="/Cattle" class="btn btn-outline btn-sm" style="width:fit-content; align-self:flex-start;">
+                    <i class="bi bi-arrow-right-short"></i> Open Cattle Registry
+                </a>
+            </div>
+
+            <!-- Top Producers Card -->
+            <div class="card hover-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:20px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                <div>
+                    <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(59,130,246,0.1); color: #3b82f6; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:16px;">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <h4 style="font-weight:700; font-family:var(--font-heading); margin-bottom:8px; color:var(--text-primary)">Top Producers Ranking</h4>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">Leaderboard ranking cattle by highest yield, fat percentage, and milk grading scores.</p>
+                </div>
+                <a href="/MilkProduction/TopProducers" class="btn btn-outline btn-sm" style="width:fit-content; align-self:flex-start;">
+                    <i class="bi bi-arrow-right-short"></i> View Leaderboards
+                </a>
+            </div>
+
+            <!-- Cost per Liter Card -->
+            <div class="card hover-card" style="display:flex; flex-direction:column; justify-content:space-between; padding:20px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+                <div>
+                    <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(245,158,11,0.1); color: #f59e0b; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:16px;">
+                        <i class="bi bi-piggy-bank"></i>
+                    </div>
+                    <h4 style="font-weight:700; font-family:var(--font-heading); margin-bottom:8px; color:var(--text-primary)">Feed Cost Analysis</h4>
+                    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">Determine actual profit margins by tracking feed cost per liter of milk produced over time.</p>
+                </div>
+                <a href="/Feed/CostPerLiter" class="btn btn-outline btn-sm" style="width:fit-content; align-self:flex-start;">
+                    <i class="bi bi-arrow-right-short"></i> View Analytics
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- ── HEALTH & VETS TAB ── -->
+    <div id="health-tab" class="tab-panel animate-in">
+        <div class="stat-grid" style="margin-bottom: 24px;">
+            <div class="stat-card red">
+                <div class="stat-icon red"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">@ViewBag.SickCattle</div>
+                    <div class="stat-label">Active Medical Cases</div>
+                </div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-calendar-check"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">Active</div>
+                    <div class="stat-label">Vet Visit Schedule</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div class="card hover-card" style="padding: 24px; display:flex; gap:16px;">
+                <div style="font-size: 32px; color: var(--primary);"><i class="bi bi-journal-medical"></i></div>
+                <div>
+                    <h4 style="font-weight: 700; font-family: var(--font-heading); margin-bottom: 6px; color: var(--text-primary);">Health Records Ledger</h4>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Access logs of veterinarian checkups, diagnostic details, disease history, and recovery records.</p>
+                    <a href="/Health" class="btn btn-outline btn-sm"><i class="bi bi-link-45deg"></i> Open Health Ledger</a>
+                </div>
+            </div>
+
+            <div class="card hover-card" style="padding: 24px; display:flex; gap:16px;">
+                <div style="font-size: 32px; color: #3b82f6;"><i class="bi bi-calendar-event"></i></div>
+                <div>
+                    <h4 style="font-weight: 700; font-family: var(--font-heading); margin-bottom: 6px; color: var(--text-primary);">Appointment Scheduler</h4>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Track veterinarian availability, schedule routine diagnostic rounds, and request critical medical visits.</p>
+                    <a href="/Appointment" class="btn btn-outline btn-sm"><i class="bi bi-link-45deg"></i> View Scheduler</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TRANSPORT TAB ── -->
+    <div id="transport-tab" class="tab-panel animate-in">
+        <div class="stat-grid" style="margin-bottom: 24px;">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-truck"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">Enabled</div>
+                    <div class="stat-label">Active Bookings</div>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+                <div class="flex-1">
+                    <div class="stat-value">Clear</div>
+                    <div class="stat-label">Driver Attendance</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div class="card hover-card" style="padding: 20px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <h4 style="font-weight: 700; font-family: var(--font-heading); margin-bottom: 8px; color: var(--text-primary); display:flex; align-items:center; gap:8px;"><i class="bi bi-truck-front" style="color:var(--primary)"></i> Transport Hub</h4>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Coordinate distribution shipping logs, track feed deliveries, and monitor vehicle fleet maintenance schedules.</p>
+                </div>
+                <a href="/Transport" class="btn btn-outline btn-sm" style="width:fit-content;"><i class="bi bi-box-arrow-up-right"></i> Open Transport Hub</a>
+            </div>
+
+            <div class="card hover-card" style="padding: 20px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <h4 style="font-weight: 700; font-family: var(--font-heading); margin-bottom: 8px; color: var(--text-primary); display:flex; align-items:center; gap:8px;"><i class="bi bi-graph-up-arrow" style="color:#f59e0b"></i> Fleet Analytics</h4>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Generate fuel efficiency reports, calculate driver performance rankings, and analyze delivery dispatch speeds.</p>
+                </div>
+                <a href="/Transport/Reports" class="btn btn-outline btn-sm" style="width:fit-content;"><i class="bi bi-box-arrow-up-right"></i> View Fleet Analytics</a>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<!-- CSS style blocks to override display configurations for responsive charts within tab panels -->
+<style>
+    .tab-panel {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        height: 0;
+        overflow: hidden;
+        transition: opacity 0.25s ease-in-out;
+    }
+    .tab-panel.active {
+        position: static;
+        opacity: 1;
+        pointer-events: auto;
+        height: auto;
+        overflow: visible;
+    }
+</style>
 
 @section Scripts {
 <script>
+function switchTab(event, tabId) {
+    // Update Active Nav Buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'none';
+        btn.style.color = 'var(--text-secondary)';
+    });
+
+    const activeBtn = event.currentTarget;
+    activeBtn.classList.add('active');
+    activeBtn.style.background = 'var(--primary)';
+    activeBtn.style.color = 'white';
+
+    // Toggle Content Panels
+    const panels = document.querySelectorAll('.tab-panel');
+    panels.forEach(panel => {
+        panel.classList.remove('active');
+    });
+
+    const activePanel = document.getElementById(tabId);
+    activePanel.classList.add('active');
+}
+
 // Chart.js helper to dynamically check current theme grid/text colors
 function getChartColors() {
     const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
@@ -194,8 +397,8 @@ const trendChartObj = new Chart(document.getElementById('trendChart'), {
     data: {
         labels: tLabels,
         datasets: [
-            { label: 'Revenue',  data: tRevenues, backgroundColor: 'rgba(0, 255, 136, 0.8)',  borderRadius: 6 },
-            { label: 'Expenses', data: tExpenses, backgroundColor: 'rgba(255, 51, 102, 0.8)', borderRadius: 6 }
+            { label: 'Revenue',  data: tRevenues, backgroundColor: 'rgba(34, 197, 94, 0.85)',  borderRadius: 6 },
+            { label: 'Expenses', data: tExpenses, backgroundColor: 'rgba(239, 68, 68, 0.85)', borderRadius: 6 }
         ]
     },
     options: { 
@@ -269,36 +472,24 @@ const revenueChartObj = new Chart(document.getElementById('revenueChart'), {
     }
 });
 
-// Premium Theme Toggle Integration
+// Theme toggle integration
 window.addEventListener('theme-changed', (e) => {
     const isDark = e.detail.theme === 'dark';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
     const textColor = isDark ? '#9ca3af' : '#475569';
     const borderColor = isDark ? '#111827' : '#ffffff';
 
-    // Update Trend Chart
     trendChartObj.options.plugins.legend.labels.color = textColor;
     trendChartObj.options.scales.y.grid.color = gridColor;
     trendChartObj.options.scales.y.ticks.color = textColor;
     trendChartObj.options.scales.x.ticks.color = textColor;
     trendChartObj.update();
 
-    // Update Expense Donut
     expenseChartObj.data.datasets[0].borderColor = borderColor;
     expenseChartObj.update();
 
-    // Update Revenue Donut
     revenueChartObj.data.datasets[0].borderColor = borderColor;
     revenueChartObj.update();
 });
-
-// Export mock logic
-function exportReport(type) {
-    if (typeof showToast === 'function') {
-        showToast('Report Generated', `Your reports have been successfully exported as ${type.toUpperCase()}.`, 'success');
-    } else {
-        alert(`Generating report in ${type.toUpperCase()} format...`);
-    }
-}
 </script>
 }

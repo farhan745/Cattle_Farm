@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.Models.Product>
+﻿@model IEnumerable<CattleFarm.Models.Product>
 @{
     ViewData["Title"] = "Products";
     int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
@@ -6,7 +6,7 @@
 }
 <div class="page-header">
     <div>
-        <h1 class="page-title">📦 Products &amp; Services</h1>
+        <h1 class="page-title">Products &amp; Services</h1>
         <p class="page-subtitle">Farm products, inventory, and marketplace listings</p>
     </div>
     <div class="page-actions">
@@ -36,7 +36,7 @@
 
 @if (!Model.Any())
 {
-    <div class="empty-state"><div class="empty-icon">📦</div><h3>No products found</h3></div>
+    <div class="empty-state"><div class="empty-icon"></div><h3>No products found</h3></div>
 }
 else
 {
@@ -48,7 +48,7 @@ else
                     @if (!string.IsNullOrEmpty(p.ImagePath)) { <img src="@p.ImagePath" alt="@p.Name" style="height:160px" /> }
                     else
                     {
-                        <span>@(p.Category switch { CattleFarm.Models.ProductCategory.Milk => "🥛", CattleFarm.Models.ProductCategory.Beef => "🥩", CattleFarm.Models.ProductCategory.Manure => "♻️", CattleFarm.Models.ProductCategory.BreedingService => "🐄", _ => "📦" })</span>
+                        <span>@(p.Category switch { CattleFarm.Models.ProductCategory.Milk => "", CattleFarm.Models.ProductCategory.Beef => "", CattleFarm.Models.ProductCategory.Manure => "", CattleFarm.Models.ProductCategory.BreedingService => "", _ => "" })</span>
                     }
                 </div>
                 <div class="cattle-card-body">
@@ -58,7 +58,7 @@ else
                             <div class="cattle-card-meta">@p.Farm?.Name</div>
                         </div>
                         <div>
-                            @if (p.IsFeatured) { <span class="badge badge-warning">⭐</span> }
+                            @if (p.IsFeatured) { <span class="badge badge-warning"></span> }
                             <span class="badge @(p.IsAvailable ? "badge-success" : "badge-gray")">@(p.IsAvailable ? "In Stock" : "Out")</span>
                         </div>
                     </div>
@@ -66,7 +66,7 @@ else
                         <div style="font-size:20px;font-weight:800;color:var(--primary)">@Currency.Format(p.Price)<span style="font-size:12px;font-weight:400;color:var(--text-muted)"> / @p.Unit</span></div>
                         <div style="font-size:12px;color:@(p.StockQuantity <= p.MinStockLevel ? "var(--danger)" : "var(--text-muted)")">
                             Stock: @p.StockQuantity @p.Unit
-                            @if (p.StockQuantity <= p.MinStockLevel) { <span>⚠ Low</span> }
+                            @if (p.StockQuantity <= p.MinStockLevel) { <span>Low</span> }
                         </div>
                     </div>
                 </div>

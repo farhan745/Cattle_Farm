@@ -10,5 +10,8 @@ namespace CattleFarm.Services.Interfaces
 
         /// <summary>Returns true if the file extension and MIME type are an allowed image type.</summary>
         bool IsValidImage(IFormFile? file);
+
+        /// <summary>Saves an image or PDF (e.g. prescription). Returns relative URL path.</summary>
+        Task<string?> SaveUploadAsync(IFormFile? file, string folder);
     }
 }

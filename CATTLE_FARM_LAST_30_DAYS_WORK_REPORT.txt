@@ -1,0 +1,205 @@
+================================================================================
+SMART CATTLE FARM MANAGEMENT SYSTEM - MONTHLY PROGRESS REPORT
+================================================================================
+Reporting Period: Last 30 Days (May 26, 2026 - June 26, 2026)
+Developer: Farhan
+Role: Full-Stack Developer / AI Systems Architect
+Status: Phase 1 & 2 Completed; Phase 3 In Progress
+================================================================================
+
+Dear Sir,
+
+Over the last 30 days, I have successfully designed, implemented, and refined a substantial set of industrial-grade features for the Smart Cattle Farm Management System. The codebase is built using C# (ASP.NET Core 10 MVC), Entity Framework Core 10, SQL Server, and a modern frontend interface powered by vanilla CSS, SignalR (real-time communication), and interactive charts (Chart.js / ApexCharts).
+
+Below is a detailed breakdown of all the tasks, components, and code architectures I have developed and integrated during the past month, followed by a guide on how to navigate to these features in the live web application.
+
+--------------------------------------------------------------------------------
+1. DATA MODEL COMPLETIONS & EF CORE MAPPINGS
+--------------------------------------------------------------------------------
+To support advanced tracking (weight logs, estrus cycles, and semen quality), I expanded the database schema:
+* Added Enums (Models/Enums.cs):
+  - CattleStatus.Transferred (to track sold, deceased, active, and transferred animals).
+  - CattleCategory (DairyCow, BeefCattle, Calf, Bull, Heifer, Other).
+  - HeatStatus (NotInHeat, InHeat, Confirmed, Uncertain).
+  - SemenQuality (Excellent, Good, Fair, Poor, Rejected).
+* Expanded Cattle Model (Models/Cattle.cs):
+  - Integrated CattleCategory, Origin (acquisition source), TransferredTo, TransferDate.
+  - Set up navigation collections for WeightRecords, HeatRecords, and BullPerformanceRecords.
+* Expanded MilkProduction Model (Models/MilkProduction.cs):
+  - Added Milk Quality metrics: FatPercentage, ProteinLevel, SolidNotFat, and QualityGrade (A, B, C) to log milk quality details.
+* Created WeightRecord Model (Models/WeightRecord.cs):
+  - Stores date, weight in kg, body condition score (BCS 1-9), notes, and recorded by user foreign keys.
+* Created HeatRecord Model (Models/HeatRecord.cs):
+  - Monitors estrus cycle: observation date, duration in hours, next expected heat date, observed by, and ready for breeding status.
+* Created BullPerformanceRecord Model (Models/BullPerformanceRecord.cs):
+  - Tracks sire reproduction metrics: evaluation date, motility %, morphology %, concentration, volume, doses collected, and cost.
+* Updated DB Context (Models/CattleFarmDbContext.cs):
+  - Registered WeightRecords, HeatRecords, and BullPerformanceRecords DbSets.
+  - Configured cascade delete behaviors using EF Core Fluent API (OnModelCreating) to protect data integrity (Restrict delete on Cattle-to-records).
+* Updated Unit of Work (UnitOfWork/):
+  - Registered generic repositories IRepository<T> for the new models to maintain clean separation of concerns.
+
+--------------------------------------------------------------------------------
+2. CONTROLLERS & SERVICE LAYER IMPLEMENTATIONS
+--------------------------------------------------------------------------------
+I developed the backing C# logic, authorization policies, and security gates:
+* CattleController (Controllers/CattleController.cs):
+  - Added Transfer actions (GET & POST) to process cattle relocation.
+  - Added CattleReport printable profile generation (HTML & PDF).
+  - Added WeightHistory & AddWeight endpoints to log weight changes dynamically.
+* HeatController (Controllers/HeatController.cs):
+  - Designed full CRUD operations for estrus cycle monitoring.
+  - Added a HeatCalendar endpoint to track ready-for-breeding animals and forecast next heat dates.
+* BullPerformanceController (Controllers/BullPerformanceController.cs):
+  - Implemented laboratory semen quality tracking endpoints for bulls.
+* MilkProductionController (Controllers/MilkProductionController.cs):
+  - Added TopProducers endpoint to rank cows based on their average daily yield.
+  - Added DropAlerts action to flag cows showing a sudden >20% yield drop.
+* FeedController (Controllers/FeedController.cs):
+  - Created CostPerLiter calculation joining feed consumption cost with daily milk yields.
+  - Created SeasonalRecommendations based on summer/winter feed adjustments.
+* FinancialController (Controllers/FinancialController.cs):
+  - Designed ProfitLoss endpoint (calculating net profits monthly).
+  - Designed RevenueBreakdown (calculates sales percentage by revenue source).
+* SmartMonitoringController (Controllers/SmartMonitoringController.cs):
+  - Wired real-time SignalR broadcasts for sensor readings, GPS snapshots, milk imports, and automated feeding commands.
+  - Added a LatestReadings API polling endpoint fallback.
+* Services & Notifications:
+  - Created ISmsService & SmsService (logging stub for automated SMS).
+  - Integrated SMS alert triggers within NotificationService.cs.
+  - Updated MilkService.cs to compute drop alerts (comparing recent 3-day average vs baseline 7-day average).
+  - Enhanced PdfService.cs (QuestPDF) to export detailed cattle category, origin, and transfer info.
+
+--------------------------------------------------------------------------------
+3. UI COMPONENTS & PREMIUM ANIMATIONS
+--------------------------------------------------------------------------------
+To deliver a premium UI/UX experience, I integrated advanced visual elements:
+* 9 Advanced Animation Features:
+  - 3D card flips (for cattle/farm profiles).
+  - Parallax tilt cards (interactive mouse hover depth).
+  - Custom cursor dot (fluid easing cursor follower).
+  - Spotlight overlay (radial glow following mouse pointer).
+  - Typewriter & Word Fade-In text reveals (scroll-triggered).
+  - Smooth page transitions (fade-in/out on click).
+  - Morphing SVG shapes (dynamic background blobs).
+  - Floating canvas particles (responsive background ambient movement).
+  - Microinteractions (checkbox bounce, validation shake, button ripples).
+  - Neumorphic widgets & buttons.
+  - Shimmer sweeps & glowing pulse animations.
+* 15 Premium UI Components:
+  - Glassmorphic panels (semi-transparent blur panels).
+  - Sliding carousels and device mockup frames (iPhone, Laptop, Tablet).
+  - Chat bubbles (sent/received with tails & timestamps).
+  - Bento layout grids, timelines, toast notifications, sortable tables, stats counters, and custom inputs (switches, ranges).
+
+--------------------------------------------------------------------------------
+4. WHERE TO VIEW THE COMPLETED FEATURES IN THE WEB APPLICATION
+--------------------------------------------------------------------------------
+Below are the exact URLs and steps to navigate and verify each of the new changes:
+
+1. **Cattle Transfer (Relocation Workflow)**
+   - **How to view**: Go to the Cattle List (`/Cattle`), click on a specific Cattle's details, and click "Transfer Cattle".
+   - **Direct URL**: `https://localhost:7170/Cattle/Transfer?id=[CattleId]` (replace [CattleId] with a valid animal ID).
+   - **What it shows**: A sleek form to select the target farm, set transfer date, and enter notes.
+
+2. **Cattle Body Weight Tracker & Growth Chart**
+   - **How to view**: Click the "Weight History" button from a Cattle's profile card or detailed view.
+   - **Direct URL**: `https://localhost:7170/Cattle/WeightHistory?cattleId=[CattleId]`
+   - **What it shows**: A beautiful interactive Chart.js growth line chart mapping weight gains over time, with a weight logging form.
+
+3. **Printable Cattle Profile Sheet (QuestPDF Export)**
+   - **How to view**: From any Cattle detailed view page, click the "Print Profile" or "Download PDF" button.
+   - **Direct URL**: `https://localhost:7170/Cattle/CattleReport?id=[CattleId]`
+   - **What it shows**: A formal printable page layout detailing breed, category, history, vaccinations, and health status.
+
+4. **Estrus Calendar & Heat Detection (Breeding)**
+   - **How to view**: From the sidebar menu, navigate to Breeding, then click "Estrus Calendar".
+   - **Direct URL**: `https://localhost:7170/Heat/HeatCalendar`
+   - **What it shows**: An estrus tracking calendar that highlights which cows are in heat, confirmed, or uncertain, forecasting breeding windows.
+
+5. **Bull Semen Quality & Sire Performance Logs**
+   - **How to view**: Under Breeding in the sidebar, navigate to "Bull Evaluation".
+   - **Direct URL**: `https://localhost:7170/BullPerformance`
+   - **What it shows**: Lab analysis records for motility, morphology, volume, doses collected, and evaluation cost details.
+
+6. **Top Milk Producers Ranking**
+   - **How to view**: Navigate to Milk Production (`/MilkProduction`) and click the "Top Producers" button at the top header.
+   - **Direct URL**: `https://localhost:7170/MilkProduction/TopProducers`
+   - **What it shows**: Table of cows ranked by average yield with interactive progress meters showing yield capacity.
+
+7. **Sudden Milk Yield Drop Alerts**
+   - **How to view**: Go to Milk Production (`/MilkProduction`) and click "Drop Alerts" at the top header.
+   - **Direct URL**: `https://localhost:7170/MilkProduction/DropAlerts`
+   - **What it shows**: Lists cows showing a >20% yield drop comparing recent 3-day averages to baseline 7-day averages.
+
+8. **Feed Cost Per Liter (Milk Production Analytics)**
+   - **How to view**: Navigate to Feed Management and select "Cost Analytics" or go directly to the URL.
+   - **Direct URL**: `https://localhost:7170/Feed/CostPerLiter`
+   - **What it shows**: Comparative analytics comparing daily feed purchase expenses with milk yields to display unit production cost.
+
+9. **Seasonal Feed Recommendations**
+   - **How to view**: Navigate to Feed Management, then select "Seasonal Advice".
+   - **Direct URL**: `https://localhost:7170/Feed/SeasonalRecommendations`
+   - **What it shows**: Interactive advisory cards suggesting winter, summer, and monsoon diet balances for heifers and dairy cows.
+
+10. **Financial Profit & Loss Reports**
+    - **How to view**: Go to Financials in the sidebar and select the "Profit & Loss" tab or URL.
+    - **Direct URL**: `https://localhost:7170/Financial/ProfitLoss`
+    - **What it shows**: Interactive dashboard detailing revenues, operational expenses, net profit, and profit margins.
+
+11. **Revenue Source Breakdown**
+    - **How to view**: Click "Revenue Breakdown" inside the Financials page.
+    - **Direct URL**: `https://localhost:7170/Financial/RevenueBreakdown`
+    - **What it shows**: Donut charts showing percentages of sales by category (Milk, Cattle, Crops, Services).
+
+12. **SignalR IoT Smart Monitoring Dashboard**
+    - **How to view**: Click "Smart Monitor" from the sidebar.
+    - **Direct URL**: `https://localhost:7170/SmartMonitoring`
+    - **What it shows**: Gauges and charts connected to active SignalR data, updating live temperatures, humidity, and pasture coordinates.
+
+13. **UI Components & Animations Showcase**
+    - **How to view**: Visit the dedicated test pages.
+    - **Direct URLs**:
+      - `https://localhost:7170/Home/AnimationTest` (Checks 3D card flips, parallax, spotlights, particles)
+      - `https://localhost:7170/Home/ComponentsTest` (Checks CSS-only pagination, mockups, grids, timelines)
+
+================================================================================
+SUMMARY OF BUILT FILES (LAST 30 DAYS):
+================================================================================
+* Models/WeightRecord.cs                       [NEW]
+* Models/HeatRecord.cs                         [NEW]
+* Models/BullPerformanceRecord.cs              [NEW]
+* Models/Enums.cs                              [MODIFIED]
+* Models/Cattle.cs                             [MODIFIED]
+* Models/MilkProduction.cs                     [MODIFIED]
+* Models/CattleFarmDbContext.cs                [MODIFIED]
+* UnitOfWork/IUnitOfWork.cs                    [MODIFIED]
+* UnitOfWork/UnitOfWork.cs                     [MODIFIED]
+* ViewModels/DomainViewModels.cs               [MODIFIED] (Added 5 new viewmodels)
+* Program.cs                                   [MODIFIED] (Registered SmsService)
+* Services/Interfaces/ISmsService.cs           [NEW]
+* Services/Implementations/SmsService.cs       [NEW]
+* Services/Interfaces/IMilkService.cs          [MODIFIED]
+* Services/Implementations/MilkService.cs      [MODIFIED]
+* Services/Implementations/NotificationService.cs [MODIFIED]
+* Services/Implementations/PdfService.cs       [MODIFIED]
+* Controllers/CattleController.cs              [MODIFIED]
+* Controllers/HeatController.cs                [NEW]
+* Controllers/BullPerformanceController.cs     [NEW]
+* Controllers/MilkProductionController.cs      [MODIFIED]
+* Controllers/FeedController.cs                [MODIFIED]
+* Controllers/FinancialController.cs           [MODIFIED]
+* Controllers/SmartMonitoringController.cs     [MODIFIED]
+
+* Views/Cattle/Edit.cshtml                     [NEW] (Standalone edit view)
+* Views/Cattle/Transfer.cshtml                 [NEW] (Cattle relocation)
+* Views/Cattle/WeightHistory.cshtml            [NEW] (Growth Chart.js & log)
+* Views/Cattle/CattleReport.cshtml             [NEW] (HTML printable sheet)
+* Views/Breeding/Edit.cshtml                   [NEW] (Standalone edit view)
+* Views/Breeding/HeatCalendar.cshtml           [NEW] (Estrus tracking board)
+* Views/BullPerformance/Index.cshtml           [NEW] (Bulls table list)
+* Views/BullPerformance/Create.cshtml          [NEW] (Bull evaluation form)
+================================================================================
+Thank you,
+Farhan
+================================================================================

@@ -38,9 +38,10 @@ namespace CattleFarm.Controllers
             return View(items);
         }
 
+        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public IActionResult CreateVehicle() => View("VehicleForm", new VehicleViewModel());
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> CreateVehicle(VehicleViewModel vm)
         {
             if (!ModelState.IsValid) return View("VehicleForm", vm);
@@ -49,6 +50,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Vehicles));
         }
 
+        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> EditVehicle(int id)
         {
             var v = await _transport.GetVehicleByIdAsync(id);
@@ -63,7 +65,7 @@ namespace CattleFarm.Controllers
             return View("VehicleForm", vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> EditVehicle(int id, VehicleViewModel vm)
         {
             if (!ModelState.IsValid) return View("VehicleForm", vm);
@@ -73,7 +75,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Vehicles));
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> DeleteVehicle(int id)
         {
             await _transport.DeleteVehicleAsync(id);
@@ -93,9 +95,10 @@ namespace CattleFarm.Controllers
             return View(items);
         }
 
+        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public IActionResult CreateDriver() => View("DriverForm", new DriverViewModel());
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> CreateDriver(DriverViewModel vm)
         {
             if (!ModelState.IsValid) return View("DriverForm", vm);
@@ -104,6 +107,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Drivers));
         }
 
+        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> EditDriver(int id)
         {
             var d = await _transport.GetDriverByIdAsync(id);
@@ -118,7 +122,7 @@ namespace CattleFarm.Controllers
             return View("DriverForm", vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> EditDriver(int id, DriverViewModel vm)
         {
             if (!ModelState.IsValid) return View("DriverForm", vm);
@@ -128,7 +132,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Drivers));
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> DeleteDriver(int id)
         {
             await _transport.DeleteDriverAsync(id);
@@ -136,7 +140,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Drivers));
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> AssignDriver(int driverId, int vehicleId)
         {
             await _transport.AssignDriverToVehicleAsync(driverId, vehicleId);
@@ -175,7 +179,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Requests));
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> ApproveRequest(int id)
         {
             await _transport.ApproveRequestAsync(id);
@@ -183,7 +187,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Requests));
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> CancelRequest(int id)
         {
             await _transport.CancelRequestAsync(id);
@@ -209,6 +213,7 @@ namespace CattleFarm.Controllers
             return View(trip);
         }
 
+        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> AssignTrip(int requestId)
         {
             var req      = await _transport.GetRequestByIdAsync(requestId);
@@ -238,7 +243,7 @@ namespace CattleFarm.Controllers
             return View(vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> AssignTrip(TripAssignViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -254,7 +259,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(TripDetails), new { id = trip.Id });
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> StartTrip(int id)
         {
             await _transport.StartTripAsync(id);
@@ -262,7 +267,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(TripDetails), new { id });
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> CompleteTrip(TripCompleteViewModel vm)
         {
             await _transport.CompleteTripAsync(vm.TripId, vm.ActualDistance,
@@ -271,7 +276,7 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(TripDetails), new { id = vm.TripId });
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> CancelTrip(int id, string? reason)
         {
             await _transport.CancelTripAsync(id, reason);

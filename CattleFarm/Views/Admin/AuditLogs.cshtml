@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.Models.AuditLog>
+﻿@model IEnumerable<CattleFarm.Models.AuditLog>
 @{
     ViewData["Title"] = "Audit Logs";
     int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
@@ -29,7 +29,7 @@
 <div class="card">
     <div class="table-wrapper">
         @if (!Model.Any())
-        { <div class="empty-state" style="padding:40px"><div class="empty-icon">📋</div><h3>No audit logs</h3></div> }
+        { <div class="empty-state" style="padding:40px"><div class="empty-icon"></div><h3>No audit logs</h3></div> }
         else
         {
             <table class="data-table">

@@ -1,0 +1,611 @@
+@model CattleFarm.ViewModels.CattleSellViewModel
+@{
+    ViewData["Title"] = $"Sell — {Model.CattleName}";
+    var isListed = Model.IsListedForSale;
+}
+
+@* ─── Page Styles ─────────────────────────────────────────────────── *@
+<style>
+    .sell-grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+    .price-pill { background: linear-gradient(135deg,#1e3a5f,#2563eb); color:#fff; border-radius:16px; padding:24px; text-align:center; }
+    .price-pill .label { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; opacity:.75; margin-bottom:4px; }
+    .price-pill .amount { font-size:36px; font-weight:800; letter-spacing:-1px; }
+    .breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .breakdown-row:last-child { border-bottom:none; }
+    .breakdown-label { color:var(--text-muted); }
+    .breakdown-value { font-weight:600; }
+    .total-row { background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(37,99,235,.04)); border-radius:10px; padding:14px 16px; margin-top:8px; }
+    .sell-confirm-btn { background:linear-gradient(135deg,#16a34a,#15803d); color:#fff; border:none; padding:14px 32px; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer; width:100%; transition:all .2s; }
+    .sell-confirm-btn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(22,163,74,.35); }
+    .list-btn { background:linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; border:none; padding:14px 32px; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer; width:100%; transition:all .2s; }
+    .list-btn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(37,99,235,.35); }
+    .category-badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; letter-spacing:.5px; }
+    .cat-Feed       { background:rgba(245,158,11,.15); color:#d97706; }
+    .cat-Medicine   { background:rgba(239,68,68,.15);  color:#dc2626; }
+    .cat-Veterinary { background:rgba(139,92,246,.15); color:#7c3aed; }
+    .cat-Transport  { background:rgba(59,130,246,.15); color:#2563eb; }
+    .cat-Labor      { background:rgba(16,185,129,.15); color:#059669; }
+    .cat-Other      { background:rgba(107,114,128,.15);color:#4b5563; }
+    .profit-input-wrap { position:relative; }
+    .profit-input-wrap input { padding-right: 56px; }
+    .profit-input-wrap .currency-badge { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:11px; color:var(--text-muted); font-weight:700; background:var(--bg); padding:2px 6px; border-radius:4px; }
+    .step-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+    .step-listed   { background:rgba(37,99,235,.12); color:#2563eb; border:1px solid rgba(37,99,235,.25); }
+    .step-unlisted { background:rgba(107,114,128,.1); color:var(--text-muted); border:1px solid var(--border); }
+    .listed-banner { background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.05)); border:1px solid rgba(37,99,235,.25); border-radius:12px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; gap:14px; }
+    @@media (max-width:768px) { .sell-grid { grid-template-columns:1fr; } }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Sell Cattle</h1>
+        <p class="page-subtitle">Manage sale listing and confirm when sold</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Cattle/Details/@Model.CattleId" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Details</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" style="margin-bottom:16px">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" style="margin-bottom:16px">@TempData["ErrorMessage"]</div>
+}
+
+@* ─── Status Banner ─────────────────────────────────────────────────── *@
+@if (isListed)
+{
+    <div class="listed-banner">
+        <i class="bi bi-tag-fill" style="font-size:28px;color:#2563eb"></i>
+        <div style="flex:1">
+            <div style="font-weight:700;font-size:15px;color:#2563eb">Listed on Marketplace</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:2px">
+                This cattle is currently listed for sale at
+                <strong style="color:#2563eb">@(Model.SalePrice > 0 ? Model.SalePrice.Value.ToString("N0") + " BDT" : "—")</strong>.
+                Buyers can see it in the Marketplace.
+                Once a buyer is confirmed, click <strong>Confirm Sale</strong> to mark it as Sold.
+            </div>
+        </div>
+        <a href="/Cattle/Marketplace" class="btn btn-outline btn-sm" target="_blank">
+            <i class="bi bi-shop"></i> View Marketplace
+        </a>
+    </div>
+}
+else
+{
+    <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <i class="bi bi-exclamation-triangle-fill" style="font-size:22px;color:#d97706"></i>
+        <div style="font-size:13px;color:var(--text-muted)">
+            This cattle is <strong>not yet listed</strong> on the Marketplace.
+            Use the <strong>List for Sale</strong> form below to set a price and list it.
+            After listing, come back here and click <strong>Confirm Sale</strong> once the sale is complete.
+        </div>
+    </div>
+}
+
+<div class="sell-grid">
+    @* ─── LEFT COLUMN: Cattle Info + Price Summary ─────────────── *@
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+        @* Cattle Info Card *@
+        <div class="card">
+            <div style="width:100%;height:200px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:64px;border-radius:10px 10px 0 0">
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                { <img src="@Model.ImagePath" alt="@Model.CattleName" style="width:100%;height:200px;object-fit:cover" /> }
+                else { <i class="bi bi-cow" style="font-size:64px;color:var(--text-muted)"></i> }
+            </div>
+            <div class="card-body">
+                <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">@Model.CattleName</h3>
+                <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Tag: @Model.TagId &bull; @Model.Breed &bull; @Model.FarmName</p>
+                <div style="margin-bottom:10px">
+                    @if (isListed)
+                    {
+                        <span class="step-badge step-listed"><i class="bi bi-tag-fill"></i> Listed for Sale</span>
+                        @if (Model.IsPremiumListing) { <span class="badge badge-warning" style="margin-left:6px">Premium</span> }
+                    }
+                    else
+                    {
+                        <span class="step-badge step-unlisted"><i class="bi bi-dash-circle"></i> Not Listed</span>
+                    }
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+                    <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+                        <div style="color:var(--text-muted);font-size:10px;letter-spacing:1px">BUY PRICE</div>
+                        <div style="font-weight:700;font-size:15px;color:var(--text)">@Model.PurchasePrice.ToString("N0") BDT</div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+                        <div style="color:var(--text-muted);font-size:10px;letter-spacing:1px">TOTAL COSTS</div>
+                        <div id="totalCostDisplay" style="font-weight:700;font-size:15px;color:#ef4444">@Model.TotalCostAmount.ToString("N0") BDT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Live Price Calculator *@
+        <div class="card">
+            <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+                <h3 style="font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Price Breakdown</h3>
+
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Purchase Price</span>
+                    <span class="breakdown-value">@Model.PurchasePrice.ToString("N0") BDT</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Total Expenses</span>
+                    <span class="breakdown-value" id="expTotal" style="color:#ef4444">@Model.TotalCostAmount.ToString("N0") BDT</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Desired Profit</span>
+                    <span class="breakdown-value" id="profitDisplay" style="color:#16a34a">0 BDT</span>
+                </div>
+                <div class="total-row">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <span style="font-weight:700;font-size:14px">Suggested Sell Price</span>
+                        <span id="sellPriceDisplay" style="font-weight:800;font-size:22px;color:#2563eb">@Model.PurchasePrice.ToString("N0") BDT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* ─── RIGHT COLUMN: Expenses + Forms ────────────────────────── *@
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        @* ── Expense List ── *@
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Per-Cattle Expenses</h3>
+                <span class="badge badge-gray">@Model.CattleExpenses.Count items</span>
+            </div>
+            <div class="card-body" style="padding:0">
+                @if (!Model.CattleExpenses.Any())
+                {
+                    <div class="empty-state" style="padding:30px">
+                        <div class="empty-icon"></div>
+                        <p>No expenses yet. Add feed, medicine, or vet costs below.</p>
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th style="text-align:right">Amount (BDT)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var exp in Model.CattleExpenses)
+                            {
+                                <tr>
+                                    <td><span class="category-badge cat-@exp.Category">@exp.Category</span></td>
+                                    <td style="color:var(--text-muted);font-size:13px">@(exp.Description ?? "—")</td>
+                                    <td style="font-size:12px;color:var(--text-muted)">@exp.Date.ToString("MMM dd, yyyy")</td>
+                                    <td style="text-align:right;font-weight:600">@exp.Amount.ToString("N0")</td>
+                                    <td>
+                                        <form asp-action="DeleteCattleExpense" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@exp.Id" />
+                                            <input type="hidden" name="cattleId" value="@Model.CattleId" />
+                                            <input type="hidden" name="returnUrl" value="/Cattle/SellCattle/@Model.CattleId" />
+                                            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger)"
+                                                    onclick="return confirm('Remove this expense?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:var(--bg)">
+                                <td colspan="3" style="font-weight:700;padding:12px 16px">Total Expenses</td>
+                                <td style="text-align:right;font-weight:800;font-size:16px;color:#ef4444;padding:12px 16px">
+                                    @Model.TotalCostAmount.ToString("N0") BDT
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+            </div>
+
+            @* Add Expense Form *@
+            <div style="border-top:1px solid var(--border);padding:16px">
+                <p style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text-muted)">Add New Expense</p>
+                <form asp-action="AddCattleExpense" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="CattleId" value="@Model.CattleId" />
+                    <input type="hidden" name="returnUrl" value="/Cattle/SellCattle/@Model.CattleId" />
+                    <div style="display:grid;grid-template-columns:140px 1fr 130px 120px auto;gap:10px;align-items:end">
+                        <div>
+                            <label class="form-label" style="font-size:11px">Category</label>
+                            <select name="Category" class="form-control" style="font-size:13px">
+                                @foreach (var cat in Enum.GetValues<CattleFarm.Models.CattleExpenseCategory>())
+                                {
+                                    <option value="@cat">@cat</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size:11px">Description</label>
+                            <input name="Description" class="form-control" placeholder="e.g. Monthly feed - June" style="font-size:13px" maxlength="500" />
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size:11px">Amount (BDT)</label>
+                            <input name="Amount" type="number" min="1" step="0.01" class="form-control" placeholder="0" required style="font-size:13px" />
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size:11px">Date</label>
+                            <input name="Date" type="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="font-size:13px" />
+                        </div>
+                        <div style="padding-top:20px">
+                            <button type="submit" class="btn btn-primary" style="white-space:nowrap">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* ──────────────────────────────────────────────────────────────────── *@
+        @* STEP 1: List for Sale — shown if NOT yet listed                      *@
+        @* ──────────────────────────────────────────────────────────────────── *@
+        @if (!isListed)
+        {
+            <div class="card" style="border:2px solid rgba(37,99,235,.2)">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(37,99,235,.03))">
+                    <h3 class="card-title" style="color:#2563eb">
+                        <i class="bi bi-tag-fill"></i> Step 1 — List on Marketplace
+                    </h3>
+                    <span class="step-badge step-unlisted">Not Listed</span>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+                        Set the sale price and list this cattle on the Marketplace.
+                        Buyers will be able to view and purchase it.
+                        Once the sale is complete, come back here and use <strong>Step 2 — Confirm Sale</strong>.
+                    </p>
+
+                    <form asp-action="ListForSale" method="post" id="listForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="cattleId" value="@Model.CattleId" />
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+                            <div>
+                                <label class="form-label" style="font-size:13px;font-weight:600">Listing Price (BDT)</label>
+                                <div class="profit-input-wrap">
+                                    <input type="number" id="sellPriceInput" name="salePrice"
+                                           class="form-control" step="0.01" placeholder="0"
+                                           value="@Model.PurchasePrice"
+                                           style="font-size:18px;font-weight:700;height:52px"
+                                           oninput="recalculateFromPrice()" required />
+                                    <span class="currency-badge">BDT</span>
+                                </div>
+                                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">This price will be displayed on the Marketplace.</p>
+                            </div>
+
+                            <div>
+                                <label class="form-label" style="font-size:13px;font-weight:600">Desired Profit / Loss (BDT)</label>
+                                <div class="profit-input-wrap">
+                                    <input type="number" id="profitInput"
+                                           class="form-control" step="0.01" placeholder="0"
+                                           value="0"
+                                           style="font-size:18px;font-weight:700;height:52px"
+                                           oninput="recalculateFromProfit()" />
+                                    <span class="currency-badge">BDT</span>
+                                </div>
+                                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Negative value = selling at a loss.</p>
+                            </div>
+
+                            <div style="grid-column:1/-1">
+                                <div class="price-pill">
+                                    <div class="label">Marketplace Listing Price</div>
+                                    <div id="bigSellPrice" class="amount">@Model.PurchasePrice.ToString("N0") BDT</div>
+                                    <div style="font-size:12px;opacity:.7;margin-top:6px">
+                                        Buy (<span id="bp">@Model.PurchasePrice.ToString("N0")</span> BDT)
+                                        + Costs (<span id="tc">@Model.TotalCostAmount.ToString("N0")</span> BDT)
+                                        + Profit (<span id="pp">0</span> BDT)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="grid-column:1/-1">
+                                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:8px">
+                                    <input type="checkbox" name="isPremium" value="true" style="width:18px;height:18px;accent-color:#d97706" />
+                                    <div>
+                                        <div style="font-weight:600;font-size:14px;color:#d97706"><i class="bi bi-star-fill"></i> Premium Listing</div>
+                                        <div style="font-size:12px;color:var(--text-muted)">Highlight this listing on the Marketplace for better visibility.</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="button" class="list-btn" onclick="openListModal()">
+                            <i class="bi bi-tag-fill"></i> List on Marketplace
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card" style="border:2px solid rgba(37,99,235,.2)">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(37,99,235,.03))">
+                    <h3 class="card-title" style="color:#2563eb">
+                        <i class="bi bi-tag-fill"></i> Step 1 — Listed on Marketplace
+                    </h3>
+                    <span class="step-badge step-listed"><i class="bi bi-check-circle-fill"></i> Active</span>
+                </div>
+                <div class="card-body">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--bg);border-radius:10px;margin-bottom:16px">
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px">LISTED PRICE</div>
+                            <div style="font-size:28px;font-weight:800;color:#2563eb">
+                                @(Model.SalePrice > 0 ? Model.SalePrice.Value.ToString("N0") : "—") BDT
+                            </div>
+                        </div>
+                        @if (Model.IsPremiumListing)
+                        {
+                            <span class="badge badge-warning" style="font-size:13px;padding:6px 14px"><i class="bi bi-star-fill"></i> Premium</span>
+                        }
+                    </div>
+                    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+                        This cattle is visible to buyers on the Marketplace.
+                        To change the price, remove the listing and re-list with the new price.
+                    </p>
+                    <div style="display:flex;gap:10px">
+                        <form asp-action="RemoveFromMarketplace" method="post" style="flex:1"
+                              onsubmit="return confirm('Remove this cattle from the Marketplace?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="cattleId" value="@Model.CattleId" />
+                            <button type="submit" class="btn btn-outline w-100" style="color:var(--danger);border-color:var(--danger)">
+                                <i class="bi bi-x-circle"></i> Remove from Marketplace
+                            </button>
+                        </form>
+                        <a href="/Cattle/Marketplace" target="_blank" class="btn btn-outline" style="flex:1;text-align:center">
+                            <i class="bi bi-shop"></i> View Listing
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* ──────────────────────────────────────────────────────────────────── *@
+        @* STEP 2: Confirm Sale — only shown when cattle is listed              *@
+        @* ──────────────────────────────────────────────────────────────────── *@
+        @if (isListed)
+        {
+            <div class="card" style="border:2px solid rgba(22,163,74,.2)">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(22,163,74,.03))">
+                    <h3 class="card-title" style="color:#16a34a">
+                        <i class="bi bi-check-circle-fill"></i> Step 2 — Confirm Sale
+                    </h3>
+                    <span class="step-badge" style="background:rgba(22,163,74,.12);color:#16a34a;border:1px solid rgba(22,163,74,.25)">Mark as Sold</span>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">
+                        Fill in the sale details once the transaction is finalised.
+                        This will permanently mark the cattle as <strong>Sold</strong> and record the revenue.
+                    </p>
+
+                    <form asp-action="ConfirmSale" method="post" id="sellForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="CattleId" value="@Model.CattleId" />
+                        <input type="hidden" name="PurchasePrice" value="@Model.PurchasePrice" />
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+                            <div style="grid-column:1/-1">
+                                <label class="form-label" style="font-size:13px;font-weight:600">
+                                    Profit / Loss on this Sale (BDT)
+                                </label>
+                                <div class="profit-input-wrap">
+                                    <input type="number" id="confirmProfitInput" name="DesiredProfit"
+                                           class="form-control" step="0.01" placeholder="0"
+                                           value="@((Model.SalePrice ?? Model.PurchasePrice + Model.TotalCostAmount) - Model.PurchasePrice - Model.TotalCostAmount)"
+                                           style="font-size:20px;font-weight:700;height:56px"
+                                           oninput="recalculateConfirmPrice()" />
+                                    <span class="currency-badge">BDT</span>
+                                </div>
+                                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">
+                                    Enter the actual profit or loss. Negative value = sold at a loss.
+                                </p>
+                                <div style="margin-top:10px;padding:12px 16px;background:linear-gradient(135deg,rgba(22,163,74,.1),rgba(22,163,74,.05));border-radius:10px;display:flex;justify-content:space-between;align-items:center">
+                                    <span style="font-weight:700;font-size:14px">Final Sale Price</span>
+                                    <span id="confirmSellDisplay" style="font-weight:800;font-size:24px;color:#16a34a">
+                                        @((Model.SalePrice ?? Model.PurchasePrice + Model.TotalCostAmount).ToString("N0")) BDT
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Sale Date</label>
+                                <input type="date" name="SaleDate" class="form-control"
+                                       value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                            </div>
+
+                            <div>
+                                <label class="form-label">Buyer Name <span style="color:var(--text-muted);font-weight:400">(Optional)</span></label>
+                                <input type="text" name="BuyerName" class="form-control"
+                                       placeholder="e.g. John Smith" maxlength="200" />
+                            </div>
+
+                            <div>
+                                <label class="form-label">Buyer Phone <span style="color:var(--text-muted);font-weight:400">(Optional)</span></label>
+                                <input type="tel" name="BuyerPhone" class="form-control"
+                                       placeholder="01XXXXXXXXX" maxlength="20" />
+                            </div>
+
+                            <div>
+                                <label class="form-label">Notes <span style="color:var(--text-muted);font-weight:400">(Optional)</span></label>
+                                <input type="text" name="Notes" class="form-control"
+                                       placeholder="Any additional notes..." maxlength="1000" />
+                            </div>
+
+                        </div>
+
+                        <button type="button" class="sell-confirm-btn" onclick="openSellModal()">
+                            <i class="bi bi-check-circle-fill"></i> Confirm Sale &amp; Mark as Sold
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card" style="opacity:.5;pointer-events:none">
+                <div class="card-header">
+                    <h3 class="card-title" style="color:var(--text-muted)">
+                        <i class="bi bi-lock-fill"></i> Step 2 — Confirm Sale
+                    </h3>
+                    <span class="step-badge step-unlisted">Locked</span>
+                </div>
+                <div class="card-body" style="text-align:center;padding:32px;color:var(--text-muted)">
+                    <i class="bi bi-lock-fill" style="font-size:40px;margin-bottom:12px;display:block"></i>
+                    <p style="font-size:14px">Complete Step 1 first — list this cattle on the Marketplace to unlock this section.</p>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@* ─── List on Marketplace Confirm Modal ──────────────────────────────── *@
+<div id="listModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:var(--card-bg);border-radius:16px;padding:32px;max-width:440px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+        <i class="bi bi-tag-fill" style="font-size:36px;color:#2563eb;margin-bottom:12px;display:block"></i>
+        <h3 style="font-size:20px;font-weight:700;margin-bottom:8px">List on Marketplace?</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px">
+            <strong>@Model.CattleName</strong> (Tag: @Model.TagId) will be listed at<br>
+            <strong id="listConfirmPrice" style="font-size:22px;color:#2563eb">— BDT</strong><br>
+            <span style="font-size:12px;color:var(--text-muted)">Buyers on the Marketplace will be able to see and purchase this cattle.</span>
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center">
+            <button type="button" onclick="closeListModal()" class="btn btn-outline" style="flex:1">Cancel</button>
+            <button type="button" onclick="document.getElementById('listForm').submit()" class="btn btn-primary" style="flex:1">
+                <i class="bi bi-tag-fill"></i> Yes, List It
+            </button>
+        </div>
+    </div>
+</div>
+
+@* ─── Confirm Sale Modal ──────────────────────────────────────────────── *@
+@if (isListed)
+{
+    <div id="sellModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+        <div style="background:var(--card-bg);border-radius:16px;padding:32px;max-width:440px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+            <i class="bi bi-check-circle-fill" style="font-size:36px;color:#16a34a;margin-bottom:12px;display:block"></i>
+            <h3 style="font-size:20px;font-weight:700;margin-bottom:8px">Confirm Sale?</h3>
+            <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px">
+                <strong>@Model.CattleName</strong> (Tag: @Model.TagId) — finalise sale at<br>
+                <strong id="confirmPrice" style="font-size:22px;color:#16a34a">— BDT</strong><br>
+                <span style="font-size:12px;color:var(--danger)"><i class="bi bi-exclamation-triangle-fill"></i> This action cannot be undone. The cattle will be permanently marked as Sold.</span>
+            </p>
+            <div style="display:flex;gap:12px;justify-content:center">
+                <button type="button" onclick="closeSellModal()" class="btn btn-outline" style="flex:1">Cancel</button>
+                <button type="button" onclick="document.getElementById('sellForm').submit()"
+                        class="btn btn-primary" style="flex:1;background:#16a34a;border-color:#16a34a">
+                    <i class="bi bi-check-circle-fill"></i> Yes, Mark as Sold
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    // Constants from server
+    const buyPrice    = @Model.PurchasePrice;
+    const totalCosts  = @Model.TotalCostAmount;
+    const totalInvest = buyPrice + totalCosts;
+
+    const fmt = v => {
+        const sign = v < 0 ? '-' : '';
+        return sign + new Intl.NumberFormat('en-US').format(Math.abs(Math.round(v)));
+    };
+
+    // ── Step 1 calculators (List for Sale) ───────────────────────────────────
+    function syncDisplays(profit, sellPrice) {
+        const profitColor = profit >= 0 ? '#16a34a' : '#dc2626';
+        const profEl = document.getElementById('profitDisplay');
+        if (profEl) { profEl.textContent = fmt(profit) + ' BDT'; profEl.style.color = profitColor; }
+        const spEl = document.getElementById('sellPriceDisplay');
+        if (spEl) spEl.textContent = fmt(sellPrice) + ' BDT';
+        const bsEl = document.getElementById('bigSellPrice');
+        if (bsEl) bsEl.textContent = fmt(sellPrice) + ' BDT';
+        const ppEl = document.getElementById('pp');
+        if (ppEl) ppEl.textContent = fmt(profit);
+        const lcpEl = document.getElementById('listConfirmPrice');
+        if (lcpEl) lcpEl.textContent = fmt(sellPrice) + ' BDT';
+    }
+
+    function recalculateFromProfit() {
+        const profit    = parseFloat(document.getElementById('profitInput')?.value) || 0;
+        const sellPrice = totalInvest + profit;
+        const spi = document.getElementById('sellPriceInput');
+        if (spi) spi.value = sellPrice.toFixed(2);
+        syncDisplays(profit, sellPrice);
+    }
+
+    function recalculateFromPrice() {
+        const sellPrice = parseFloat(document.getElementById('sellPriceInput')?.value) || 0;
+        const profit    = sellPrice - totalInvest;
+        const pi = document.getElementById('profitInput');
+        if (pi) pi.value = profit.toFixed(2);
+        syncDisplays(profit, sellPrice);
+    }
+
+    // ── Step 2 calculator (Confirm Sale) ─────────────────────────────────────
+    function recalculateConfirmPrice() {
+        const input = document.getElementById('confirmProfitInput');
+        if (!input) return;
+        const profit    = parseFloat(input.value) || 0;
+        const sellPrice = totalInvest + profit;
+        const el = document.getElementById('confirmSellDisplay');
+        if (el) {
+            el.textContent = fmt(sellPrice) + ' BDT';
+            el.style.color = sellPrice >= totalInvest ? '#16a34a' : '#dc2626';
+        }
+        const cp = document.getElementById('confirmPrice');
+        if (cp) cp.textContent = fmt(sellPrice) + ' BDT';
+    }
+
+    // ── Modal helpers ─────────────────────────────────────────────────────────
+    function openListModal() {
+        recalculateFromProfit();
+        document.getElementById('listModal').style.display = 'flex';
+    }
+    function closeListModal() {
+        document.getElementById('listModal').style.display = 'none';
+    }
+    function openSellModal() {
+        recalculateConfirmPrice();
+        const m = document.getElementById('sellModal');
+        if (m) m.style.display = 'flex';
+    }
+    function closeSellModal() {
+        const m = document.getElementById('sellModal');
+        if (m) m.style.display = 'none';
+    }
+
+    // Close modals on backdrop click
+    ['listModal', 'sellModal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
+    });
+
+    // Init on load
+    recalculateFromProfit();
+    recalculateConfirmPrice();
+</script>
+}

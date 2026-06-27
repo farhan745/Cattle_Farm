@@ -1,11 +1,11 @@
-@model CattleFarm.ViewModels.AttendanceEditViewModel
+﻿@model CattleFarm.ViewModels.AttendanceEditViewModel
 @{
     ViewData["Title"] = "Edit Attendance";
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">✏️ Edit Attendance</h1>
+        <h1 class="page-title">Edit Attendance</h1>
         <p class="page-subtitle">Update the attendance record for this worker</p>
     </div>
     <a href="/Attendance" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Records</a>
@@ -20,7 +20,7 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">📋 Attendance Details</h3>
+                <h3 class="card-title">Attendance Details</h3>
             </div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:18px">
 
@@ -42,8 +42,8 @@
                     <select asp-for="Status" class="form-control" id="editStatusSelect"
                             onchange="updateStatusStyle(this)">
                         @{var raw = Model.Notes ?? Model.Status.ToString();}
-                        <option value="Present" selected="@(raw == "Present" ? "selected" : null)">✔ Present</option>
-                        <option value="Absent"  selected="@(raw == "Absent"  ? "selected" : null)">✘ Absent</option>
+                        <option value="Present" selected="@(raw == "Present" ? "selected" : null)">Present</option>
+                        <option value="Absent"  selected="@(raw == "Absent"  ? "selected" : null)">Absent</option>
                         <option value="Late"    selected="@(raw == "Late"    ? "selected" : null)">⏱ Late</option>
                     </select>
                     <span asp-validation-for="Status" class="form-error"></span>

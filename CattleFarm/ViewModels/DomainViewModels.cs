@@ -51,6 +51,7 @@ namespace CattleFarm.ViewModels
         public double Weight { get; set; }
 
         public Gender       Gender       { get; set; } = Gender.Female;
+        public CattleCategory Category   { get; set; } = CattleCategory.DairyCow;
         public HealthStatus HealthStatus { get; set; } = HealthStatus.Healthy;
         public CattleStatus Status       { get; set; } = CattleStatus.Active;
 
@@ -63,6 +64,9 @@ namespace CattleFarm.ViewModels
 
         [StringLength(2000)]
         public string? Description  { get; set; }
+
+        [StringLength(200)]
+        public string? Origin { get; set; }
 
         public bool IsListedForSale  { get; set; } = false;
         public bool IsPremiumListing { get; set; } = false;
@@ -125,13 +129,91 @@ namespace CattleFarm.ViewModels
 
         public decimal ConsultationFee { get; set; }
         public bool    IsAvailable     { get; set; } = true;
-        public int?    FarmId          { get; set; }
 
         [StringLength(1000)]
         public string? Notes { get; set; }
 
         public IFormFile? ImageFile { get; set; }
         public string?   ExistingImagePath { get; set; }
+    }
+
+    public class DoctorSelfRegisterVM
+    {
+        [Required, StringLength(200)]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required, EmailAddress, StringLength(200)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, StringLength(100, MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
+
+        [Required, Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Profile photo is required")]
+        [DataType(DataType.Upload)]
+        public IFormFile ProfilePhoto { get; set; } = null!;
+
+        [Required, StringLength(20)]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required, StringLength(200)]
+        public string Specialization { get; set; } = string.Empty;
+
+        [Required, Range(0.01, 100000)]
+        public decimal ConsultationFee { get; set; }
+
+        [Required, StringLength(500)]
+        public string AvailableTimeSlot { get; set; } = string.Empty;
+
+        [Required, Range(0, 60)]
+        public int YearsOfExperience { get; set; }
+
+        [StringLength(100)]
+        public string? LicenseNumber { get; set; }
+    }
+
+    public class CattleMedicalRecordViewModel
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public int CattleId { get; set; }
+
+        [Required]
+        public DateTime ExaminationDate { get; set; } = DateTime.Today;
+
+        [Required, StringLength(2000)]
+        public string ChiefComplaint { get; set; } = string.Empty;
+
+        [Required, StringLength(2000)]
+        public string Diagnosis { get; set; } = string.Empty;
+
+        [StringLength(2000)]
+        public string? Prescription { get; set; }
+
+        [StringLength(200)]
+        public string? MedicineName { get; set; }
+
+        [StringLength(100)]
+        public string? MedicineDose { get; set; }
+
+        [StringLength(100)]
+        public string? DoseFrequency { get; set; }
+
+        [Range(0, 365)]
+        public int DoseDurationDays { get; set; }
+
+        public DateTime? NextVisitDate { get; set; }
+
+        [StringLength(2000)]
+        public string? Notes { get; set; }
+
+        public string? CattleName { get; set; }
+        public string? CattleTagId { get; set; }
     }
 
     public class HealthRecordViewModel
@@ -174,6 +256,18 @@ namespace CattleFarm.ViewModels
         [Range(0,200)] public double MorningYieldLiters { get; set; }
         [Range(0,200)] public double EveningYieldLiters { get; set; }
         [StringLength(500)] public string? Notes        { get; set; }
+
+        [Range(0, 10)]
+        public decimal? FatPercentage { get; set; }
+
+        [Range(0, 10)]
+        public decimal? ProteinLevel { get; set; }
+
+        [Range(0, 20)]
+        public decimal? SolidNotFat { get; set; }
+
+        [StringLength(50)]
+        public string? MilkQualityGrade { get; set; }
     }
 
     public class ProductViewModel
@@ -242,6 +336,14 @@ namespace CattleFarm.ViewModels
         [Required] public DateTime ScheduledAt { get; set; }
         [Required, StringLength(500)] public string Reason { get; set; } = string.Empty;
         [StringLength(2000)] public string? Notes { get; set; }
+    }
+
+    public class CompleteAppointmentViewModel
+    {
+        public int Id { get; set; }
+        [StringLength(2000)] public string? CompletionNotes { get; set; }
+        [Required] public IFormFile? EvidenceFile { get; set; }
+        [Required] public IFormFile? PrescriptionFile { get; set; }
     }
 
     public class BreedingViewModel
@@ -393,6 +495,66 @@ namespace CattleFarm.ViewModels
         public int           TotalOrders    { get; set; }
         public decimal       TotalSpent     { get; set; }
         public List<Product> FeaturedProducts { get; set; } = new();
+    }
+
+    // ── Cattle Sell ViewModels ───────────────────────────────────────────────────
+    public class CattleExpenseViewModel
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public int CattleId { get; set; }
+
+        [Required]
+        public CattleExpenseCategory Category { get; set; } = CattleExpenseCategory.Other;
+
+        [Required, Range(1, 10_000_000, ErrorMessage = "Amount must be greater than 0")]
+        public decimal Amount { get; set; }
+
+        [Required]
+        public DateTime Date { get; set; } = DateTime.Today;
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+    }
+
+    public class CattleSellViewModel
+    {
+        // Cattle info (display only)
+        public int     CattleId       { get; set; }
+        public string  CattleName     { get; set; } = string.Empty;
+        public string  TagId          { get; set; } = string.Empty;
+        public string  Breed          { get; set; } = string.Empty;
+        public string? ImagePath      { get; set; }
+        public string? FarmName       { get; set; }
+        public bool    IsListedForSale  { get; set; }
+        public bool    IsPremiumListing { get; set; }
+
+        // Financial breakdown
+        public decimal  PurchasePrice    { get; set; }
+        public decimal? SalePrice        { get; set; }   // current marketplace listing price
+        public decimal  TotalCostAmount  { get; set; }   // sum of all CattleExpenses
+        public decimal  DesiredProfit    { get; set; }
+        public decimal  CalculatedSellPrice => PurchasePrice + TotalCostAmount + DesiredProfit;
+
+        // Existing expenses for this cattle
+        public List<CattleExpense> CattleExpenses { get; set; } = new();
+
+        // Form for adding a new expense inline
+        public CattleExpenseViewModel NewExpense { get; set; } = new();
+
+        // Sale details
+        [Required]
+        public DateTime SaleDate { get; set; } = DateTime.Today;
+
+        [StringLength(200)]
+        public string? BuyerName  { get; set; }
+
+        [StringLength(20)]
+        public string? BuyerPhone { get; set; }
+
+        [StringLength(1000)]
+        public string? Notes { get; set; }
     }
 }
 
@@ -592,5 +754,86 @@ namespace CattleFarm.ViewModels
         public decimal TotalKm    { get; set; }
         public decimal Rating     { get; set; }
     }
-}
 
+    public class CattleTransferViewModel
+    {
+        [Required]
+        public int CattleId { get; set; }
+
+        public string? CattleName { get; set; }
+        public string? TagId { get; set; }
+
+        [Required(ErrorMessage = "Transfer location/destination is required")]
+        [StringLength(200)]
+        [Display(Name = "Transferred To")]
+        public string TransferredTo { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Transfer Date")]
+        public DateTime TransferDate { get; set; } = DateTime.Today;
+    }
+
+    public class TopProducerItemViewModel
+    {
+        public int CattleId { get; set; }
+        public string TagId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Breed { get; set; } = string.Empty;
+        public HealthStatus HealthStatus { get; set; }
+        public double TotalLiters { get; set; }
+        public double AverageLiters { get; set; }
+        public int RecordCount { get; set; }
+    }
+
+    public class MilkDropAlertViewModel
+    {
+        public int CattleId { get; set; }
+        public string TagId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Breed { get; set; } = string.Empty;
+        public decimal BaselineAverage { get; set; }
+        public decimal RecentAverage { get; set; }
+        public decimal DropPercentage { get; set; }
+        public DateTime LastRecordedDate { get; set; }
+    }
+
+    public class CostPerLiterViewModel
+    {
+        public DateTime Date { get; set; }
+        public decimal TotalFeedCost { get; set; }
+        public double TotalMilkLiters { get; set; }
+        public decimal CostPerLiter => TotalMilkLiters > 0 ? TotalFeedCost / (decimal)TotalMilkLiters : 0;
+    }
+
+    public class MonthlyProfitLossViewModel
+    {
+        public string MonthName { get; set; } = string.Empty;
+        public int MonthNumber { get; set; }
+        public decimal Revenue { get; set; }
+        public decimal Expense { get; set; }
+        public decimal NetProfit => Revenue - Expense;
+    }
+
+    public class RevenueBreakdownViewModel
+    {
+        public string Source { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public decimal Percentage { get; set; }
+    }
+
+    public class WorkerPerformanceViewModel
+    {
+        public int WorkerId { get; set; }
+        public string WorkerName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string? ImagePath { get; set; }
+        public int TotalTasks { get; set; }
+        public int CompletedTasks { get; set; }
+        public double TaskCompletionRate { get; set; }
+        public int TotalAttendances { get; set; }
+        public int PresentCount { get; set; }
+        public double AttendanceRate { get; set; }
+        public double OverallScore { get; set; }
+    }
+}

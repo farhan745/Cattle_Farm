@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -133,7 +133,7 @@ namespace CattleFarm.Controllers
             bool success = await _taskService.AcceptTaskAsync(taskId, userId);
 
             TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
-                ? "Task accepted! Get to work 💪"
+                ? "Task accepted! Get to work "
                 : "Sorry, this task was already claimed or has expired.";
 
             return RedirectToAction(nameof(OpenBoard));
@@ -202,7 +202,7 @@ namespace CattleFarm.Controllers
             bool success = await _taskService.ReviewProofAsync(model, userId);
 
             TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
-                ? (model.Approve ? "Task approved! Bonus granted ✅" : "Task rejected. Worker notified.")
+                ? (model.Approve ? "Task approved! Bonus granted " : "Task rejected. Worker notified.")
                 : "Review failed. You may not own this farm's task.";
 
             return RedirectToAction(nameof(ReviewProofs));

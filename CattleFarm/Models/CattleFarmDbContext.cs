@@ -9,6 +9,7 @@ namespace CattleFarm.Models
         // ── DbSets ────────────────────────────────────────────────────────────
         public DbSet<FarmJoinRequest> FarmJoinRequests { get; set; }
         public DbSet<FarmWorker> FarmWorkers { get; set; }
+        public DbSet<FarmManager> FarmManagers { get; set; }
         public DbSet<TaskAssignment> TaskAssignments { get; set; }
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<SalaryHistory> SalaryHistories { get; set; }
@@ -21,7 +22,9 @@ namespace CattleFarm.Models
         public DbSet<Cattle>           Cattles           { get; set; }
         public DbSet<Worker>           Workers           { get; set; }
         public DbSet<Doctor>           Doctors           { get; set; }
-        public DbSet<HealthRecord>     HealthRecords     { get; set; }
+        public DbSet<DoctorInvitation> DoctorInvitations { get; set; }
+        public DbSet<HealthRecord>         HealthRecords         { get; set; }
+        public DbSet<CattleMedicalRecord>  CattleMedicalRecords  { get; set; }
         public DbSet<Vaccination>      Vaccinations      { get; set; }
         public DbSet<MedicineRecord>   MedicineRecords   { get; set; }
         public DbSet<MilkProduction>   MilkProductions   { get; set; }
@@ -40,7 +43,21 @@ namespace CattleFarm.Models
         public DbSet<Appointment>      Appointments      { get; set; }
         public DbSet<Breeding>         Breedings         { get; set; }
         public DbSet<FeedRecord>       FeedRecords       { get; set; }
+        public DbSet<FeedInventory>    FeedInventories   { get; set; }
         public DbSet<Attendance>       Attendances       { get; set; }
+        public DbSet<SensorReading>     SensorReadings    { get; set; }
+        public DbSet<GpsTrackerSnapshot> GpsTrackerSnapshots { get; set; }
+        public DbSet<AutomatedFeedingCommand> AutomatedFeedingCommands { get; set; }
+        public DbSet<MilkMachineImport> MilkMachineImports { get; set; }
+        public DbSet<OfflineSyncItem>   OfflineSyncItems  { get; set; }
+
+        // ── Cattle Sell Module ────────────────────────────────────────────────
+        public DbSet<CattleExpense>     CattleExpenses    { get; set; }
+
+        // ── New Gap-Fill Modules ─────────────────────────────────────────────
+        public DbSet<WeightRecord>           WeightRecords           { get; set; }
+        public DbSet<HeatRecord>             HeatRecords             { get; set; }
+        public DbSet<BullPerformanceRecord>  BullPerformanceRecords  { get; set; }
 
         // ── Transport Module ──────────────────────────────────────────────────
         public DbSet<Vehicle>           Vehicles          { get; set; }
@@ -110,6 +127,22 @@ namespace CattleFarm.Models
             {
                 e.HasIndex(fw => new { fw.FarmId, fw.WorkerUserId });
                 e.HasQueryFilter(fw => !fw.IsDeleted);
+            });
+
+            modelBuilder.Entity<FarmManager>(e =>
+            {
+                e.HasIndex(m => new { m.FarmId, m.ManagerUserId });
+                e.HasQueryFilter(m => !m.IsDeleted);
+
+                e.HasOne(m => m.Farm)
+                 .WithMany(f => f.FarmManagers)
+                 .HasForeignKey(m => m.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(m => m.ManagerUser)
+                 .WithMany()
+                 .HasForeignKey(m => m.ManagerUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<LeaveRequest>(e =>
@@ -200,10 +233,12 @@ namespace CattleFarm.Models
             modelBuilder.Entity<Revenue>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Review>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<HealthRecord>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<CattleMedicalRecord>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Vehicle>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Driver>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<TransportRequest>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Trip>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<CattleExpense>().HasQueryFilter(e => !e.IsDeleted);
 
             // ── Relationships — restrict cascades to avoid multiple cascade paths ──
             // Farm → Workers/Doctors/Products/etc. (restrict so parent delete requires manual cleanup)
@@ -212,12 +247,6 @@ namespace CattleFarm.Models
                 .WithOne(w => w.Farm)
                 .HasForeignKey(w => w.FarmId)
                 .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Farm>()
-                .HasMany(f => f.Doctors)
-                .WithOne(d => d.Farm)
-                .HasForeignKey(d => d.FarmId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Farm>()
@@ -264,6 +293,20 @@ namespace CattleFarm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Cattle>()
+                .HasMany(c => c.MedicalRecords)
+                .WithOne(m => m.Cattle)
+                .HasForeignKey(m => m.CattleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CattleMedicalRecord>(e =>
+            {
+                e.HasOne(m => m.Doctor)
+                 .WithMany()
+                 .HasForeignKey(m => m.DoctorId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Cattle>()
                 .HasMany(c => c.Vaccinations)
                 .WithOne(v => v.Cattle)
                 .HasForeignKey(v => v.CattleId)
@@ -286,6 +329,19 @@ namespace CattleFarm.Models
                 .WithOne(a => a.Cattle)
                 .HasForeignKey(a => a.CattleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Cattle → CattleExpenses (sell cost tracking)
+            modelBuilder.Entity<Cattle>()
+                .HasMany(c => c.CattleExpenses)
+                .WithOne(e => e.Cattle)
+                .HasForeignKey(e => e.CattleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CattleExpense>()
+                .HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Doctor relations
             modelBuilder.Entity<Doctor>()
@@ -418,6 +474,74 @@ namespace CattleFarm.Models
                  .OnDelete(DeleteBehavior.SetNull);
             });
 
+            // FeedInventory relationships
+            modelBuilder.Entity<FeedInventory>(e =>
+            {
+                e.HasIndex(fi => new { fi.FarmId, fi.FeedType }).IsUnique();
+
+                e.HasOne(fi => fi.Farm)
+                 .WithMany()
+                 .HasForeignKey(fi => fi.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<SensorReading>(e =>
+            {
+                e.HasIndex(s => new { s.FarmId, s.DeviceId, s.RecordedAt });
+                e.HasOne(s => s.Farm)
+                 .WithMany()
+                 .HasForeignKey(s => s.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<GpsTrackerSnapshot>(e =>
+            {
+                e.HasIndex(g => new { g.FarmId, g.TrackerId, g.RecordedAt });
+                e.HasOne(g => g.Farm)
+                 .WithMany()
+                 .HasForeignKey(g => g.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(g => g.Cattle)
+                 .WithMany()
+                 .HasForeignKey(g => g.CattleId)
+                 .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<AutomatedFeedingCommand>(e =>
+            {
+                e.HasIndex(c => new { c.FarmId, c.ControllerId, c.ScheduledAt });
+                e.HasOne(c => c.Farm)
+                 .WithMany()
+                 .HasForeignKey(c => c.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(c => c.Cattle)
+                 .WithMany()
+                 .HasForeignKey(c => c.CattleId)
+                 .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<MilkMachineImport>(e =>
+            {
+                e.HasIndex(m => new { m.FarmId, m.MachineId, m.CollectedAt });
+                e.HasOne(m => m.Farm)
+                 .WithMany()
+                 .HasForeignKey(m => m.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(m => m.Cattle)
+                 .WithMany()
+                 .HasForeignKey(m => m.CattleId)
+                 .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<OfflineSyncItem>(e =>
+            {
+                e.HasIndex(s => new { s.FarmId, s.ClientId, s.Status });
+                e.HasOne(s => s.Farm)
+                 .WithMany()
+                 .HasForeignKey(s => s.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
             // ── Vehicle relationships ─────────────────────────────────────────
             modelBuilder.Entity<Vehicle>()
                 .HasOne(v => v.Driver)
@@ -503,6 +627,84 @@ namespace CattleFarm.Models
                  .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // ── DoctorInvitation and Doctor updates ────────────────────────────
+            modelBuilder.Entity<DoctorInvitation>(e =>
+            {
+                e.HasIndex(di => di.Token).IsUnique();
+                e.HasIndex(di => di.Email);
+                
+                e.HasOne(di => di.Farm)
+                 .WithMany()
+                 .HasForeignKey(di => di.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(di => di.CreatedByUser)
+                 .WithMany()
+                 .HasForeignKey(di => di.CreatedByUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(di => di.RevokedByUser)
+                 .WithMany()
+                 .HasForeignKey(di => di.RevokedByUserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Doctor>(e =>
+            {
+                e.HasIndex(d => d.LicenseNumber).IsUnique().HasFilter("[LicenseNumber] IS NOT NULL");
+                e.HasIndex(d => d.InvitationId).IsUnique().HasFilter("[InvitationId] IS NOT NULL");
+
+                e.HasOne(d => d.Invitation)
+                 .WithOne(di => di.Doctor)
+                 .HasForeignKey<Doctor>(d => d.InvitationId)
+                 .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ── WeightRecord relationships ─────────────────────────────────────
+            modelBuilder.Entity<WeightRecord>(e =>
+            {
+                e.HasIndex(w => new { w.CattleId, w.MeasuredAt });
+                e.HasOne(w => w.Cattle)
+                 .WithMany(c => c.WeightRecords)
+                 .HasForeignKey(w => w.CattleId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(w => w.Farm)
+                 .WithMany()
+                 .HasForeignKey(w => w.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(w => w.RecordedByUser)
+                 .WithMany()
+                 .HasForeignKey(w => w.RecordedByUserId)
+                 .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ── HeatRecord relationships ───────────────────────────────────────
+            modelBuilder.Entity<HeatRecord>(e =>
+            {
+                e.HasIndex(h => new { h.CattleId, h.ObservationDate });
+                e.HasOne(h => h.Cattle)
+                 .WithMany(c => c.HeatRecords)
+                 .HasForeignKey(h => h.CattleId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(h => h.Farm)
+                 .WithMany()
+                 .HasForeignKey(h => h.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── BullPerformanceRecord relationships ───────────────────────────
+            modelBuilder.Entity<BullPerformanceRecord>(e =>
+            {
+                e.HasIndex(b => new { b.CattleId, b.EvaluationDate });
+                e.HasOne(b => b.Cattle)
+                 .WithMany(c => c.BullPerformanceRecords)
+                 .HasForeignKey(b => b.CattleId)
+                 .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(b => b.Farm)
+                 .WithMany()
+                 .HasForeignKey(b => b.FarmId)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

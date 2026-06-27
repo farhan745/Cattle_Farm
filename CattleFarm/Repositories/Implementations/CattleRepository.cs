@@ -38,9 +38,12 @@ namespace CattleFarm.Repositories.Implementations
             => await _dbSet.Where(c => c.Id == id)
                            .Include(c => c.Farm)
                            .Include(c => c.HealthRecords.OrderByDescending(h => h.RecordDate).Take(5))
+                           .Include(c => c.MedicalRecords.OrderByDescending(m => m.ExaminationDate).Take(10))
+                               .ThenInclude(m => m.Doctor)
                            .Include(c => c.Vaccinations.OrderByDescending(v => v.VaccinationDate).Take(5))
                            .Include(c => c.MedicineRecords)
                            .Include(c => c.MilkProductions.OrderByDescending(m => m.Date).Take(30))
+                           .Include(c => c.CattleExpenses)
                            .FirstOrDefaultAsync();
 
         public async Task<int> CountAsync() => await _dbSet.CountAsync();

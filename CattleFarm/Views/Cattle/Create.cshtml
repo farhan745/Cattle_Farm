@@ -6,7 +6,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">@(isEdit ? "✏️ Edit Cattle" : "➕ Add New Cattle")</h1>
+        <h1 class="page-title">@(isEdit ? "Edit Cattle" : "Add New Cattle")</h1>
         <p class="page-subtitle">@(isEdit ? $"Editing record for {Model.Name}" : "Register a new cattle to your farm")</p>
     </div>
     <a href="/Cattle" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
@@ -21,7 +21,7 @@
         <div style="display:flex;flex-direction:column;gap:20px">
             <!-- Basic Info -->
             <div class="card">
-                <div class="card-header"><h3 class="card-title">📋 Basic Information</h3></div>
+                <div class="card-header"><h3 class="card-title">Basic Information</h3></div>
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="form-group">
@@ -33,6 +33,15 @@
                             <label class="form-label">Cattle Name *</label>
                             <input asp-for="Name" class="form-control" placeholder="e.g. Lali" />
                             <span asp-validation-for="Name" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cattle Category</label>
+                            <select asp-for="Category" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.CattleCategory>()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Origin / Source</label>
+                            <input asp-for="Origin" class="form-control" placeholder="e.g. Kushtia Market" />
+                            <span asp-validation-for="Origin" class="form-error"></span>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Breed *</label>
@@ -79,7 +88,7 @@
 
             <!-- Financial Info -->
             <div class="card">
-                <div class="card-header"><h3 class="card-title">💰 Financial Details</h3></div>
+                <div class="card-header"><h3 class="card-title">Financial Details</h3></div>
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="form-group">
@@ -106,7 +115,7 @@
                         </label>
                         <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
                             <input asp-for="IsPremiumListing" type="checkbox" style="accent-color:var(--accent)" />
-                            ⭐ Premium listing
+                            Premium listing
                         </label>
                     </div>
                 </div>
@@ -116,7 +125,7 @@
         <!-- Image Upload Sidebar -->
         <div style="display:flex;flex-direction:column;gap:20px">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">🖼️ Cattle Image</h3></div>
+                <div class="card-header"><h3 class="card-title">Cattle Image</h3></div>
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
                     {
@@ -124,11 +133,11 @@
                     }
                     else
                     {
-                        <div style="width:100%;height:200px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px" id="imagePlaceholder">🐄</div>
+                        <div style="width:100%;height:200px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px" id="imagePlaceholder"></div>
                         <img id="imagePreview" style="display:none;width:100%;height:200px;object-fit:cover;border-radius:8px;margin-bottom:12px" />
                     }
                     <label class="img-upload-zone" for="imageInput">
-                        <div style="font-size:28px;margin-bottom:8px">📷</div>
+                        <div style="font-size:28px;margin-bottom:8px"></div>
                         <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Click to upload image</div>
                         <div style="font-size:11px;color:var(--text-muted);margin-top:4px">JPG, PNG, WebP — max 5MB</div>
                     </label>

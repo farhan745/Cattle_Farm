@@ -1,0 +1,327 @@
+@{
+    ViewData["Title"] = "Premium UI Animations Showcase";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/animations-advanced.css" asp-append-version="true" />
+    <style>
+        .demo-section {
+            margin-bottom: 40px;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 16px;
+        }
+        .demo-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            background: var(--bg-card);
+            padding: 24px;
+            transition: all var(--transition);
+            position: relative;
+        }
+        .demo-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-family: var(--font-heading);
+            color: var(--text-primary);
+        }
+        .card-flip-front i, .card-flip-back i {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+        /* Make sure flip card fits content and handles 3d */
+        .flip-container {
+            perspective: 1000px;
+            height: 240px;
+        }
+    </style>
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-magic"></i> Premium UI Motion &amp; Animations</h1>
+        <p class="page-subtitle">A showcase of advanced 3D transforms, mouse-tracking, micro-interactions, and premium layouts.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="/Home/ComponentsTest" class="btn btn-primary"><i class="bi bi-grid-3x3-gap"></i> Components Showcase</a>
+        <a href="/Dashboard" class="btn btn-outline"><i class="bi bi-grid-1x2"></i> Back to Dashboard</a>
+    </div>
+</div>
+
+<!-- 1. Hero Spotlight & Parallax -->
+<div class="demo-section animate-slide-up">
+    <h2 class="section-title"><i class="bi bi-stars text-primary"></i> 1. Spotlight &amp; Parallax Tilt</h2>
+    <div class="premium-hero spotlight-container tilt-card" id="heroSpotlight" style="min-height: 260px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border-radius: 12px; background: #0f172a; color: white; padding: 40px; cursor: pointer;">
+        <div class="spotlight" id="heroSpotlightGlow"></div>
+        <div style="text-align: center; z-index: 2; transform: translateZ(30px); transform-style: preserve-3d;">
+            <span class="badge shimmer-highlight" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); margin-bottom: 16px; display: inline-block;">Interactive Demo</span>
+            <h3 style="font-size: 32px; font-weight: 800; margin-bottom: 12px; font-family: var(--font-heading);">Farm UI Motion Engine</h3>
+            <p style="opacity: 0.85; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                Move your mouse over this banner to see the dynamic <strong>Spotlight Glow</strong> follow your cursor, combined with a <strong>3D Parallax Tilt</strong> that responds to your positioning.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- 2. 3D Card Flip -->
+<div class="demo-section animate-slide-up" style="animation-delay: 0.1s;">
+    <h2 class="section-title"><i class="bi bi-arrow-repeat text-success"></i> 2. 3D Card Flip</h2>
+    <p class="text-secondary" style="margin-bottom: 16px;">Hover over these feature cards to rotate them in 3D perspective and see details.</p>
+    <div class="demo-grid">
+        <!-- Card 1 -->
+        <div class="flip-container">
+            <div class="card-flip">
+                <div class="card-flip-inner">
+                    <div class="card-flip-front">
+                        <i class="bi bi-heart-pulse text-danger"></i>
+                        <h3 class="demo-title" style="margin: 0;">Herd Health</h3>
+                        <p class="text-muted" style="font-size: 13px; margin-top: 8px;">Vaccinations, sickness checks, and vet logs.</p>
+                        <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: auto;">Hover to flip <i class="bi bi-arrow-right"></i></div>
+                    </div>
+                    <div class="card-flip-back">
+                        <i class="bi bi-shield-check" style="color: #fff;"></i>
+                        <h3 style="margin: 0; font-family: var(--font-heading); font-weight: 700;">Active Guard</h3>
+                        <p style="font-size: 13px; opacity: 0.9; margin-top: 8px;">Real-time automated disease alerts and diagnostic analysis powered by vet logs.</p>
+                        <a href="/Health" class="btn btn-light btn-sm" style="margin-top: auto; color: var(--primary); font-weight: 700;">View Health</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="flip-container">
+            <div class="card-flip">
+                <div class="card-flip-inner">
+                    <div class="card-flip-front">
+                        <i class="bi bi-droplet text-primary"></i>
+                        <h3 class="demo-title" style="margin: 0;">Milk Yields</h3>
+                        <p class="text-muted" style="font-size: 13px; margin-top: 8px;">Track yields per milking machine and farm zone.</p>
+                        <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: auto;">Hover to flip <i class="bi bi-arrow-right"></i></div>
+                    </div>
+                    <div class="card-flip-back">
+                        <i class="bi bi-graph-up-arrow" style="color: #fff;"></i>
+                        <h3 style="margin: 0; font-family: var(--font-heading); font-weight: 700;">Smart Analytics</h3>
+                        <p style="font-size: 13px; opacity: 0.9; margin-top: 8px;">Find yield drops, rank milking cows, and analyze fat/protein composition trends.</p>
+                        <a href="/MilkProduction" class="btn btn-light btn-sm" style="margin-top: auto; color: var(--primary); font-weight: 700;">View Yields</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="flip-container">
+            <div class="card-flip">
+                <div class="card-flip-inner">
+                    <div class="card-flip-front">
+                        <i class="bi bi-pie-chart text-warning"></i>
+                        <h3 class="demo-title" style="margin: 0;">Feed Costs</h3>
+                        <p class="text-muted" style="font-size: 13px; margin-top: 8px;">Calculate cost-per-liter efficiency metrics.</p>
+                        <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: auto;">Hover to flip <i class="bi bi-arrow-right"></i></div>
+                    </div>
+                    <div class="card-flip-back">
+                        <i class="bi bi-cash-coin" style="color: #fff;"></i>
+                        <h3 style="margin: 0; font-family: var(--font-heading); font-weight: 700;">Cost Optimizer</h3>
+                        <p style="font-size: 13px; opacity: 0.9; margin-top: 8px;">Compare feed types, purchase history, and seasonal nutrition recommendations.</p>
+                        <a href="/Feed" class="btn btn-light btn-sm" style="margin-top: auto; color: var(--primary); font-weight: 700;">View Feed</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Text & Background Effects -->
+<div class="row animate-slide-up" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; animation-delay: 0.2s;">
+    <!-- Text Effects -->
+    <div class="card glass-card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-body-text text-primary"></i> 3. Text Animations</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+                <label class="form-label" style="display: block; font-weight: 600; font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Typewriter Effect:</label>
+                <div class="typewriter" style="font-size: 20px; font-weight: 700; color: var(--primary); font-family: var(--font-heading);">
+                    Smart Cattle Farm Management...
+                </div>
+            </div>
+
+            <hr style="border-color: var(--border); margin: 0;" />
+
+            <div>
+                <label class="form-label" style="display: block; font-weight: 600; font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Word Fade In:</label>
+                <div class="word-fade-in" style="font-size: 16px; font-weight: 500; display: block; line-height: 1.5;">
+                    <span>Optimize</span> <span>herd</span> <span>productivity</span> <span>and</span> <span>track</span> <span>operational</span> <span>profits</span> <span>seamlessly</span>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div class="card glass-card" style="overflow: hidden;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-snow text-info"></i> 4. Background Particle Stream</h3>
+        </div>
+        <div class="card-body" style="padding: 0; position: relative;">
+            <div class="particle-container" style="height: 180px;">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                    <h4 style="font-weight: 700; font-size: 20px; margin: 0; color: var(--text-primary);">Floating Background</h4>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Light-weight CSS floating particles</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Microinteractions Playground -->
+<div class="card glass-card animate-slide-up" style="animation-delay: 0.3s; margin-bottom: 40px;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-controller text-success"></i> 5. Microinteractions Playground</h3>
+    </div>
+    <div class="card-body">
+        <div class="demo-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <!-- Ripple Button -->
+            <div class="demo-card" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                <h4 class="demo-title" style="margin: 0;">Button Ripple</h4>
+                <button class="btn btn-primary btn-ripple" id="rippleDemoBtn" style="padding: 12px 24px;">
+                    Click Me to Ripple
+                </button>
+            </div>
+
+            <!-- Checkbox Bounce -->
+            <div class="demo-card" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                <h4 class="demo-title" style="margin: 0;">Checkbox Bounce</h4>
+                <div class="checkbox-bounce" style="display: flex; gap: 8px; align-items: center;">
+                    <input type="checkbox" id="bounceCheckbox" style="transform: scale(1.3); margin: 0;" />
+                    <label for="bounceCheckbox" style="font-weight: 600; cursor: pointer;">Toggle Checkbox</label>
+                </div>
+            </div>
+
+            <!-- Shake Form Box -->
+            <div class="demo-card" id="shakeBox" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                <h4 class="demo-title" style="margin: 0;">Shake On Error</h4>
+                <button class="btn btn-danger" onclick="triggerShake()" style="padding: 8px 16px;">
+                    Trigger Validation Error
+                </button>
+            </div>
+
+            <!-- Checkmark Drawing -->
+            <div class="demo-card" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                <h4 class="demo-title" style="margin: 0;">Success Draw</h4>
+                <div class="checkmark-draw" id="checkmarkContainer" style="display: none; width: 40px; height: 40px;">
+                    <svg viewBox="0 0 52 52">
+                        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="var(--success)" stroke-width="4" />
+                        <path class="checkmark-check" fill="none" stroke="var(--success)" stroke-width="4" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                    </svg>
+                </div>
+                <button class="btn btn-success" onclick="triggerSuccess()" style="padding: 8px 16px;">
+                    Trigger Success
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/animations-advanced.js" asp-append-version="true"></script>
+    <script>
+        // Interactive Spotlight effect inside Viewport bounds
+        const hero = document.getElementById('heroSpotlight');
+        const spotlight = document.getElementById('heroSpotlightGlow');
+        
+        if (hero && spotlight) {
+            hero.addEventListener('mousemove', e => {
+                const rect = hero.getBoundingClientRect();
+                const x = e.clientX - rect.left - 200; // Offset by half spotlight width (400px/2)
+                const y = e.clientY - rect.top - 200;
+                spotlight.style.left = `${x}px`;
+                spotlight.style.top = `${y}px`;
+                spotlight.style.opacity = '1';
+            });
+            hero.addEventListener('mouseleave', () => {
+                spotlight.style.opacity = '0';
+            });
+        }
+
+        // Parallax Tilt configuration
+        document.querySelectorAll('.tilt-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const midX = rect.width / 2;
+                const midY = rect.height / 2;
+                
+                // Max rotation degree
+                const rotX = ((y - midY) / midY) * -5;
+                const rotY = ((x - midX) / midX) * 5;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            });
+        });
+
+        // Trigger shake demo
+        window.triggerShake = function() {
+            const el = document.getElementById('shakeBox');
+            if (el) {
+                el.classList.remove('form-shake');
+                void el.offsetWidth; // Force reflow to restart animation
+                el.classList.add('form-shake');
+            }
+        }
+
+        // Trigger Success Checkmark demo
+        window.triggerSuccess = function() {
+            const container = document.getElementById('checkmarkContainer');
+            if (container) {
+                container.style.display = 'inline-flex';
+                const svg = container.querySelector('svg');
+                // Remove SVG to reset animation and re-inject
+                const svgHtml = svg.outerHTML;
+                container.innerHTML = '';
+                void container.offsetWidth;
+                container.innerHTML = svgHtml;
+            }
+        }
+
+        // Setup Ripple effect trigger
+        const ripBtn = document.getElementById('rippleDemoBtn');
+        if (ripBtn) {
+            ripBtn.addEventListener('click', function(e) {
+                const rect = ripBtn.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const span = document.createElement('span');
+                span.className = 'ripple-span';
+                span.style.left = `${x}px`;
+                span.style.top = `${y}px`;
+                span.style.width = `${Math.max(rect.width, rect.height) * 2}px`;
+                span.style.height = span.style.width;
+                
+                // Remove previous ripples
+                const existing = ripBtn.querySelector('.ripple-span');
+                if (existing) existing.remove();
+                
+                ripBtn.appendChild(span);
+            });
+        }
+    </script>
+}

@@ -1,4 +1,4 @@
-@model CattleFarm.Models.Worker
+﻿@model CattleFarm.Models.Worker
 @{
     ViewData["Title"] = $"{Model.FullName} — Details";
     var salaryHistory = ViewBag.SalaryHistory as List<CattleFarm.Models.SalaryHistory> ?? new();
@@ -6,7 +6,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">👷 @Model.FullName</h1>
+        <h1 class="page-title">@Model.FullName</h1>
         <p class="page-subtitle">@Model.Role • @(Model.Farm?.Name ?? "No Assigned Farm")</p>
     </div>
     <div class="page-actions">
@@ -68,7 +68,7 @@
 
         <!-- Card: Quick Contact -->
         <div class="card">
-            <div class="card-header"><h3 class="card-title">📞 Contact Info</h3></div>
+            <div class="card-header"><h3 class="card-title">Contact Info</h3></div>
             <div class="card-body" style="padding:20px;display:flex;flex-direction:column;gap:12px">
                 @if (!string.IsNullOrEmpty(Model.Phone))
                 {
@@ -102,7 +102,7 @@
     <div style="display:flex;flex-direction:column;gap:20px">
         <!-- Card: Profile Overview -->
         <div class="card">
-            <div class="card-header"><h3 class="card-title">📝 Profile Overview</h3></div>
+            <div class="card-header"><h3 class="card-title">Profile Overview</h3></div>
             <div class="card-body" style="display:flex;flex-direction:column;gap:16px">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                     <div>
@@ -156,13 +156,13 @@
           <!-- Card: Salary History -->
           <div class="card">
               <div class="card-header">
-                  <h3 class="card-title">💳 Salary History</h3>
+                  <h3 class="card-title">Salary History</h3>
               </div>
               <div class="table-wrapper">
                   @if (!salaryHistory.Any())
                   {
                       <div class="empty-state" style="padding:32px;text-align:center">
-                          <div style="font-size:36px;margin-bottom:8px">💳</div>
+                          <div style="font-size:36px;margin-bottom:8px"></div>
                           <p style="color:var(--text-muted);font-size:13.5px">No salary history found for this worker</p>
                       </div>
                   }
@@ -192,13 +192,13 @@
           <!-- Card: Attendance History -->
           <div class="card">
               <div class="card-header">
-                  <h3 class="card-title">📅 Recent Attendance (Last 10 Days)</h3>
+                  <h3 class="card-title">Recent Attendance (Last 10 Days)</h3>
               </div>
               <div class="table-wrapper">
                   @if (Model.DailyAttendances == null || !Model.DailyAttendances.Any())
                   {
                       <div class="empty-state" style="padding:40px;text-align:center">
-                          <div style="font-size:40px;margin-bottom:8px">📋</div>
+                          <div style="font-size:40px;margin-bottom:8px"></div>
                           <p style="color:var(--text-muted);font-size:13.5px">No attendance records found for this worker</p>
                       </div>
                   }
@@ -239,13 +239,13 @@
           <!-- Card: Milk Production Logs -->
           <div class="card">
               <div class="card-header">
-                  <h3 class="card-title">🥛 Milk Production Records</h3>
+                  <h3 class="card-title">Milk Production Records</h3>
               </div>
               <div class="table-wrapper">
                   @if (Model.MilkProductions == null || !Model.MilkProductions.Any())
                   {
                       <div class="empty-state" style="padding:40px;text-align:center">
-                          <div style="font-size:40px;margin-bottom:8px">🥛</div>
+                          <div style="font-size:40px;margin-bottom:8px"></div>
                           <p style="color:var(--text-muted);font-size:13.5px">No milk production logged by this worker</p>
                       </div>
                   }
@@ -271,7 +271,7 @@
                                           @if (m.Cattle != null)
                                           {
                                               <a href="/Cattle/Details/@m.CattleId" style="font-weight:600;color:var(--primary)">
-                                                  🐄 @m.Cattle.Name <span style="font-size:11px;color:var(--text-muted)">(@m.Cattle.TagId)</span>
+                                                  @m.Cattle.Name <span style="font-size:11px;color:var(--text-muted)">(@m.Cattle.TagId)</span>
                                               </a>
                                           }
                                           else

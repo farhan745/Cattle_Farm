@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.ViewModels.TaskViewModel>
+﻿@model IEnumerable<CattleFarm.ViewModels.TaskViewModel>
 @{
     ViewData["Title"] = "Review Proofs";
     var tasks = Model.ToList();
@@ -60,7 +60,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">🔍 Review Proofs</h1>
+        <h1 class="page-title">Review Proofs</h1>
         <p class="page-subtitle">Approve or reject submitted task proofs</p>
     </div>
     <a href="/TaskAssignment" class="btn btn-outline"><i class="bi bi-arrow-left"></i> All Tasks</a>
@@ -78,7 +78,7 @@
 @if (!tasks.Any())
 {
     <div style="text-align:center;padding:64px 20px;color:var(--text-muted)">
-        <div style="font-size:48px;margin-bottom:12px">🎉</div>
+        <div style="font-size:48px;margin-bottom:12px"></div>
         <div style="font-weight:700;font-size:16px">All caught up!</div>
         <div style="font-size:13px;margin-top:6px">No pending proof submissions to review.</div>
     </div>
@@ -94,7 +94,7 @@ else
         <div class="review-card">
             <div class="review-card-header">
                 <div style="width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
-                    📸
+                    
                 </div>
                 <div style="flex:1">
                     <div style="font-weight:700;font-size:15px">@task.Title</div>
@@ -149,7 +149,7 @@ else
                         </div>
                     }
                     <div style="font-size:13px;line-height:1.8;color:var(--text-muted)">
-                        <div><strong style="color:var(--text)">Due Date:</strong> @task.DueDate.ToString("MMM dd, yyyy") @(task.IsOverdue ? "<span style='color:#ef4444'>⚠️ Overdue</span>" : "")</div>
+                        <div><strong style="color:var(--text)">Due Date:</strong> @task.DueDate.ToString("MMM dd, yyyy") @(task.IsOverdue ? "<span style='color:#ef4444'>Overdue</span>" : "")</div>
                         <div><strong style="color:var(--text)">Task Type:</strong> @task.TaskType</div>
                         @if (!string.IsNullOrWhiteSpace(task.Description))
                         {

@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.PayrollEditViewModel
+﻿@model CattleFarm.ViewModels.PayrollEditViewModel
 @{
     var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(Model.Month);
     ViewData["Title"] = $"Adjust Payroll - {Model.WorkerName}";
@@ -37,7 +37,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">✏️ Adjust Payroll</h1>
+        <h1 class="page-title">Adjust Payroll</h1>
         <p class="page-subtitle">Modify earnings, deductions, and payment status for @Model.WorkerName (@monthName @Model.Year)</p>
     </div>
     <a href="/Payroll" class="btn btn-outline">
@@ -61,7 +61,7 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">💵 Adjustments for @Model.WorkerName</h3>
+                <h3 class="card-title">Adjustments for @Model.WorkerName</h3>
             </div>
             
             <div class="card-body" style="display:flex;flex-direction:column;gap:18px">

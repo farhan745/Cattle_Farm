@@ -1,0 +1,32 @@
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Local IDE state
+.vs/
+.vscode/
+
+# Runtime logs and local output
+logs/
+**/logs/
+*.log
+build_err.txt
+build_output.txt
+test_out.txt
+test_out_utf8.txt
+
+# User/local secrets
+appsettings.Development.json
+appsettings.Local.json
+*.Development.json
+.env
+.env.*
+secrets.json
+*.user
+
+# Temporary archives and local scratch files
+*.zip
+*.tmp
+tmp_*.txt

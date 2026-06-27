@@ -10,11 +10,17 @@ namespace CattleFarm.Services.Interfaces
         Task<IEnumerable<MyJoinRequestViewModel>> GetMyRequestsAsync(int workerUserId);
         Task<bool> LeaveAsync(int farmId, int workerUserId);
 
+        // Manager side (same join flow as workers)
+        Task<FarmJoinBrowseViewModel> GetManagerBrowseViewModelAsync(int managerUserId);
+        Task<IEnumerable<MyJoinRequestViewModel>> GetManagerRequestsAsync(int managerUserId);
+        Task<bool> LeaveManagerAsync(int farmId, int managerUserId);
+
         // Owner side
         Task<IEnumerable<IncomingRequestViewModel>> GetIncomingAsync(int ownerUserId);
         Task<(bool Success, string Message)> AcceptAsync(int requestId, int ownerUserId);
         Task<(bool Success, string Message)> RejectAsync(int requestId, int ownerUserId, string? note);
         Task<bool> RemoveWorkerAsync(int farmWorkerId, int ownerUserId);
+        Task<bool> RemoveManagerAsync(int farmManagerId, int ownerUserId);
 
         // Owner creates login for manually-added worker
         Task<(bool Success, string Message)> CreateWorkerLoginAsync(CreateWorkerLoginViewModel model, int ownerUserId);

@@ -5,16 +5,16 @@
 
     var plans = new[]
     {
-        new { Enum="Free",       Display="Free",       Price=0m,    Icon="🌱", Features=new[]{"1 Farm","Up to 10 Cattle","Basic Dashboard","Community Support"}, Popular=false },
-        new { Enum="Member",     Display="Basic",      Price=999m,  Icon="⭐", Features=new[]{"3 Farms","Up to 100 Cattle","Advanced Analytics","Health Monitoring","Email Support","Financial Reports"}, Popular=false },
-        new { Enum="Owner",      Display="Pro",        Price=2999m, Icon="🏆", Features=new[]{"Unlimited Farms","Unlimited Cattle","Full AI Dashboard","AI-Powered Insights","Priority Support","PDF/Excel Export","IoT Ready","Marketplace Access"}, Popular=true },
-        new { Enum="Enterprise", Display="Enterprise", Price=5000m, Icon="🚀", Features=new[]{"Everything in Pro","White-label Option","Dedicated Support","Custom Integrations","SLA Guarantee","Onboarding Service"}, Popular=false }
+        new { Enum="Free",       Display="Free",       Price=0m,    Icon="", Features=new[]{"1 Farm","Up to 10 Cattle","Basic Dashboard","Community Support"}, Popular=false },
+        new { Enum="Member",     Display="Basic",      Price=999m,  Icon="", Features=new[]{"3 Farms","Up to 100 Cattle","Advanced Analytics","Health Monitoring","Email Support","Financial Reports"}, Popular=false },
+        new { Enum="Owner",      Display="Pro",        Price=2999m, Icon="", Features=new[]{"Unlimited Farms","Unlimited Cattle","Full AI Dashboard","AI-Powered Insights","Priority Support","PDF/Excel Export","IoT Ready","Marketplace Access"}, Popular=true },
+        new { Enum="Enterprise", Display="Enterprise", Price=5000m, Icon="", Features=new[]{"Everything in Pro","White-label Option","Dedicated Support","Custom Integrations","SLA Guarantee","Onboarding Service"}, Popular=false }
     };
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">⭐ Subscription Plans</h1>
+        <h1 class="page-title">Subscription Plans</h1>
         <p class="page-subtitle">Choose the plan that fits your farm. Cancel anytime.</p>
     </div>
 </div>
@@ -28,7 +28,7 @@
             <strong>Current Plan: @(current.Plan == CattleFarm.Models.SubscriptionPlan.Owner ? "Pro" : current.Plan == CattleFarm.Models.SubscriptionPlan.Member ? "Basic" : current.Plan.ToString())</strong> —
             Active until @current.ExpiryDate.ToString("MMMM dd, yyyy")
             @if (current.IsActive && current.ExpiryDate > DateTime.Now.AddDays(30))
-            { <span class="badge badge-success" style="margin-left:8px">Active ✓</span> }
+            { <span class="badge badge-success" style="margin-left:8px">Active </span> }
             else
             { <span class="badge badge-warning" style="margin-left:8px">Expiring Soon</span> }
         </div>
@@ -61,7 +61,7 @@
             @if (plan.Popular)
             {
                 <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#C8761A;color:#fff;font-size:11px;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap;letter-spacing:.05em">
-                    ✦ MOST POPULAR
+                    MOST POPULAR
                 </div>
             }
             <div class="card-body" style="padding:32px 24px;text-align:center">
@@ -92,7 +92,7 @@
 
                 @if (isCurrent)
                 {
-                    <span class="badge badge-success" style="font-size:13px;padding:10px 24px;width:100%;display:block">✓ Current Plan</span>
+                    <span class="badge badge-success" style="font-size:13px;padding:10px 24px;width:100%;display:block">Current Plan</span>
                 }
                 else if (plan.Enum == "Free")
                 {
@@ -120,13 +120,13 @@
 
 <!-- Payment Methods -->
 <div class="card" style="margin-bottom:32px">
-    <div class="card-header"><h3 class="card-title">💳 Accepted Payment Methods</h3></div>
+    <div class="card-header"><h3 class="card-title">Accepted Payment Methods</h3></div>
     <div class="card-body">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-            @foreach (var m in new[]{ ("💚","bKash"), ("🟠","Nagad"), ("💳","Visa"), ("💳","MasterCard"), ("💎","Amex") })
+            @foreach (var method in new[] { "bKash", "Nagad", "Visa", "MasterCard", "Amex" })
             {
-                <div style="display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #DDD5C8;border-radius:8px;font-size:13px;font-weight:600;background:#FAF8F4">
-                    <span>@m.Item1</span> @m.Item2
+                <div style="display:flex;align-items:center;padding:8px 16px;border:1px solid #DDD5C8;border-radius:8px;font-size:13px;font-weight:600;background:#FAF8F4">
+                    @method
                 </div>
             }
             <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:#9CA3AF">

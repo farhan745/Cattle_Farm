@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.Models.Farm>
+﻿@model IEnumerable<CattleFarm.Models.Farm>
 @{
     ViewData["Title"] = "Farms";
     int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
@@ -11,7 +11,7 @@
         <p class="page-subtitle">@Model.Count() farms registered on the platform</p>
     </div>
     <div class="page-actions">
-        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+        @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
         {
             <a href="/FarmJoin/Incoming" class="btn btn-outline">
                 <i class="bi bi-people-fill"></i> Join Requests
@@ -43,7 +43,7 @@
 
 @if (!Model.Any())
 {
-    <div class="empty-state"><div class="empty-icon">🏡</div><h3>No farms found</h3></div>
+    <div class="empty-state"><div class="empty-icon"></div><h3>No farms found</h3></div>
 }
 else
 {
@@ -53,13 +53,13 @@ else
             <div class="cattle-card">
                 <div class="cattle-card-img" style="height:160px">
                     @if (!string.IsNullOrEmpty(farm.ImagePath)) { <img src="@farm.ImagePath" alt="@farm.Name" style="height:160px" /> }
-                    else { <span style="font-size:48px">🏡</span> }
+                    else { <span style="font-size:48px"></span> }
                 </div>
                 <div class="cattle-card-body">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start">
                         <div>
                             <div class="cattle-card-title">@farm.Name</div>
-                            <div class="cattle-card-meta">📍 @farm.Location</div>
+                            <div class="cattle-card-meta">@farm.Location</div>
                         </div>
                         @{
                             var apBadge = farm.ApprovalStatus switch { CattleFarm.Models.ApprovalStatus.Approved => "badge-success", CattleFarm.Models.ApprovalStatus.Rejected => "badge-danger", _ => "badge-warning" };
@@ -67,9 +67,9 @@ else
                         <span class="badge @apBadge">@farm.ApprovalStatus</span>
                     </div>
                     <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--text-secondary)">
-                        <span>🐄 @farm.Cattles.Count cattle</span>
-                        <span>📐 @farm.SizeInAcres acres</span>
-                        <span>🏷️ @farm.FarmType</span>
+                        <span>@farm.Cattles.Count cattle</span>
+                        <span>@farm.SizeInAcres acres</span>
+                        <span>@farm.FarmType</span>
                     </div>
                 </div>
                 <div class="cattle-card-footer">

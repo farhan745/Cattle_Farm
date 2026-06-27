@@ -1,0 +1,198 @@
+@model IEnumerable<CattleFarm.Models.WeightRecord>
+@{
+    var cattle = (CattleFarm.Models.Cattle)ViewBag.Cattle;
+    ViewData["Title"] = $"{cattle.Name} - Weight History";
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient">Weight Tracking &amp; Growth Chart</h1>
+        <p class="page-subtitle">Weight progress history for <strong>@cattle.Name</strong> (@cattle.TagId) - Breed: @cattle.Breed</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="/Cattle/Details/@cattle.Id" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Profile</a>
+        <a href="/Cattle/CattleReport/@cattle.Id" class="btn btn-outline"><i class="bi bi-file-earmark-text"></i> Full Report</a>
+    </div>
+</div>
+
+<div class="row animate-slide-up" style="display:grid;grid-template-columns: 1fr 1fr; gap:24px; margin-bottom: 30px; align-items: start;">
+    <!-- Chart & Log Form -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+        <div class="card glass-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-graph-up text-primary"></i> Growth Chart</h3>
+            </div>
+            <div class="card-body">
+                <div style="height: 320px; position: relative;">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card glass-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-plus-circle text-success"></i> Log Body Weight</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="AddWeight" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="cattleId" value="@cattle.Id" />
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:15px;">
+                        <div class="form-group">
+                            <label class="form-label">Weight (kg) *</label>
+                            <input name="weightKg" type="number" step="0.1" class="form-control" placeholder="e.g. 350.5" required min="1" max="5000" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Measurement Date *</label>
+                            <input name="measuredAt" type="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Body Condition Score (BCS 1-9)</label>
+                        <select name="bodyConditionScore" class="form-control">
+                            <option value="">Select score...</option>
+                            @for (int i = 1; i <= 9; i++)
+                            {
+                                <option value="@i">@i - @(i <= 3 ? "Thin" : i <= 6 ? "Ideal" : "Fat")</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Any observation (e.g. health status, feeding change)..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-lg"></i> Record Weight</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card glass-card" style="height: 100%;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-list-stars text-info"></i> Weight Logs</h3>
+        </div>
+        <div class="card-body" style="padding:0;">
+            @if (!Model.Any())
+            {
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                    <i class="bi bi-info-circle" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
+                    No weight records logged yet. Use the form to record the first measurement.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive" style="max-height: 580px; overflow-y: auto;">
+                    <table class="table" style="margin-bottom:0;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th style="text-align:right;">Weight (kg)</th>
+                                <th>BCS</th>
+                                <th>Recorded By</th>
+                                <th>Notes</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var record in Model)
+                            {
+                                <tr>
+                                    <td>@record.MeasuredAt.ToString("yyyy-MM-dd")</td>
+                                    <td style="text-align:right; font-weight:600;" class="text-primary">@record.WeightKg kg</td>
+                                    <td>
+                                        @{
+                                            var bcsStr = record.BodyConditionScore ?? "";
+                                            var bcsVal = 0;
+                                            var hasBcs = !string.IsNullOrWhiteSpace(bcsStr) && int.TryParse(bcsStr, out bcsVal);
+                                        }
+                                        @if (hasBcs)
+                                        {
+                                            <span class="badge @(bcsVal <= 3 ? "badge-danger" : bcsVal <= 6 ? "badge-success" : "badge-warning")">
+                                                BCS @bcsStr
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color:var(--text-muted)">-</span>
+                                        }
+                                    </td>
+                                    <td>@(record.RecordedByUser?.FullName ?? "System")</td>
+                                    <td style="font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@record.Notes">@record.Notes</td>
+                                    <td>
+                                        @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
+                                        {
+                                            <form method="post" action="/Cattle/DeleteWeight/@record.Id?cattleId=@cattle.Id" style="display:inline" onsubmit="return confirm('Delete this weight record?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger)" title="Delete"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Chart data preparation
+            var rawData = @Html.Raw(Json.Serialize(Model.OrderBy(w => w.MeasuredAt).Select(w => new { date = w.MeasuredAt.ToString("yyyy-MM-dd"), weight = w.WeightKg })));
+            
+            var labels = rawData.map(item => item.date);
+            var weights = rawData.map(item => item.weight);
+
+            var ctx = document.getElementById('growthChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: weights,
+                        borderColor: '#2b8a3e',
+                        backgroundColor: 'rgba(43, 138, 62, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#2b8a3e',
+                        pointRadius: 4,
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Weight (kg)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Measurement Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

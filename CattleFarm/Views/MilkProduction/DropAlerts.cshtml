@@ -1,0 +1,101 @@
+@model IEnumerable<CattleFarm.ViewModels.MilkDropAlertViewModel>
+@{
+    ViewData["Title"] = "Sudden Milk Yield Drop Alerts";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)(ViewBag.Farms ?? Enumerable.Empty<CattleFarm.Models.Farm>());
+    var selectedFarmId = (int)(ViewBag.FarmId ?? 0);
+    var alerts = Model.ToList();
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-exclamation-triangle-fill" style="color:var(--danger)"></i> Milk Yield Drop Alerts</h1>
+        <p class="page-subtitle">Compares the last 3 days against the previous 7 days and flags drops of 20% or more.</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="/MilkProduction" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Milk Logs</a>
+        <a href="/MilkProduction/TopProducers?farmId=@(selectedFarmId > 0 ? selectedFarmId.ToString() : "")" class="btn btn-outline"><i class="bi bi-star"></i> Top Producers</a>
+        @if (selectedFarmId > 0)
+        {
+            <a href="/MilkProduction/Create?farmId=@selectedFarmId" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Milk Log</a>
+        }
+        else
+        {
+            <a href="/MilkProduction/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Milk Log</a>
+        }
+    </div>
+</div>
+
+<div class="card animate-fade-in" style="margin-bottom:24px">
+    <div class="card-body" style="padding:16px 24px">
+        <form method="get" action="/MilkProduction/DropAlerts" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+            <div class="form-group" style="margin:0">
+                <label class="form-label">Farm</label>
+                <select name="farmId" class="form-control" style="min-width:220px" onchange="this.form.submit()">
+                    @if (!farms.Any())
+                    {
+                        <option value="">No farms available</option>
+                    }
+                    else
+                    {
+                        @foreach (var farm in farms)
+                        {
+                            <option value="@farm.Id" selected="@(farm.Id == selectedFarmId)">@farm.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-filter"></i> Check Alerts</button>
+        </form>
+    </div>
+</div>
+
+@if (!alerts.Any())
+{
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:56px 20px">
+            <i class="bi bi-check-circle" style="font-size:48px;color:var(--success);display:block;margin-bottom:14px"></i>
+            <h3 style="font-weight:700;margin-bottom:8px">No sudden drops detected</h3>
+            <p style="color:var(--text-muted);margin:0">Keep recording daily milk yields so the alert engine has enough recent and baseline data.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+        <div class="stat-card red"><div class="stat-icon red"><i class="bi bi-bell"></i></div><div><div class="stat-value">@alerts.Count</div><div class="stat-label">Active Alerts</div></div></div>
+        <div class="stat-card amber"><div class="stat-icon amber"><i class="bi bi-percent"></i></div><div><div class="stat-value">@alerts.Max(a => a.DropPercentage).ToString("F1")%</div><div class="stat-label">Largest Drop</div></div></div>
+        <div class="stat-card blue"><div class="stat-icon blue"><i class="bi bi-calendar2-week"></i></div><div><div class="stat-value">@alerts.Max(a => a.LastRecordedDate).ToString("MMM dd")</div><div class="stat-label">Latest Reading</div></div></div>
+    </div>
+
+    <div class="card">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cattle</th>
+                        <th>Breed</th>
+                        <th style="text-align:right">Baseline Avg</th>
+                        <th style="text-align:right">Recent Avg</th>
+                        <th style="text-align:right">Drop</th>
+                        <th>Last Record</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var alert in alerts.OrderByDescending(a => a.DropPercentage))
+                    {
+                        <tr>
+                            <td><strong>@alert.Name</strong><div style="font-size:11px;color:var(--text-muted)"><code>@alert.TagId</code></div></td>
+                            <td>@alert.Breed</td>
+                            <td style="text-align:right">@alert.BaselineAverage.ToString("F1") L</td>
+                            <td style="text-align:right;color:var(--danger);font-weight:700">@alert.RecentAverage.ToString("F1") L</td>
+                            <td style="text-align:right"><span class="badge badge-danger">@alert.DropPercentage.ToString("F1")%</span></td>
+                            <td>@alert.LastRecordedDate.ToString("yyyy-MM-dd")</td>
+                            <td style="text-align:right"><a href="/Cattle/Details/@alert.CattleId" class="btn btn-outline btn-sm"><i class="bi bi-eye"></i> View</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

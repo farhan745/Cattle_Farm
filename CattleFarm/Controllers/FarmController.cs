@@ -11,23 +11,37 @@ namespace CattleFarm.Controllers
     public class FarmController : Controller
     {
         private readonly IFarmService _farmService;
+        private readonly IFarmAccessService _farmAccess;
         private readonly IAuditService _auditService;
-        private readonly ISubscriptionService _subscriptionService;
         private const int PageSize = 10;
 
-        public FarmController(IFarmService farmService, IAuditService auditService, ISubscriptionService subscriptionService)
+        public FarmController(IFarmService farmService, IFarmAccessService farmAccess, IAuditService auditService)
         {
             _farmService = farmService;
+            _farmAccess = farmAccess;
             _auditService = auditService;
-            _subscriptionService = subscriptionService;
         }
 
         public async Task<IActionResult> Index(int page = 1, string? search = null)
         {
-            var (items, total) = await _farmService.GetPagedAsync(page, PageSize, search);
+            var userId = GetUserId();
+            var role = GetUserRole();
+
+            if (User.IsInRole(AppRoles.Manager))
+            {
+                var managerFarmId = await _farmAccess.GetActiveManagerFarmIdAsync(userId);
+                if (!managerFarmId.HasValue)
+                {
+                    TempData["InfoMessage"] = "You are not assigned to a farm yet. Browse farms and apply to join as manager.";
+                    return RedirectToAction("ManagerBrowse", "FarmJoin");
+                }
+                return RedirectToAction(nameof(Details), new { id = managerFarmId.Value });
+            }
+
+            var (items, total) = await _farmService.GetPagedForUserAsync(page, PageSize, userId, role, search);
             ViewData["CurrentPage"] = page;
-            ViewData["TotalPages"]  = (int)Math.Ceiling(total / (double)PageSize);
-            ViewData["Search"]      = search;
+            ViewData["TotalPages"] = (int)Math.Ceiling(total / (double)PageSize);
+            ViewData["Search"] = search;
             return View(items);
         }
 
@@ -36,14 +50,20 @@ namespace CattleFarm.Controllers
             if (!id.HasValue || id.Value <= 0) return RedirectToAction(nameof(Index));
             var farm = await _farmService.GetWithDetailsAsync(id.Value);
             if (farm is null) return NotFound();
+
+            if (!await _farmAccess.CanOperateFarmAsync(farm.Id, GetUserId(), GetUserRole()))
+                return Forbid();
+
+            ViewBag.CanEditFarmProfile = await _farmAccess.CanOwnFarmEntityAsync(farm.Id, GetUserId(), GetUserRole());
+            ViewBag.CanOperateFarm = true;
             return View(farm);
         }
 
-        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
+        [Authorize(Roles = AppRoles.AdminOrOwner)]
         public IActionResult Create() => View(new FarmViewModel());
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
+        [Authorize(Roles = AppRoles.AdminOrOwner)]
         public async Task<IActionResult> Create(FarmViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
@@ -54,19 +74,29 @@ namespace CattleFarm.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
+        [Authorize(Roles = AppRoles.AdminOrOwner)]
         public async Task<IActionResult> Edit(int id)
         {
             var farm = await _farmService.GetByIdAsync(id);
             if (farm is null) return NotFound();
-            var vm = new FarmViewModel { Id = farm.Id, Name = farm.Name, Location = farm.Location, FarmType = farm.FarmType, SizeInAcres = farm.SizeInAcres, Capacity = farm.Capacity, Description = farm.Description, Latitude = farm.Latitude, Longitude = farm.Longitude, ExistingImagePath = farm.ImagePath };
+            if (!await _farmAccess.CanOwnFarmEntityAsync(id, GetUserId(), GetUserRole()))
+                return Forbid();
+
+            var vm = new FarmViewModel
+            {
+                Id = farm.Id, Name = farm.Name, Location = farm.Location, FarmType = farm.FarmType,
+                SizeInAcres = farm.SizeInAcres, Capacity = farm.Capacity, Description = farm.Description,
+                Latitude = farm.Latitude, Longitude = farm.Longitude, ExistingImagePath = farm.ImagePath
+            };
             return View(vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
+        [Authorize(Roles = AppRoles.AdminOrOwner)]
         public async Task<IActionResult> Edit(int id, FarmViewModel vm)
         {
+            if (!await _farmAccess.CanOwnFarmEntityAsync(id, GetUserId(), GetUserRole()))
+                return Forbid();
             if (!ModelState.IsValid) return View(vm);
             await _farmService.UpdateAsync(id, vm);
             await _auditService.LogActivityAsync(GetUserId(), $"Updated farm: {vm.Name}", "Farm", id);
@@ -102,6 +132,14 @@ namespace CattleFarm.Controllers
         {
             var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(id, out var parsed) ? parsed : 0;
+        }
+
+        private string? GetUserRole()
+        {
+            if (User.IsInRole(AppRoles.Admin)) return AppRoles.Admin;
+            if (User.IsInRole(AppRoles.Owner)) return AppRoles.Owner;
+            if (User.IsInRole(AppRoles.Manager)) return AppRoles.Manager;
+            return User.FindFirst(ClaimTypes.Role)?.Value;
         }
     }
 }

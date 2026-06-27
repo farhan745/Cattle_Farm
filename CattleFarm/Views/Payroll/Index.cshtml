@@ -71,17 +71,56 @@
         outline: none;
         border-color: var(--primary);
     }
+
+    .table-wrapper {
+        overflow-x: auto !important;
+        width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md, 8px);
+    }
+
+    .data-table th, .data-table td {
+        white-space: nowrap !important;
+    }
+
+    @@media (max-width: 992px) {
+        .pay-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .pay-stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        .filter-bar input, .filter-bar select {
+            width: 100%;
+        }
+        .filter-bar span {
+            margin-left: 0 !important;
+            text-align: center;
+        }
+    }
 </style>
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">💰 Payroll Management</h1>
+        <h1 class="page-title">Payroll Management</h1>
         <p class="page-subtitle">Manage employee salaries, bonuses, deductions, and payout statuses</p>
     </div>
     <div>
         @if (isAdminOrOwner)
         {
+            <a asp-action="ExportExcel" class="btn btn-outline">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel
+            </a>
             <a href="/Payroll/Generate" class="btn btn-primary">
                 <i class="bi bi-gear-fill"></i> Generate Monthly Payroll
             </a>
@@ -150,7 +189,7 @@
                 {
                     <tr>
                         <td colspan="8" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
-                            <div style="font-size:48px;margin-bottom:12px">💰</div>
+                            <div style="font-size:48px;margin-bottom:12px"></div>
                             <div style="font-weight:600;margin-bottom:6px">No payroll records found</div>
                             @if (isAdminOrOwner)
                             {
@@ -195,6 +234,9 @@
                             <div style="display:flex;gap:6px;justify-content:center">
                                 <a href="/Payroll/Details/@p.Id" class="btn btn-outline btn-sm" title="View Slip">
                                     View
+                                </a>
+                                <a asp-action="ExportSlipPdf" asp-route-id="@p.Id" class="btn btn-outline btn-sm" title="Download PDF Slip">
+                                    PDF
                                 </a>
                                 @if (isAdminOrOwner)
                                 {

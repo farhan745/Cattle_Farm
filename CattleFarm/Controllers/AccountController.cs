@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace CattleFarm.Controllers
 {
@@ -19,6 +22,8 @@ namespace CattleFarm.Controllers
         private readonly IUserManagementService _userService;
         private readonly CattleFarmDbContext _db;
         private readonly IAuditService _auditService;
+        private readonly IDoctorService _doctorService;
+        private readonly IConfiguration _configuration;
 
         public AccountController(
             IAuthService authService,
@@ -26,7 +31,9 @@ namespace CattleFarm.Controllers
             IImageService imageService,
             IUserManagementService userService,
             CattleFarmDbContext db,
-            IAuditService auditService)
+            IAuditService auditService,
+            IDoctorService doctorService,
+            IConfiguration configuration)
         {
             _authService = authService;
             _emailService = emailService;
@@ -34,6 +41,8 @@ namespace CattleFarm.Controllers
             _userService = userService;
             _db = db;
             _auditService = auditService;
+            _doctorService = doctorService;
+            _configuration = configuration;
         }
 
         // ─── LOGIN ────────────────────────────────────────────────────────────
@@ -60,44 +69,179 @@ namespace CattleFarm.Controllers
                 return View(model);
             }
 
-            // Build claims
-            var claims = new List<Claim>
+            if (user.Role == AppRoles.Doctor)
             {
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Name,           user.Username),
-                new(ClaimTypes.Email,          user.Email),
-                new(ClaimTypes.Role,           user.Role),
-                new("FullName",                user.FullName),
-                new("ProfileImage",            user.ProfileImagePath ?? "")
-            };
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            var authProps = new AuthenticationProperties
-            {
-                IsPersistent = model.RememberMe,
-                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
-            };
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProps);
+                var doctorProfile = await _doctorService.GetByUserIdAsync(user.Id);
+                if (doctorProfile is null)
+                {
+                    ModelState.AddModelError(string.Empty, "Veterinarian profile not found. Please contact support.");
+                    return View(model);
+                }
+                if (doctorProfile.ApprovalStatus == ApprovalStatus.Pending)
+                {
+                    ModelState.AddModelError(string.Empty, "Your veterinarian registration is pending admin approval. Please try again later.");
+                    return View(model);
+                }
+                if (doctorProfile.ApprovalStatus == ApprovalStatus.Rejected)
+                {
+                    ModelState.AddModelError(string.Empty, "Your veterinarian registration was not approved.");
+                    return View(model);
+                }
+            }
+
+            await CattleFarm.Authorization.UserClaimsHelper.SignInAsync(HttpContext, user, model.RememberMe);
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
             return RedirectToAction("Index", "Dashboard");
         }
 
+        [HttpPost("/api/auth/token")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Token([FromBody] ApiLoginRequest request)
+        {
+            if (request is null || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { message = "Email and password are required." });
+
+            var user = await _authService.LoginAsync(request.Email, request.Password);
+            if (user is null)
+                return Unauthorized(new { message = "Invalid email or password." });
+
+            if (!user.IsActive || user.IsDeleted)
+                return Unauthorized(new { message = "Account is not active." });
+
+            var issuer = _configuration["Jwt:Issuer"] ?? "SmartCattleFarm";
+            var audience = _configuration["Jwt:Audience"] ?? "SmartCattleFarm.Api";
+            var key = _configuration["Jwt:Key"] ?? "LOCAL_DEVELOPMENT_KEY_CHANGE_BEFORE_PRODUCTION_32_CHARS";
+            var expires = DateTime.UtcNow.AddHours(8);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("FullName", user.FullName)
+            };
+
+            var token = new JwtSecurityToken(
+                issuer,
+                audience,
+                claims,
+                expires: expires,
+                signingCredentials: new SigningCredentials(
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                    SecurityAlgorithms.HmacSha256));
+
+            return Json(new
+            {
+                accessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                tokenType = "Bearer",
+                expiresAt = expires,
+                user = new { user.Id, user.Username, user.FullName, user.Email, user.Role }
+            });
+        }
+
+        public record ApiLoginRequest(string Email, string Password);
+
         // ─── REGISTER ─────────────────────────────────────────────────────────
 
         [HttpGet]
-        public IActionResult Register()
+        public IActionResult Register(string? role = null)
         {
             if (User.Identity?.IsAuthenticated == true)
                 return RedirectToAction("Index", "Dashboard");
-            return View();
+            var vm = new RegisterViewModel();
+            if (!string.IsNullOrWhiteSpace(role))
+                vm.Role = role;
+            return View(vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            if (model.Role == AppRoles.Admin || model.Role == AppRoles.Owner)
+            {
+                ModelState.AddModelError(nameof(model.Role), "You cannot register directly with this role.");
+                return View(model);
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.PhoneNumber))
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(model.PhoneNumber, @"^\+?[0-9\s\-]{7,15}$"))
+                {
+                    ModelState.AddModelError(nameof(model.PhoneNumber), "Invalid phone number format.");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.Email))
+            {
+                try
+                {
+                    var addr = new System.Net.Mail.MailAddress(model.Email);
+                    if (addr.Address != model.Email)
+                    {
+                        ModelState.AddModelError(nameof(model.Email), "Invalid email format.");
+                    }
+                }
+                catch
+                {
+                    ModelState.AddModelError(nameof(model.Email), "Invalid email format.");
+                }
+            }
+
+            if (model.Role == AppRoles.Doctor)
+            {
+                if (model.ProfileImage is null || model.ProfileImage.Length == 0)
+                    ModelState.AddModelError(nameof(model.ProfileImage), "A profile photo is required for veterinarian registration.");
+                else if (!_imageService.IsValidImage(model.ProfileImage))
+                    ModelState.AddModelError(nameof(model.ProfileImage), "Profile photo must be a valid image (JPG, PNG, WEBP, or GIF).");
+                if (string.IsNullOrWhiteSpace(model.Specialization))
+                    ModelState.AddModelError(nameof(model.Specialization), "Specialization is required.");
+                if (string.IsNullOrWhiteSpace(model.AvailableTimeSlot))
+                    ModelState.AddModelError(nameof(model.AvailableTimeSlot), "Availability schedule is required.");
+
+                if (!string.IsNullOrWhiteSpace(model.LicenseNumber))
+                {
+                    var licenseExists = await _db.Doctors.AnyAsync(d => d.LicenseNumber == model.LicenseNumber && !d.IsDeleted);
+                    if (licenseExists)
+                    {
+                        ModelState.AddModelError(nameof(model.LicenseNumber), "A veterinarian with this license number is already registered.");
+                    }
+                }
+            }
+
             if (!ModelState.IsValid) return View(model);
+
+            if (model.Role == AppRoles.Doctor)
+            {
+                try
+                {
+                    var vetVm = new DoctorSelfRegisterVM
+                    {
+                        FullName = model.FullName,
+                        Email = model.Email,
+                        Password = model.Password,
+                        ConfirmPassword = model.ConfirmPassword,
+                        ProfilePhoto = model.ProfileImage!,
+                        PhoneNumber = model.PhoneNumber ?? string.Empty,
+                        Specialization = model.Specialization!,
+                        ConsultationFee = model.ConsultationFee,
+                        AvailableTimeSlot = model.AvailableTimeSlot!,
+                        YearsOfExperience = model.YearsOfExperience,
+                        LicenseNumber = model.LicenseNumber
+                    };
+                    await _doctorService.SelfRegisterAsync(vetVm);
+                    TempData["SuccessMessage"] = "Registration submitted! An admin will review your profile. You can sign in after approval — we will notify you.";
+                    return RedirectToAction(nameof(Login));
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    return View(model);
+                }
+            }
 
             if (await _authService.EmailExistsAsync(model.Email))
             {
@@ -305,6 +449,7 @@ namespace CattleFarm.Controllers
             user.Address = address;
             user.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
+            await CattleFarm.Authorization.UserClaimsHelper.SignInAsync(HttpContext, user, isPersistent: false);
 
             TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction(nameof(Profile));

@@ -4,6 +4,7 @@ using CattleFarm.UnitOfWork;
 using CattleFarm.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CattleFarm.Controllers
@@ -13,23 +14,35 @@ namespace CattleFarm.Controllers
     {
         private readonly IUnitOfWork _uow;
         private readonly IAuditService _audit;
+        private readonly IFarmAccessService _farmAccess;
+        private readonly CattleFarmDbContext _db;
         private const int PageSize = 15;
 
-        public BreedingController(IUnitOfWork uow, IAuditService audit)
+        public BreedingController(IUnitOfWork uow, IAuditService audit, IFarmAccessService farmAccess, CattleFarmDbContext db)
         {
-            _uow   = uow;
-            _audit = audit;
+            _uow        = uow;
+            _audit      = audit;
+            _farmAccess = farmAccess;
+            _db         = db;
         }
 
         public async Task<IActionResult> Index(int page = 1, int? farmId = null, BreedingOutcome? outcome = null)
         {
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            var accessibleFarms = (await _farmAccess.GetAccessibleFarmsAsync(userId, role)).ToList();
+
+            // Validate that the requested farmId is accessible to the user
+            if (farmId.HasValue && !accessibleFarms.Any(f => f.Id == farmId.Value))
+                return Forbid();
+
             var (items, total) = await _uow.Breedings.GetPagedAsync(page, PageSize, farmId, outcome);
             ViewData["CurrentPage"] = page;
             ViewData["TotalPages"]  = (int)Math.Ceiling(total / (double)PageSize);
             ViewData["TotalCount"]  = total;
             ViewData["FarmId"]      = farmId;
             ViewData["Outcome"]     = outcome;
-            ViewBag.Farms = await _uow.Farms.GetAllAsync();
+            ViewBag.Farms = accessibleFarms;   // Only show farms the user can access
             return View(items);
         }
 
@@ -37,21 +50,58 @@ namespace CattleFarm.Controllers
         {
             var b = await _uow.Breedings.GetByIdAsync(id);
             if (b is null) return NotFound();
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!await _farmAccess.CanOperateFarmAsync(b.FarmId, userId, role))
+                return Forbid();
             return View(b);
         }
 
         [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
-        public async Task<IActionResult> Create(int? farmId = null)
+        public async Task<IActionResult> Create(int? farmId = null, int? cattleId = null)
         {
-            await LoadDropdowns(farmId);
-            return View(new BreedingViewModel { BreedingDate = DateTime.Today, FarmId = farmId ?? 0 });
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (farmId.HasValue && !await _farmAccess.CanOperateFarmAsync(farmId.Value, userId, role))
+                return Forbid();
+            await LoadDropdowns(farmId, userId, role);
+            return View(new BreedingViewModel { BreedingDate = DateTime.Today, FarmId = farmId ?? 0, CattleId = cattleId ?? 0 });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> HeatCalendar(int? farmId = null)
+        {
+            var userId = GetUserId();
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var accessibleFarms = (await _farmAccess.GetAccessibleFarmsAsync(userId, role)).ToList();
+
+            if (farmId.HasValue && !accessibleFarms.Any(f => f.Id == farmId.Value))
+                return Forbid();
+
+            var farmIds = farmId.HasValue
+                ? new List<int> { farmId.Value }
+                : accessibleFarms.Select(f => f.Id).ToList();
+
+            var records = await _db.HeatRecords
+                .Include(h => h.Cattle)
+                .Where(h => farmIds.Contains(h.FarmId))
+                .OrderByDescending(h => h.ObservationDate)
+                .ToListAsync();
+
+            ViewBag.Farms = accessibleFarms;
+            ViewBag.SelectedFarmId = farmId;
+            return View(records);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
         public async Task<IActionResult> Create(BreedingViewModel vm)
         {
-            if (!ModelState.IsValid) { await LoadDropdowns(vm.FarmId); return View(vm); }
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!await _farmAccess.CanOperateFarmAsync(vm.FarmId, userId, role))
+                return Forbid();
+            if (!ModelState.IsValid) { await LoadDropdowns(vm.FarmId, userId, role); return View(vm); }
             var b = new Breeding
             {
                 CattleId    = vm.CattleId,
@@ -78,7 +128,11 @@ namespace CattleFarm.Controllers
         {
             var b = await _uow.Breedings.GetByIdAsync(id);
             if (b is null) return NotFound();
-            await LoadDropdowns(b.FarmId);
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!await _farmAccess.CanOperateFarmAsync(b.FarmId, userId, role))
+                return Forbid();
+            await LoadDropdowns(b.FarmId, userId, role);
             var vm = MapToVm(b);
             return View(vm);
         }
@@ -88,7 +142,11 @@ namespace CattleFarm.Controllers
         public async Task<IActionResult> Edit(int id, BreedingViewModel vm)
         {
             if (id != vm.Id) return BadRequest();
-            if (!ModelState.IsValid) { await LoadDropdowns(vm.FarmId); return View(vm); }
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!await _farmAccess.CanOperateFarmAsync(vm.FarmId, userId, role))
+                return Forbid();
+            if (!ModelState.IsValid) { await LoadDropdowns(vm.FarmId, userId, role); return View(vm); }
             var b = await _uow.Breedings.GetByIdAsync(id);
             if (b is null) return NotFound();
             b.CattleId    = vm.CattleId;
@@ -115,14 +173,27 @@ namespace CattleFarm.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var b = await _uow.Breedings.GetByIdAsync(id);
-            if (b != null) { _uow.Breedings.Delete(b); await _uow.SaveChangesAsync(); }
+            if (b is null)
+            {
+                TempData["SuccessMessage"] = "Breeding record deleted.";
+                return RedirectToAction(nameof(Index));
+            }
+            var userId = GetUserId();
+            var role   = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!await _farmAccess.CanOperateFarmAsync(b.FarmId, userId, role))
+                return Forbid();
+            _uow.Breedings.Delete(b);
+            await _uow.SaveChangesAsync();
             TempData["SuccessMessage"] = "Breeding record deleted.";
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task LoadDropdowns(int? farmId)
+        private async Task LoadDropdowns(int? farmId, int userId = 0, string? role = null)
         {
-            ViewBag.Farms = await _uow.Farms.GetAllAsync();
+            IEnumerable<Farm> farms = userId > 0
+                ? await _farmAccess.GetAccessibleFarmsAsync(userId, role)
+                : await _uow.Farms.GetAllAsync();
+            ViewBag.Farms = farms;
             if (farmId.HasValue)
                 ViewBag.Cattle = await _uow.Cattles.GetByFarmIdAsync(farmId.Value);
             else

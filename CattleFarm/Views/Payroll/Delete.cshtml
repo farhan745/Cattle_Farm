@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.PayrollViewModel
+﻿@model CattleFarm.ViewModels.PayrollViewModel
 @{
     var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(Model.Month);
     ViewData["Title"] = $"Delete Payroll - {Model.WorkerName}";
@@ -6,7 +6,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title text-danger">⚠️ Delete Payroll Entry</h1>
+        <h1 class="page-title text-danger">Delete Payroll Entry</h1>
         <p class="page-subtitle">Are you sure you want to permanently remove this payroll record?</p>
     </div>
     <a href="/Payroll" class="btn btn-outline">
@@ -21,7 +21,7 @@
 
         <div class="card" style="border-color:rgba(239,68,68,.3)">
             <div class="card-header" style="background:rgba(239,68,68,.03);border-bottom:1px solid rgba(239,68,68,.15)">
-                <h3 class="card-title text-danger">🚨 Permanent Deletion Warning</h3>
+                <h3 class="card-title text-danger">Permanent Deletion Warning</h3>
             </div>
             
             <div class="card-body" style="display:flex;flex-direction:column;gap:18px">

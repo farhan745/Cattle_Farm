@@ -1,6 +1,7 @@
 using CattleFarm.Models;
 using CattleFarm.Services.Interfaces;
 using CattleFarm.ViewModels;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -15,19 +16,22 @@ namespace CattleFarm.Controllers
         private readonly IFarmService    _farmService;
         private readonly IPaymentGatewayService _paymentService;
         private readonly CattleFarmDbContext     _db;
+        private readonly IPdfService             _pdfService;
 
         public OrderController(
             IOrderService order, 
             IProductService product, 
             IFarmService farm,
             IPaymentGatewayService payment,
-            CattleFarmDbContext db)
+            CattleFarmDbContext db,
+            IPdfService pdfService)
         { 
             _orderService = order; 
             _productService = product; 
             _farmService = farm; 
             _paymentService = payment;
             _db = db;
+            _pdfService = pdfService;
         }
 
         public async Task<IActionResult> Index(int page = 1, int? farmId = null, OrderStatus? status = null)
@@ -216,6 +220,105 @@ namespace CattleFarm.Controllers
 
             TempData["ErrorMessage"] = $"Payment initiation failed: {result.Error}";
             return RedirectToAction(nameof(Details), new { id = order.Id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportInvoicePdf(int id)
+        {
+            var order = await _orderService.GetWithItemsAsync(id);
+            if (order == null) return NotFound();
+
+            var userId = GetUserId();
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+            if (role != AppRoles.Admin && order.CustomerId != userId)
+            {
+                if (role == AppRoles.Owner)
+                {
+                    var farms = await _farmService.GetByOwnerAsync(userId);
+                    if (!farms.Any(f => f.Id == order.FarmId))
+                    {
+                        return Forbid();
+                    }
+                }
+                else
+                {
+                    return Forbid();
+                }
+            }
+
+            var pdfBytes = _pdfService.GenerateOrderInvoicePdf(order);
+            var fileName = $"invoice-order-{order.Id}.pdf";
+            return File(pdfBytes, "application/pdf", fileName);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportInvoiceExcel(int id)
+        {
+            var order = await _orderService.GetWithItemsAsync(id);
+            if (order == null) return NotFound();
+
+            var userId = GetUserId();
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+            if (role != AppRoles.Admin && order.CustomerId != userId)
+            {
+                if (role == AppRoles.Owner)
+                {
+                    var farms = await _farmService.GetByOwnerAsync(userId);
+                    if (!farms.Any(f => f.Id == order.FarmId))
+                    {
+                        return Forbid();
+                    }
+                }
+                else
+                {
+                    return Forbid();
+                }
+            }
+
+            using var workbook = new XLWorkbook();
+            var sheet = workbook.Worksheets.Add("Invoice");
+            sheet.Cell(1, 1).Value = $"Invoice for Order #{order.Id}";
+            sheet.Cell(3, 1).Value = "Farm";
+            sheet.Cell(3, 2).Value = order.Farm?.Name ?? "";
+            sheet.Cell(4, 1).Value = "Order Date";
+            sheet.Cell(4, 2).Value = order.OrderDate.ToString("yyyy-MM-dd HH:mm");
+            sheet.Cell(5, 1).Value = "Customer";
+            sheet.Cell(5, 2).Value = order.Customer?.FullName ?? "";
+            sheet.Cell(6, 1).Value = "Delivery Address";
+            sheet.Cell(6, 2).Value = order.DeliveryAddress ?? "Local Pickup";
+
+            sheet.Cell(8, 1).Value = "Product";
+            sheet.Cell(8, 2).Value = "Quantity";
+            sheet.Cell(8, 3).Value = "Unit Price";
+            sheet.Cell(8, 4).Value = "Total Price";
+
+            var items = order.OrderItems.ToList();
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                var row = 9 + i;
+                sheet.Cell(row, 1).Value = item.Product?.Name ?? "";
+                sheet.Cell(row, 2).Value = item.Quantity;
+                sheet.Cell(row, 3).Value = item.UnitPrice;
+                sheet.Cell(row, 4).Value = item.TotalPrice;
+            }
+
+            var totalRow = 10 + items.Count;
+            sheet.Cell(totalRow, 3).Value = "Grand Total";
+            sheet.Cell(totalRow, 4).Value = order.TotalAmount;
+
+            sheet.Range(8, 1, 8, 4).Style.Font.Bold = true;
+            sheet.Cell(totalRow, 3).Style.Font.Bold = true;
+            sheet.Cell(totalRow, 4).Style.Font.Bold = true;
+            sheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var fileName = $"invoice-order-{order.Id}.xlsx";
+            return File(
+                stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
         }
 
         private int GetUserId() { var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; return int.TryParse(id, out var p) ? p : 0; }

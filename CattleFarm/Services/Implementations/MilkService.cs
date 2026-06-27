@@ -17,7 +17,29 @@ namespace CattleFarm.Services.Implementations
 
         public async Task<MilkProduction> CreateAsync(MilkProductionViewModel vm)
         {
-            var m = new MilkProduction { CattleId = vm.CattleId, FarmId = vm.FarmId, RecordedByWorkerId = vm.RecordedByWorkerId, Date = vm.Date, MorningYieldLiters = vm.MorningYieldLiters, EveningYieldLiters = vm.EveningYieldLiters, Notes = vm.Notes };
+            var m = new MilkProduction 
+            { 
+                CattleId = vm.CattleId, 
+                FarmId = vm.FarmId, 
+                RecordedByWorkerId = vm.RecordedByWorkerId, 
+                Date = vm.Date, 
+                MorningYieldLiters = vm.MorningYieldLiters, 
+                EveningYieldLiters = vm.EveningYieldLiters, 
+                Notes = vm.Notes,
+                FatPercentage = vm.FatPercentage,
+                ProteinLevel = vm.ProteinLevel,
+                SolidNotFat = vm.SolidNotFat,
+                MilkQualityGrade = vm.MilkQualityGrade
+            };
+
+            // Auto grade calculation if not specified
+            if (string.IsNullOrWhiteSpace(m.MilkQualityGrade) && m.FatPercentage.HasValue && m.ProteinLevel.HasValue)
+            {
+                if (m.FatPercentage >= 4.0m && m.ProteinLevel >= 3.5m) m.MilkQualityGrade = "A";
+                else if (m.FatPercentage >= 3.2m && m.ProteinLevel >= 3.0m) m.MilkQualityGrade = "B";
+                else m.MilkQualityGrade = "C";
+            }
+
             await _uow.MilkProductions.AddAsync(m);
             await _uow.SaveChangesAsync();
             return m;
@@ -27,7 +49,23 @@ namespace CattleFarm.Services.Implementations
         {
             var m = await _uow.MilkProductions.GetByIdAsync(id);
             if (m is null) return false;
-            m.Date = vm.Date; m.MorningYieldLiters = vm.MorningYieldLiters; m.EveningYieldLiters = vm.EveningYieldLiters; m.Notes = vm.Notes;
+            
+            m.Date = vm.Date; 
+            m.MorningYieldLiters = vm.MorningYieldLiters; 
+            m.EveningYieldLiters = vm.EveningYieldLiters; 
+            m.Notes = vm.Notes;
+            m.FatPercentage = vm.FatPercentage;
+            m.ProteinLevel = vm.ProteinLevel;
+            m.SolidNotFat = vm.SolidNotFat;
+            m.MilkQualityGrade = vm.MilkQualityGrade;
+
+            if (string.IsNullOrWhiteSpace(m.MilkQualityGrade) && m.FatPercentage.HasValue && m.ProteinLevel.HasValue)
+            {
+                if (m.FatPercentage >= 4.0m && m.ProteinLevel >= 3.5m) m.MilkQualityGrade = "A";
+                else if (m.FatPercentage >= 3.2m && m.ProteinLevel >= 3.0m) m.MilkQualityGrade = "B";
+                else m.MilkQualityGrade = "C";
+            }
+
             _uow.MilkProductions.Update(m);
             await _uow.SaveChangesAsync();
             return true;
@@ -40,6 +78,55 @@ namespace CattleFarm.Services.Implementations
             _uow.MilkProductions.Delete(m);
             await _uow.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<MilkDropAlertViewModel>> DetectYieldDropsAsync(int farmId)
+        {
+            var today = DateTime.Today;
+            var threeDaysAgo = today.AddDays(-3);
+            var tenDaysAgo = today.AddDays(-10);
+
+            // Fetch records from UoW
+            var records = await _uow.MilkProductions.GetByFarmIdAsync(farmId, tenDaysAgo, today);
+            var allRecords = records.ToList();
+
+            var grouped = allRecords.GroupBy(r => r.CattleId);
+            var alerts = new List<MilkDropAlertViewModel>();
+
+            foreach (var group in grouped)
+            {
+                var cattle = group.First().Cattle;
+                if (cattle == null) continue;
+
+                var recentRecords = group.Where(r => r.Date >= threeDaysAgo).ToList();
+                var baselineRecords = group.Where(r => r.Date < threeDaysAgo).ToList();
+
+                if (!recentRecords.Any() || !baselineRecords.Any()) continue;
+
+                var recentAvg = recentRecords.Average(r => r.MorningYieldLiters + r.EveningYieldLiters);
+                var baselineAvg = baselineRecords.Average(r => r.MorningYieldLiters + r.EveningYieldLiters);
+
+                if (baselineAvg > 0)
+                {
+                    var dropPercent = ((baselineAvg - recentAvg) / baselineAvg) * 100;
+                    if (dropPercent >= 20)
+                    {
+                        alerts.Add(new MilkDropAlertViewModel
+                        {
+                            CattleId = cattle.Id,
+                            TagId = cattle.TagId,
+                            Name = cattle.Name,
+                            Breed = cattle.Breed,
+                            BaselineAverage = (decimal)baselineAvg,
+                            RecentAverage = (decimal)recentAvg,
+                            DropPercentage = (decimal)dropPercent,
+                            LastRecordedDate = recentRecords.Max(r => r.Date)
+                        });
+                    }
+                }
+            }
+
+            return alerts;
         }
     }
 }

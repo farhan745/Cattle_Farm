@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.Models.Vaccination>
+﻿@model IEnumerable<CattleFarm.Models.Vaccination>
 @{
     ViewData["Title"] = "Vaccination Schedules";
     var cattleId = ViewData["CattleId"] as int?;
@@ -20,21 +20,21 @@
 <!-- Quick Statistics Strip -->
 <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
     <div class="stat-card blue">
-        <div class="stat-icon blue">🛡️</div>
+        <div class="stat-icon blue"></div>
         <div>
             <div class="stat-value">@Model.Count()</div>
             <div class="stat-label">Total Vaccinations</div>
         </div>
     </div>
     <div class="stat-card green">
-        <div class="stat-icon green">📅</div>
+        <div class="stat-icon green"></div>
         <div>
             <div class="stat-value">@Model.Count(v => v.NextDueDate.HasValue && v.NextDueDate.Value > DateTime.UtcNow)</div>
             <div class="stat-label">Active Booster Cycles</div>
         </div>
     </div>
     <div class="stat-card amber">
-        <div class="stat-icon amber">🔔</div>
+        <div class="stat-icon amber"></div>
         <div>
             <div class="stat-value">@Model.Count(v => v.NextDueDate.HasValue && v.NextDueDate.Value <= DateTime.UtcNow.AddDays(7) && v.NextDueDate.Value >= DateTime.UtcNow)</div>
             <div class="stat-label">Due Next 7 Days</div>
@@ -43,12 +43,12 @@
 </div>
 
 <div class="card">
-    <div class="card-header"><h3 class="card-title">📋 Immunization Trail</h3></div>
+    <div class="card-header"><h3 class="card-title">Immunization Trail</h3></div>
     <div class="table-wrapper">
         @if (!Model.Any())
         {
             <div class="empty-state" style="padding:40px">
-                <div class="empty-icon" style="font-size:48px;margin-bottom:12px">🛡️</div>
+                <div class="empty-icon" style="font-size:48px;margin-bottom:12px"></div>
                 <h3>No vaccination records</h3>
                 <p style="color:var(--text-muted);font-size:13px;margin-top:6px">No immunization records have been logged for the selected filter.</p>
             </div>

@@ -1,0 +1,114 @@
+@model IEnumerable<CattleFarm.ViewModels.WorkerPerformanceViewModel>
+@{
+    ViewData["Title"] = "Employee Performance";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    int selectedFarmId = (int)(ViewBag.SelectedFarmId ?? 0);
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-star-fill" style="color:var(--warning)"></i> Employee Performance</h1>
+        <p class="page-subtitle">Track worker attendance, task completion rates, and overall efficiency scores (30-day window)</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Worker" class="btn btn-outline"><i class="bi bi-people"></i> Worker Directory</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card animate-fade-in" style="margin-bottom:24px">
+    <div class="card-body" style="padding:16px 24px">
+        <form method="get" action="/Employee/Performance" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Farm:</label>
+                <select name="farmId" class="form-control" style="width:200px" onchange="this.form.submit()">
+                    @foreach (var farm in farms)
+                    {
+                        if (farm.Id == selectedFarmId)
+                        {
+                            <option value="@farm.Id" selected="selected">@farm.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@farm.Id">@farm.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-filter"></i> Filter</button>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:60px 20px">
+            <i class="bi bi-person-x" style="font-size:48px;color:var(--text-muted);display:block;margin-bottom:16px"></i>
+            <h3 style="font-weight:700;margin-bottom:8px">No workers found</h3>
+            <p style="color:var(--text-muted)">There are no employees registered on the selected farm to evaluate.</p>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Performance Leaderboard Grid -->
+    <div class="responsive-grid animate-fade-in" style="grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:24px">
+        @foreach (var w in Model)
+        {
+            var overallColor = w.OverallScore >= 85 ? "var(--success)" : (w.OverallScore >= 65 ? "var(--warning)" : "var(--danger)");
+            var gradeText = w.OverallScore >= 90 ? "Excellent" : (w.OverallScore >= 75 ? "Good" : (w.OverallScore >= 50 ? "Satisfactory" : "Needs Training"));
+            
+            <div class="card">
+                <div class="card-body" style="padding:24px">
+                    <!-- Worker header -->
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+                        @if (!string.IsNullOrEmpty(w.ImagePath))
+                        {
+                            <img src="@w.ImagePath" alt="@w.WorkerName" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" />
+                        }
+                        else
+                        {
+                            <div style="width:54px;height:54px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px">
+                                @(w.WorkerName.Substring(0, 1).ToUpper())
+                            </div>
+                        }
+                        <div>
+                            <h3 style="font-size:16px;font-weight:700;margin:0 0 3px">@w.WorkerName</h3>
+                            <span style="font-size:12px;color:var(--text-muted)">@w.Role</span>
+                        </div>
+                        <span class="badge" style="margin-left:auto;background:rgba(34,197,94,0.08);color:var(--primary)">@gradeText</span>
+                    </div>
+
+                    <!-- Overall Score Progress -->
+                    <div style="margin-bottom:20px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;font-weight:700">
+                            <span style="text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary)">Overall Score</span>
+                            <span style="color:@overallColor;font-size:15px;font-family:var(--font-mono)">@w.OverallScore.ToString("F0")%</span>
+                        </div>
+                        <div class="progress-bar" style="height:6px">
+                            <div class="progress-fill" style="width:@w.OverallScore.ToString("F0")%;background:@overallColor"></div>
+                        </div>
+                    </div>
+
+                    <!-- Details Stats -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid var(--border);padding-top:16px">
+                        <!-- Tasks statistics -->
+                        <div style="background:#f8fafc;padding:12px;border-radius:8px">
+                            <span style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Tasks Completed</span>
+                            <strong style="font-size:14.5px;color:var(--text-primary)">@w.CompletedTasks / @w.TotalTasks</strong>
+                            <div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:2px">@w.TaskCompletionRate.ToString("F0")% Rate</div>
+                        </div>
+
+                        <!-- Attendance statistics -->
+                        <div style="background:#f8fafc;padding:12px;border-radius:8px">
+                            <span style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Attendance Rate</span>
+                            <strong style="font-size:14.5px;color:var(--text-primary)">@w.PresentCount / @w.TotalAttendances</strong>
+                            <div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:2px">@w.AttendanceRate.ToString("F0")% Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

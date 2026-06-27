@@ -26,10 +26,12 @@ namespace CattleFarm.Services.Implementations
             var cattle = new Cattle
             {
                 TagId = vm.TagId, Name = vm.Name, Breed = vm.Breed, DateOfBirth = vm.DateOfBirth,
-                Weight = vm.Weight, Gender = vm.Gender, HealthStatus = vm.HealthStatus,
+                Weight = vm.Weight, Gender = vm.Gender, Category = vm.Category,
+                HealthStatus = vm.HealthStatus,
                 Status = vm.Status, FarmId = vm.FarmId, PurchasePrice = vm.PurchasePrice,
                 SalePrice = vm.SalePrice, SaleDate = vm.SaleDate, PurchaseDate = vm.PurchaseDate,
-                Description = vm.Description, IsListedForSale = vm.IsListedForSale,
+                Description = vm.Description, Origin = vm.Origin,
+                IsListedForSale = vm.IsListedForSale,
                 IsPremiumListing = vm.IsPremiumListing, ImagePath = imagePath
             };
             await _uow.Cattles.AddAsync(cattle);
@@ -43,10 +45,12 @@ namespace CattleFarm.Services.Implementations
             if (cattle is null) return false;
             cattle.TagId = vm.TagId; cattle.Name = vm.Name; cattle.Breed = vm.Breed;
             cattle.DateOfBirth = vm.DateOfBirth; cattle.Weight = vm.Weight;
-            cattle.Gender = vm.Gender; cattle.HealthStatus = vm.HealthStatus;
+            cattle.Gender = vm.Gender; cattle.Category = vm.Category;
+            cattle.HealthStatus = vm.HealthStatus;
             cattle.Status = vm.Status; cattle.PurchasePrice = vm.PurchasePrice;
             cattle.SalePrice = vm.SalePrice; cattle.SaleDate = vm.SaleDate;
             cattle.PurchaseDate = vm.PurchaseDate; cattle.Description = vm.Description;
+            cattle.Origin = vm.Origin;
             cattle.IsListedForSale = vm.IsListedForSale; cattle.IsPremiumListing = vm.IsPremiumListing;
             cattle.UpdatedAt = DateTime.UtcNow;
             if (vm.ImageFile != null) { _img.DeleteImage(cattle.ImagePath); cattle.ImagePath = await _img.SaveImageAsync(vm.ImageFile, "cattle"); }

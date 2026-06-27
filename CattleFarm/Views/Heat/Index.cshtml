@@ -1,0 +1,88 @@
+@model IEnumerable<CattleFarm.Models.HeatRecord>
+@{
+    ViewData["Title"] = "Heat Observations";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)(ViewBag.Farms ?? Enumerable.Empty<CattleFarm.Models.Farm>());
+    int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
+    int totalPages = (int)(ViewData["TotalPages"] ?? 1);
+    int totalCount = (int)(ViewData["TotalCount"] ?? 0);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Heat Observations</h1>
+        <p class="page-subtitle">@totalCount observation(s) for estrus and breeding readiness</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="/Breeding/HeatCalendar" class="btn btn-outline"><i class="bi bi-calendar-event"></i> Calendar</a>
+        <a href="/Heat/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Record Observation</a>
+    </div>
+</div>
+
+<div class="card animate-in">
+    <div class="card-header">
+        <form method="get" style="display:flex;gap:8px;flex-wrap:wrap">
+            <select name="farmId" class="form-control" style="width:auto" onchange="this.form.submit()">
+                <option value="">All Farms</option>
+                @foreach (var farm in farms)
+                {
+                    <option value="@farm.Id" selected="@(ViewData["FarmId"]?.ToString() == farm.Id.ToString())">@farm.Name</option>
+                }
+            </select>
+            <select name="status" class="form-control" style="width:auto" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                @foreach (var status in Enum.GetValues<CattleFarm.Models.HeatStatus>())
+                {
+                    <option value="@((int)status)" selected="@(ViewData["Status"]?.ToString() == ((int)status).ToString())">@status</option>
+                }
+            </select>
+        </form>
+    </div>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cattle</th>
+                    <th>Observation Date</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Next Expected</th>
+                    <th>Method</th>
+                    <th>Ready</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in Model)
+                {
+                    <tr>
+                        <td><strong>@record.Cattle?.Name</strong><div style="font-size:11px;color:var(--text-muted)"><code>@record.Cattle?.TagId</code></div></td>
+                        <td>@record.ObservationDate.ToString("yyyy-MM-dd")</td>
+                        <td><span class="badge badge-info">@record.HeatStatus</span></td>
+                        <td>@(record.HeatDurationHours.HasValue ? $"{record.HeatDurationHours.Value:F1} hrs" : "-")</td>
+                        <td>@(record.NextExpectedHeatDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                        <td>@(record.DetectionMethod ?? "-")</td>
+                        <td>@(record.ReadyForBreeding ? "Yes" : "No")</td>
+                        <td style="text-align:right"><a href="/Heat/Edit/@record.Id" class="btn btn-outline btn-sm"><i class="bi bi-pencil"></i></a></td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">No heat observations found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (totalPages > 1)
+    {
+        <div class="card-footer">
+            <div class="pagination" style="padding:0">
+                @if (currentPage > 1) { <a href="?page=@(currentPage-1)" class="page-link"><i class="bi bi-chevron-left"></i></a> }
+                @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                {
+                    <a href="?page=@i" class="page-link @(i == currentPage ? "active" : "")">@i</a>
+                }
+                @if (currentPage < totalPages) { <a href="?page=@(currentPage+1)" class="page-link"><i class="bi bi-chevron-right"></i></a> }
+            </div>
+        </div>
+    }
+</div>

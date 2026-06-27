@@ -1,0 +1,665 @@
+@{
+    ViewData["Title"] = "Premium UI Components Showcase";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/animations-advanced.css" asp-append-version="true" />
+    <style>
+        :root {
+            --primary-glow: rgba(45, 106, 79, 0.15);
+            --danger-glow: rgba(220, 38, 38, 0.15);
+            --accent-glow: rgba(59, 130, 246, 0.15);
+        }
+
+        .showcase-section {
+            margin-bottom: 48px;
+            animation: pageTransitionIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .premium-card {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-card);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+            border-color: rgba(45, 106, 79, 0.2);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .section-header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        /* Interactive tab switcher */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            background: var(--border);
+            padding: 4px;
+            border-radius: 10px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        /* Custom Badges */
+        .premium-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-glow-green {
+            background: rgba(34, 197, 94, 0.1);
+            color: #15803d;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .badge-glow-blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1d4ed8;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .badge-glow-amber {
+            background: rgba(245, 158, 11, 0.1);
+            color: #b45309;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* Form Floating Label */
+        .floating-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .floating-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-card);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .floating-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15);
+        }
+
+        .floating-label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-card);
+            padding: 0 6px;
+            color: var(--text-muted);
+            font-size: 15px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .floating-input:focus ~ .floating-label,
+        .floating-input:not(:placeholder-shown) ~ .floating-label {
+            top: 0;
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Custom Toggle Switch */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .switch-input {
+            display: none;
+        }
+
+        .switch-slider {
+            width: 48px;
+            height: 26px;
+            background: var(--border);
+            border-radius: 30px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .switch-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .switch-input:checked + .switch-slider {
+            background: var(--primary);
+        }
+
+        .switch-input:checked + .switch-slider::before {
+            transform: translateX(22px);
+        }
+
+        /* Progress Rings */
+        .progress-ring-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.6s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Timeline path */
+        .advanced-timeline {
+            position: relative;
+            padding-left: 32px;
+            margin-top: 10px;
+        }
+
+        .advanced-timeline::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 4px;
+            bottom: 4px;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--primary), rgba(45, 106, 79, 0.1));
+            border-radius: 3px;
+        }
+
+        .timeline-item-advanced {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .timeline-marker-advanced {
+            position: absolute;
+            left: -32px;
+            top: 2px;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--primary);
+            box-shadow: 0 0 8px rgba(45, 106, 79, 0.2);
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item-advanced:hover .timeline-marker-advanced {
+            transform: scale(1.2);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 12px var(--primary);
+        }
+
+        /* Toast notifications */
+        .toast-showcase-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .premium-toast {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid var(--primary);
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 500;
+            font-size: 14.5px;
+        }
+
+        .premium-toast.show {
+            transform: translateX(0);
+        }
+    </style>
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-grid-3x3-gap"></i> Premium UI Components</h1>
+        <p class="page-subtitle">A sandbox of state-of-the-art user interface modules, interactive forms, and visual widgets.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="/Home/AnimationTest" class="btn btn-primary btn-ripple"><i class="bi bi-magic"></i> Motion &amp; Animations</a>
+        <a href="/Dashboard" class="btn btn-outline"><i class="bi bi-grid-1x2"></i> Back to Dashboard</a>
+    </div>
+</div>
+
+<!-- 1. Stats & Metrics Grid -->
+<div class="showcase-section">
+    <div class="section-header">
+        <h2 class="section-title"><i class="bi bi-activity text-primary"></i> 1. Stats &amp; Metrics Widgets</h2>
+        <span class="premium-badge badge-glow-green shimmer-highlight">Real-time Telemetry</span>
+    </div>
+    
+    <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+        <!-- Card 1: Active Herd -->
+        <div class="premium-card glass-panel spotlight-container" style="padding: 24px;">
+            <div class="spotlight"></div>
+            <div style="display: flex; justify-content: space-between; align-items: start; z-index: 2; position: relative;">
+                <div>
+                    <span class="stat-label" style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Active Herd</span>
+                    <h3 class="stat-value" style="font-size: 32px; font-weight: 800; margin: 6px 0; font-family: var(--font-heading);">148 Cows</h3>
+                    <span style="font-size: 11px; color: var(--success); font-weight: 700;"><i class="bi bi-arrow-up-short"></i> +4 this month</span>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34, 197, 94, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Milk production -->
+        <div class="premium-card glass-panel spotlight-container" style="padding: 24px;">
+            <div class="spotlight"></div>
+            <div style="display: flex; justify-content: space-between; align-items: start; z-index: 2; position: relative;">
+                <div>
+                    <span class="stat-label" style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Yield Today</span>
+                    <h3 class="stat-value" style="font-size: 32px; font-weight: 800; margin: 6px 0; font-family: var(--font-heading); color: #2563eb;">1,245 L</h3>
+                    <span style="font-size: 11px; color: #2563eb; font-weight: 700;"><i class="bi bi-activity"></i> 98% efficiency</span>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(37, 99, 235, 0.1); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="bi bi-droplet-half"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Alert triggers -->
+        <div class="premium-card glass-panel spotlight-container" style="padding: 24px;">
+            <div class="spotlight"></div>
+            <div style="display: flex; justify-content: space-between; align-items: start; z-index: 2; position: relative;">
+                <div>
+                    <span class="stat-label" style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Sickness Alerts</span>
+                    <h3 class="stat-value" style="font-size: 32px; font-weight: 800; margin: 6px 0; font-family: var(--font-heading); color: var(--danger);">2 Active</h3>
+                    <span style="font-size: 11px; color: var(--danger); font-weight: 700;"><i class="bi bi-bell-fill"></i> Immediate action</span>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(220, 38, 38, 0.1); color: var(--danger); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Profit Margin -->
+        <div class="premium-card glass-panel spotlight-container" style="padding: 24px;">
+            <div class="spotlight"></div>
+            <div style="display: flex; justify-content: space-between; align-items: start; z-index: 2; position: relative;">
+                <div>
+                    <span class="stat-label" style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Net Profit</span>
+                    <h3 class="stat-value" style="font-size: 32px; font-weight: 800; margin: 6px 0; font-family: var(--font-heading); color: #d97706;">78.5%</h3>
+                    <span style="font-size: 11px; color: #d97706; font-weight: 700;"><i class="bi bi-shield-check"></i> Highly Optimized</span>
+                </div>
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Form Playground & Interactive Elements -->
+<div class="showcase-section">
+    <div class="section-header">
+        <h2 class="section-title"><i class="bi bi-ui-checks text-success"></i> 2. Interactive Form &amp; Badges Playground</h2>
+    </div>
+
+    <div class="component-grid">
+        <!-- Floating labels & switches -->
+        <div class="premium-card glass-panel" style="padding: 28px;">
+            <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 20px; font-family: var(--font-heading);"><i class="bi bi-sliders"></i> Modern Form Controls</h3>
+            
+            <!-- Floating label input -->
+            <div class="floating-group">
+                <input type="text" class="floating-input" placeholder=" " id="inputTag" />
+                <label class="floating-label">Cattle Tag Number</label>
+            </div>
+
+            <!-- Custom Switch -->
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
+                <label class="switch-container">
+                    <input type="checkbox" class="switch-input" id="switch1" checked />
+                    <span class="switch-slider"></span>
+                    <div>
+                        <strong style="font-size: 14px; display: block;">Automated IoT Feeding</strong>
+                        <span style="font-size: 11px; color: var(--text-muted);">Enable SignalR feeder notifications</span>
+                    </div>
+                </label>
+
+                <label class="switch-container">
+                    <input type="checkbox" class="switch-input" id="switch2" />
+                    <span class="switch-slider"></span>
+                    <div>
+                        <strong style="font-size: 14px; display: block;">Yield Drop Alerts</strong>
+                        <span style="font-size: 11px; color: var(--text-muted);">Alert when milk drop > 20%</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Micro-interaction test sandbox -->
+        <div class="premium-card glass-panel" id="sandboxCard" style="padding: 28px;">
+            <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 20px; font-family: var(--font-heading);"><i class="bi bi-controller"></i> Action Feedback Sandbox</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; gap: 12px;">
+                    <!-- Shake button -->
+                    <button class="btn btn-danger btn-ripple" onclick="triggerCardShake()" style="flex: 1; padding: 12px;">
+                        <i class="bi bi-shield-exclamation"></i> Trigger Error
+                    </button>
+                    <!-- Success Draw button -->
+                    <button class="btn btn-success btn-ripple" onclick="triggerCircularSuccess()" style="flex: 1; padding: 12px;">
+                        <i class="bi bi-check-circle"></i> Success Effect
+                    </button>
+                </div>
+
+                <!-- Display area for Success/Error -->
+                <div style="height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.02); border-radius: 10px; border: 1px dashed var(--border)">
+                    <div class="checkmark-draw" id="sandboxCheckmark" style="display: none; width: 44px; height: 44px;">
+                        <svg viewBox="0 0 52 52">
+                            <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="var(--success)" stroke-width="4" />
+                            <path class="checkmark-check" fill="none" stroke="var(--success)" stroke-width="4" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                        </svg>
+                    </div>
+                    <span id="sandboxText" style="color: var(--text-secondary); font-size: 13px; font-weight: 600;">Interact to see effects</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress ring and gauges -->
+        <div class="premium-card glass-panel" style="padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 12px; font-family: var(--font-heading); align-self: flex-start;"><i class="bi bi-pie-chart"></i> Circular Progress</h3>
+            
+            <div class="progress-ring-container">
+                <svg width="100" height="100">
+                    <circle stroke="var(--border)" stroke-width="8" fill="transparent" r="40" cx="50" cy="50"/>
+                    <circle class="progress-ring-circle" stroke="var(--primary)" stroke-width="8" fill="transparent" r="40" cx="50" cy="50"
+                            stroke-dasharray="251.2 251.2" stroke-dashoffset="75.36" id="progressRing"/>
+                </svg>
+                <div style="position: absolute; font-weight: 800; font-size: 18px; font-family: var(--font-heading); color: var(--primary);" id="progressRingText">70%</div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 18px; width: 100%;">
+                <button class="btn btn-outline btn-sm btn-ripple" onclick="setProgressValue(30)" style="flex:1">30%</button>
+                <button class="btn btn-outline btn-sm btn-ripple" onclick="setProgressValue(70)" style="flex:1">70%</button>
+                <button class="btn btn-outline btn-sm btn-ripple" onclick="setProgressValue(100)" style="flex:1">100%</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Advanced Timeline & Activity logs -->
+<div class="showcase-section">
+    <div class="section-header">
+        <h2 class="section-title"><i class="bi bi-clock-history text-info"></i> 3. Smart Activity Timeline</h2>
+        <button class="btn btn-outline btn-sm btn-ripple" onclick="triggerToast()"><i class="bi bi-bell"></i> Send Demo Notification</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; align-items: start;">
+        <!-- Timeline -->
+        <div class="premium-card glass-panel" style="padding: 28px;">
+            <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 20px; font-family: var(--font-heading);">Recent Farm Milestones</h3>
+            
+            <div class="advanced-timeline">
+                <!-- Step 1 -->
+                <div class="timeline-item-advanced">
+                    <div class="timeline-marker-advanced"><i class="bi bi-check"></i></div>
+                    <div style="padding-left: 8px;">
+                        <strong style="display: block; font-size: 14.5px;">Automated Milk Log Imported</strong>
+                        <span style="font-size: 12px; color: var(--text-muted);">Main Barn - Machine AUTO-MILKER-03 recorded 22.5 L</span>
+                        <div style="font-size: 11px; font-weight: 700; color: var(--primary); margin-top: 4px;">10 minutes ago</div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="timeline-item-advanced">
+                    <div class="timeline-marker-advanced" style="border-color: var(--danger); color: var(--danger);"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div style="padding-left: 8px;">
+                        <strong style="display: block; font-size: 14.5px; color: var(--danger);">Sickness Alert Triggered</strong>
+                        <span style="font-size: 12px; color: var(--text-muted);">Cattle #42 (Tag: CF-9921) flagged for elevated temperature</span>
+                        <div style="font-size: 11px; font-weight: 700; color: var(--danger); margin-top: 4px;">2 hours ago</div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="timeline-item-advanced">
+                    <div class="timeline-marker-advanced" style="border-color: #2563eb; color: #2563eb;"><i class="bi bi-truck"></i></div>
+                    <div style="padding-left: 8px;">
+                        <strong style="display: block; font-size: 14.5px;">Cattle Relocation Completed</strong>
+                        <span style="font-size: 12px; color: var(--text-muted);">Cattle transferred from Farm A pasture to Main Barn Section B</span>
+                        <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-top: 4px;">Yesterday</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Table Component -->
+        <div class="premium-card glass-panel" style="padding: 0;">
+            <div style="padding: 24px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 17px; font-weight: 700; margin: 0; font-family: var(--font-heading);">High-Yielding Herd</h3>
+                <span class="badge badge-success">Top Producers</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle" style="margin-bottom: 0;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="padding-left: 28px;">Cattle Name</th>
+                            <th>Tag ID</th>
+                            <th style="text-align: right;">Today's Yield</th>
+                            <th style="text-align: right;">FAT %</th>
+                            <th style="padding-right: 28px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding-left: 28px;"><span class="fw-bold">Rani</span></td>
+                            <td><code>CF-8872</code></td>
+                            <td style="text-align: right; font-weight: 700;" class="text-primary">28.4 L</td>
+                            <td style="text-align: right; font-weight: 600;" class="text-success">4.82%</td>
+                            <td style="padding-right: 28px; text-align: right;"><a href="/Cattle" class="btn btn-ghost btn-sm" style="color: var(--primary)"><i class="bi bi-eye"></i> Profile</a></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px;"><span class="fw-bold">Lili</span></td>
+                            <td><code>CF-9012</code></td>
+                            <td style="text-align: right; font-weight: 700;" class="text-primary">26.1 L</td>
+                            <td style="text-align: right; font-weight: 600;" class="text-success">4.55%</td>
+                            <td style="padding-right: 28px; text-align: right;"><a href="/Cattle" class="btn btn-ghost btn-sm" style="color: var(--primary)"><i class="bi bi-eye"></i> Profile</a></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 28px;"><span class="fw-bold">Neela</span></td>
+                            <td><code>CF-7741</code></td>
+                            <td style="text-align: right; font-weight: 700;" class="text-primary">24.8 L</td>
+                            <td style="text-align: right; font-weight: 600;" class="text-success">4.20%</td>
+                            <td style="padding-right: 28px; text-align: right;"><a href="/Cattle" class="btn btn-ghost btn-sm" style="color: var(--primary)"><i class="bi bi-eye"></i> Profile</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Showcase Container -->
+<div class="toast-showcase-container">
+    <div class="premium-toast" id="demoToast">
+        <i class="bi bi-bell-fill" style="color: #4ade80; font-size: 18px;"></i>
+        <div>
+            <strong>System Telemetry Sync</strong>
+            <div style="font-size: 11px; opacity: 0.85; margin-top: 2px;">IoT nodes connected and synced live via SignalR.</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/animations-advanced.js" asp-append-version="true"></script>
+    <script>
+        // Set up spotlight on cards
+        document.querySelectorAll('.spotlight-container').forEach(card => {
+            const spotlight = card.querySelector('.spotlight');
+            if (spotlight) {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left - 200; // Offset by half spotlight width
+                    const y = e.clientY - rect.top - 200;
+                    spotlight.style.left = `${x}px`;
+                    spotlight.style.top = `${y}px`;
+                });
+            }
+        });
+
+        // Interactive Shake & Success sandboxing
+        window.triggerCardShake = function() {
+            const el = document.getElementById('sandboxCard');
+            const check = document.getElementById('sandboxCheckmark');
+            const txt = document.getElementById('sandboxText');
+            
+            // Hide checkmark
+            check.style.display = 'none';
+            txt.textContent = 'Error occurred: Invalid tag payload';
+            txt.style.color = 'var(--danger)';
+            
+            el.classList.remove('form-shake');
+            void el.offsetWidth; // Force reflow to restart animation
+            el.classList.add('form-shake');
+        };
+
+        window.triggerCircularSuccess = function() {
+            const check = document.getElementById('sandboxCheckmark');
+            const txt = document.getElementById('sandboxText');
+            
+            txt.textContent = '';
+            check.style.display = 'inline-flex';
+            
+            // Reset checkmark drawing
+            const svg = check.querySelector('svg');
+            const svgHtml = svg.outerHTML;
+            check.innerHTML = '';
+            void check.offsetWidth;
+            check.innerHTML = svgHtml;
+        };
+
+        // Progress ring value controller
+        window.setProgressValue = function(percent) {
+            const circle = document.getElementById('progressRing');
+            const txt = document.getElementById('progressRingText');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            txt.textContent = `${percent}%`;
+        };
+
+        // Toast controller
+        let toastTimeout;
+        window.triggerToast = function() {
+            const toast = document.getElementById('demoToast');
+            toast.classList.add('show');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        };
+
+        // Initialize progress bar value
+        setProgressValue(70);
+    </script>
+}

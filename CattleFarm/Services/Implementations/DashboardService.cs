@@ -196,7 +196,7 @@ namespace CattleFarm.Services.Implementations
                 NetProfit            = netProfit,
                 TotalRevenue         = revenue,
                 TotalExpenses        = expenses,
-                UpcomingAppointments = appointments.Count(a => a.ScheduledAt >= now && a.Status == AppointmentStatus.Scheduled),
+                UpcomingAppointments = appointments.Count(a => a.ScheduledAt >= now && (a.Status == AppointmentStatus.Accepted || a.Status == AppointmentStatus.Pending)),
                 HighRiskCattle       = highRiskCattle!,
                 HighRiskCount        = highRiskCattle!.Count,
                 UpcomingVaccinations = upcoming.Take(5).ToList(),
@@ -247,17 +247,20 @@ namespace CattleFarm.Services.Implementations
             };
         }
 
-        public async Task<DoctorDashboardViewModel> GetDoctorDashboardAsync(int doctorId)
+        public async Task<DoctorDashboardViewModel> GetDoctorDashboardAsync(int userId)
         {
-            var doctor = await _uow.Doctors.GetByIdAsync(doctorId);
-            var appts  = await _uow.Appointments.GetByDoctorIdAsync(doctorId);
+            // DashboardController passes the logged-in User.Id — look up doctor by UserId
+            var doctor = await _uow.Doctors.GetByUserIdAsync(userId);
+            var appts  = doctor != null
+                ? await _uow.Appointments.GetByDoctorIdAsync(doctor.Id)
+                : Enumerable.Empty<Appointment>();
             var health = await _uow.HealthRecords.GetPagedAsync(1, 10, null, null);
             return new DoctorDashboardViewModel
             {
                 DoctorProfile        = doctor,
                 TotalAppointments    = appts.Count(),
                 TodayAppointments    = appts.Count(a => a.ScheduledAt.Date == DateTime.UtcNow.Date),
-                UpcomingAppointments = appts.Where(a => a.ScheduledAt >= DateTime.UtcNow && a.Status == AppointmentStatus.Scheduled).Take(5).ToList(),
+                UpcomingAppointments = appts.Where(a => a.ScheduledAt >= DateTime.UtcNow && (a.Status == AppointmentStatus.Accepted || a.Status == AppointmentStatus.Pending)).Take(5).ToList(),
                 RecentHealthRecords  = health.Items.ToList()
             };
         }

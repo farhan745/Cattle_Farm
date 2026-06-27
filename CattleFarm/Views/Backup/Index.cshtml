@@ -1,0 +1,174 @@
+@model IEnumerable<System.IO.FileInfo>
+@{
+    ViewData["Title"] = "Database Backup & Restore";
+    var totalBackups = Model.Count();
+    var totalSize = Model.Sum(f => f.Length);
+    var lastBackup = Model.FirstOrDefault()?.CreationTime;
+}
+
+<div class="page-header animate-in">
+    <div>
+        <h1 class="page-title">Database Backup &amp; Restore</h1>
+        <p class="page-subtitle">Manage system database snapshots, schedule recoveries, and perform hard resets</p>
+    </div>
+    <div class="page-actions">
+        <form asp-action="CreateBackup" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary" onclick="showLoader()">
+                <i class="bi bi-cloud-arrow-up"></i> Create Backup
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Toast notifications / Alert banners -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success animate-in" style="margin-bottom: 24px; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981;">
+        <i class="bi bi-check-circle-fill" style="font-size: 20px;"></i>
+        <div style="font-weight: 500; font-family: var(--font-body);">@TempData["SuccessMessage"]</div>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger animate-in" style="margin-bottom: 24px; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444;">
+        <i class="bi bi-exclamation-triangle-fill" style="font-size: 20px;"></i>
+        <div style="font-weight: 500; font-family: var(--font-body);">@TempData["ErrorMessage"]</div>
+    </div>
+}
+
+<!-- Stats grid -->
+<div class="stat-grid animate-in" style="margin-bottom: 24px;">
+    <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-server"></i></div>
+        <div class="flex-1">
+            <div class="stat-value">@totalBackups</div>
+            <div class="stat-label">Total Backups</div>
+        </div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-hdd-network"></i></div>
+        <div class="flex-1">
+            <div class="stat-value">@((totalSize / 1024.0 / 1024.0).ToString("F2")) MB</div>
+            <div class="stat-label">Storage Consumed</div>
+        </div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-icon amber"><i class="bi bi-clock-history"></i></div>
+        <div class="flex-1">
+            <div class="stat-value">@(lastBackup.HasValue ? lastBackup.Value.ToString("g") : "Never")</div>
+            <div class="stat-label">Last Backup Run</div>
+        </div>
+    </div>
+</div>
+
+<!-- Backups list -->
+<div class="card animate-in">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title"><i class="bi bi-list-nested" style="color: var(--primary);"></i> Available Database Backups</h3>
+        <span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 11px;">Admin Role Only</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        @if (!Model.Any())
+        {
+            <div style="padding: 48px; text-align: center; color: var(--text-muted);">
+                <i class="bi bi-folder-symlink" style="font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5;"></i>
+                <h4 style="font-weight: 600; margin-bottom: 4px;">No Backup Files Found</h4>
+                <p style="font-size: 13px; margin: 0;">Click "Create Backup" above to generate your first database snapshot.</p>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table class="table" style="width: 100%; border-collapse: collapse; margin: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); text-align: left;">
+                            <th style="padding: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">File Name</th>
+                            <th style="padding: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Created Date</th>
+                            <th style="padding: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">File Size</th>
+                            <th style="padding: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var file in Model)
+                        {
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='none'">
+                                <td style="padding: 16px; font-weight: 600; color: var(--text-primary);">
+                                    <i class="bi bi-file-earmark-binary" style="color: var(--primary); margin-right: 8px; font-size: 16px;"></i> @file.Name
+                                </td>
+                                <td style="padding: 16px; font-size: 13px; color: var(--text-secondary);">
+                                    @file.CreationTime.ToString("F")
+                                </td>
+                                <td style="padding: 16px; font-size: 13px; font-family: var(--font-mono); color: var(--text-secondary);">
+                                    @((file.Length / 1024.0 / 1024.0).ToString("F2")) MB
+                                </td>
+                                <td style="padding: 16px; text-align: right;">
+                                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                                        <!-- Download -->
+                                        <a class="btn btn-outline btn-sm" asp-action="DownloadBackup" asp-route-fileName="@file.Name" title="Download backup file" style="padding: 6px 10px;">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+
+                                        <!-- Restore Form -->
+                                        <form asp-action="RestoreBackup" method="post" class="d-inline" onsubmit="return confirmRestore('@file.Name')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="fileName" value="@file.Name" />
+                                            <button type="submit" class="btn btn-accent btn-sm" title="Restore system to this state" style="padding: 6px 10px;">
+                                                <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                            </button>
+                                        </form>
+
+                                        <!-- Delete Form -->
+                                        <form asp-action="DeleteBackup" method="post" class="d-inline" onsubmit="return confirmDelete('@file.Name')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="fileName" value="@file.Name" />
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete backup" style="padding: 6px 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444;">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Backups loading overlay -->
+<div id="loaderOverlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; color: white;">
+    <div style="border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+    <div id="loaderText" style="font-weight: 600; font-family: var(--font-heading);">Executing DB operation...</div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Please do not refresh the page.</div>
+</div>
+
+<style>
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+@section Scripts {
+<script>
+    function showLoader(text = "Creating Backup...") {
+        document.getElementById('loaderText').innerText = text;
+        document.getElementById('loaderOverlay').style.display = 'flex';
+    }
+
+    function confirmRestore(fileName) {
+        const confirmFirst = confirm(`WARNING: Restoring the database to ${fileName} will overwrite all current farm logs, transactions, and metrics since this snapshot. Active connections will be dropped. Do you want to proceed?`);
+        if (confirmFirst) {
+            showLoader("Restoring Database Snapshot... This may take a moment.");
+            return true;
+        }
+        return false;
+    }
+
+    function confirmDelete(fileName) {
+        return confirm(`Are you sure you want to permanently delete the backup file "${fileName}"? This action cannot be undone.`);
+    }
+</script>
+}

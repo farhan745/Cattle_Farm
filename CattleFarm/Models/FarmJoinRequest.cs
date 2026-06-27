@@ -23,6 +23,10 @@ namespace CattleFarm.Models
         [ForeignKey(nameof(FarmId))]
         public virtual Farm? Farm { get; set; }
 
+        /// <summary>Worker or Manager applying to join the farm.</summary>
+        [Required, StringLength(20)]
+        public string ApplicantRole { get; set; } = JoinApplicantRole.Worker;
+
         // Status: Applied | Pending | Accepted | Rejected
         [Required, StringLength(20)]
         public string Status { get; set; } = JoinRequestStatus.Applied;

@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Seasonal Feed Recommendations";
+    string currentSeason = ViewBag.Season as string ?? "Summer (Hot & Dry)";
+    string currentAdvice = ViewBag.Advice as string ?? "";
+    var currentFeeds = (List<string>)ViewBag.Feeds ?? new List<string>();
+    var selectedFarmId = (int?)ViewBag.FarmId;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-sun-fill" style="color:var(--warning)"></i> Seasonal Recommendations</h1>
+        <p class="page-subtitle">Adjust dairy herds and cattle diets to match seasonal weather requirements</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px">
+        <a href="/Feed" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Logs</a>
+        <a href="/Feed/CostPerLiter?farmId=@(selectedFarmId > 0 ? selectedFarmId.ToString() : "")" class="btn btn-outline-primary"><i class="bi bi-bar-chart-line"></i> Cost per Liter</a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start" class="animate-fade-in">
+    <!-- Active Season Advice Card -->
+    <div>
+        <div class="card" style="margin-bottom:24px; border:1px solid var(--primary-light); background:rgba(34,197,94,0.02)">
+            <div class="card-header" style="background:rgba(34,197,94,0.05)">
+                <h3 class="card-title" style="color:var(--primary)">
+                    <i class="bi bi-calendar3-event"></i> Current Seasonal Phase: @currentSeason
+                </h3>
+                <span class="badge badge-success">Active Season</span>
+            </div>
+            <div class="card-body">
+                <h4 style="margin-bottom:12px;font-family:var(--font-heading);font-weight:700">Veterinary Feed Advisory</h4>
+                <p style="font-size:14.5px;line-height:1.7;color:var(--text-secondary);margin-bottom:24px">
+                    @currentAdvice
+                </p>
+
+                <h4 style="margin-bottom:16px;font-family:var(--font-heading);font-weight:700">Recommended Feed Ingredients</h4>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+                    @foreach (var feed in currentFeeds)
+                    {
+                        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 6px rgba(0,0,0,.03)">
+                            <div style="width:40px;height:40px;border-radius:8px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size:14.5px;display:block">@feed</strong>
+                                <span style="font-size:11px;color:var(--text-muted)">Highly recommended</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Browsing Section -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-sliders"></i> Browse Other Seasons</h3>
+            </div>
+            <div class="card-body">
+                <div class="tabs" style="display:flex;gap:12px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px">
+                    <button class="btn btn-outline active" onclick="switchSeasonTab('summer')" id="tab-summer">Summer</button>
+                    <button class="btn btn-outline" onclick="switchSeasonTab('monsoon')" id="tab-monsoon">Monsoon</button>
+                    <button class="btn btn-outline" onclick="switchSeasonTab('winter')" id="tab-winter">Winter</button>
+                </div>
+
+                <div id="season-content-summer" class="season-tab-content">
+                    <h4 style="color:#d97706;margin-bottom:8px">Summer Strategy</h4>
+                    <p style="font-size:13.5px;line-height:1.6;color:var(--text-secondary)">
+                        <strong>Challenges:</strong> Heat stress, drop in dry matter intake (DMI), reduced fat percentage in milk.<br/>
+                        <strong>Advice:</strong> Feed green grasses during cool parts of the day (early morning/late evening). Boost energy levels with fat supplements or bypass fats. Offer cool clean drinking water (temperature 15-20°C) continuously.
+                    </p>
+                </div>
+                
+                <div id="season-content-monsoon" class="season-tab-content" style="display:none">
+                    <h4 style="color:#0284c7;margin-bottom:8px">Monsoon Strategy</h4>
+                    <p style="font-size:13.5px;line-height:1.6;color:var(--text-secondary)">
+                        <strong>Challenges:</strong> Spoilage of silage, mold growth, parasitic contamination on wet pastures.<br/>
+                        <strong>Advice:</strong> Keep feed bins elevated. Add mold inhibitors to stored grains. Mix dry roughage (straw/hay) to balance the high moisture of fresh lush grass.
+                    </p>
+                </div>
+
+                <div id="season-content-winter" class="season-tab-content" style="display:none">
+                    <h4 style="color:#4f46e5;margin-bottom:8px">Winter Strategy</h4>
+                    <p style="font-size:13.5px;line-height:1.6;color:var(--text-secondary)">
+                        <strong>Challenges:</strong> High maintenance energy requirements due to cold temperature.<br/>
+                        <strong>Advice:</strong> Increase grain ration by 10-15%. Feed high-quality legume silage and molasses. Keep water supply slightly warmed or at room temp to promote voluntary drinking.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Tips -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="card" style="background:#fef3c7;border:1px solid #f59e0b">
+            <div class="card-body">
+                <h4 style="color:#b45309;margin-bottom:8px;font-size:14px;font-weight:700"><i class="bi bi-exclamation-triangle"></i> Quick Quality Check</h4>
+                <p style="font-size:12px;line-height:1.6;color:#78350f;margin:0">
+                    Always check feed for mold or temperature spikes inside silage piles. Hot silage indicates secondary fermentation, which destroys nutrition quality and can make cows sick.
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Herd Feed Guidelines</h3></div>
+            <div class="card-body" style="font-size:12.5px;display:flex;flex-direction:column;gap:12px;line-height:1.5">
+                <div>
+                    <strong>Dry Matter Intake (DMI):</strong>
+                    <div style="color:var(--text-secondary)">Cows should consume ~3-4% of their body weight in dry matter daily.</div>
+                </div>
+                <div>
+                    <strong>Roughage to Concentrate Ratio:</strong>
+                    <div style="color:var(--text-secondary)">Maintain a 60:40 or 50:50 ratio to prevent acidosis in high-yielding dairy cows.</div>
+                </div>
+                <div>
+                    <strong>Water Requirement:</strong>
+                    <div style="color:var(--text-secondary)">A dairy cow needs 4-5 liters of water to produce 1 liter of milk. Keep troughs clean.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function switchSeasonTab(season) {
+        // Hide all contents
+        document.querySelectorAll('.season-tab-content').forEach(el => el.style.display = 'none');
+        // Deactivate all tabs
+        document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+        
+        // Show selected content
+        document.getElementById('season-content-' + season).style.display = 'block';
+        // Activate selected tab
+        document.getElementById('tab-' + season).classList.add('active');
+    }
+</script>
+}

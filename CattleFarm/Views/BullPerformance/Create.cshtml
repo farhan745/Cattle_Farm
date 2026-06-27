@@ -1,0 +1,121 @@
+@model CattleFarm.Models.BullPerformanceRecord
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Semen Quality Record" : "Edit Semen Quality Record";
+    var isEdit = Model.Id > 0;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient">@ViewData["Title"]</h1>
+        <p class="page-subtitle">Record and analyze bull reproductive performance and semen laboratory metrics.</p>
+    </div>
+    <a href="/BullPerformance" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
+</div>
+
+<div class="card glass-card shadow animate-slide-up" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-body">
+        <form method="post" asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+            @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Farm *</label>
+                    <select asp-for="FarmId" class="form-control" id="farmSelect" onchange="loadBulls(this.value)" required>
+                        <option value="">Select farm...</option>
+                        @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                        {
+                            <option value="@farm.Id" selected="@(Model.FarmId == farm.Id)">@farm.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="FarmId" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Bull (Male Cattle) *</label>
+                    <select asp-for="CattleId" class="form-control" id="bullSelect" required>
+                        <option value="">Select bull...</option>
+                        @foreach (var c in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattle)
+                        {
+                            <option value="@c.Id" selected="@(Model.CattleId == c.Id)">@c.Name (@c.TagId)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CattleId" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Evaluation Date *</label>
+                    <input asp-for="EvaluationDate" type="date" class="form-control" required />
+                    <span asp-validation-for="EvaluationDate" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Semen Quality Grade</label>
+                    <select asp-for="QualityGrade" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.SemenQuality>()"></select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Motility %</label>
+                    <input asp-for="MotilityPercent" type="number" step="0.01" class="form-control" placeholder="e.g. 75.50" min="0" max="100" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Morphology %</label>
+                    <input asp-for="MorphologyPercent" type="number" step="0.01" class="form-control" placeholder="e.g. 92.00" min="0" max="100" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Concentration (Million/mL)</label>
+                    <input asp-for="ConcentrationMillionPerMl" type="number" step="0.01" class="form-control" placeholder="e.g. 450.00" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Volume (mL)</label>
+                    <input asp-for="VolumeML" type="number" step="0.01" class="form-control" placeholder="e.g. 6.5" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Doses Collected</label>
+                    <input asp-for="DosesCollected" type="number" class="form-control" placeholder="e.g. 150" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label fw-semibold">Evaluation Cost (BDT)</label>
+                    <input asp-for="Cost" type="number" step="0.01" class="form-control" placeholder="e.g. 2500.00" />
+                </div>
+
+                <div class="form-group" style="grid-column: span 2">
+                    <label class="form-label fw-semibold">Evaluated By (Lab/Vet)</label>
+                    <input asp-for="EvaluatedBy" class="form-control" placeholder="e.g. Central Veterinary Lab, Kushtia" />
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label fw-semibold">Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Additional observations regarding semen color, viscosity, or health..."></textarea>
+            </div>
+
+            <div style="display:flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                    <i class="bi bi-check-circle"></i> @(isEdit ? "Save Changes" : "Save Record")
+                </button>
+                <a href="/BullPerformance" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function loadBulls(farmId) {
+    if (!farmId) return;
+    fetch('/Cattle/ByFarm?farmId=' + farmId + '&gender=Male')
+        .then(r => r.json())
+        .then(data => {
+            const sel = document.getElementById('bullSelect');
+            sel.innerHTML = '<option value="">Select bull...</option>';
+            data.forEach(c => sel.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.name} (${c.tagId})</option>`));
+        });
+}
+</script>
+}

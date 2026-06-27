@@ -15,6 +15,8 @@ public static class AppRoles
     public const string AdminOrOwner          = "Admin,Owner";
     public const string AdminManagerOrOwner   = "Admin,Manager,Owner";
     public const string AdminManagerOwnerDoctor = "Admin,Manager,Owner,Doctor";
+    /// <summary>Day-to-day farm operations on an assigned farm (owner or employed manager).</summary>
+    public const string FarmOperators         = "Admin,Owner,Manager";
 
     /// <summary>All roles in display order (highest privilege first).</summary>
     public static readonly IReadOnlyList<string> All = new[]

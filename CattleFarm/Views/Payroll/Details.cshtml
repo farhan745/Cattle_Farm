@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.PayrollViewModel
+﻿@model CattleFarm.ViewModels.PayrollViewModel
 @{
     var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(Model.Month);
     ViewData["Title"] = $"Salary Slip - {monthName} {Model.Year}";
@@ -109,7 +109,7 @@
 
 <div class="page-header no-print">
     <div>
-        <h1 class="page-title">📄 Salary Slip</h1>
+        <h1 class="page-title">Salary Slip</h1>
         <p class="page-subtitle">Detailed monthly breakdown of worker salary</p>
     </div>
     <div style="display:flex;gap:10px">
@@ -139,7 +139,7 @@
     @* Slip Header *@
     <div class="slip-header">
         <div>
-            <h2 style="font-weight:800;color:var(--primary);font-size:24px;margin:0 0 4px">🚜 CATTLE FARM</h2>
+            <h2 style="font-weight:800;color:var(--primary);font-size:24px;margin:0 0 4px">CATTLE FARM</h2>
             <span style="font-size:13.5px;color:var(--text-muted)">High-productivity Operations & Agro</span>
         </div>
         <div class="slip-title">

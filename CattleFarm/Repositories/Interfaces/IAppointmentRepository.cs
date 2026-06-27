@@ -8,6 +8,11 @@ namespace CattleFarm.Repositories.Interfaces
         Task<IEnumerable<Appointment>> GetByDoctorIdAsync(int doctorId);
         Task<IEnumerable<Appointment>> GetByCattleIdAsync(int cattleId);
         Task<IEnumerable<Appointment>> GetUpcomingAsync(int farmId, int daysAhead = 7);
-        Task<(IEnumerable<Appointment> Items, int Total)> GetPagedAsync(int page, int pageSize, int? farmId = null, AppointmentStatus? status = null);
+        Task<(IEnumerable<Appointment> Items, int Total)> GetPagedAsync(
+            int page, int pageSize,
+            int? farmId = null,
+            AppointmentStatus? status = null,
+            int? doctorId = null,
+            IReadOnlyCollection<int>? farmIds = null);
     }
 }

@@ -1,0 +1,193 @@
+@model CattleFarm.Models.Appointment
+@{
+    ViewData["Title"] = $"Appointment #{Model.Id}";
+    var isAssignedDoctor = ViewBag.IsAssignedDoctor == true;
+    var isOwner = ViewBag.IsOwner == true;
+    var statusBadge = Model.Status switch
+    {
+        CattleFarm.Models.AppointmentStatus.Completed => "badge-success",
+        CattleFarm.Models.AppointmentStatus.Accepted    => "badge-info",
+        CattleFarm.Models.AppointmentStatus.Pending     => "badge-warning",
+        CattleFarm.Models.AppointmentStatus.Cancelled   => "badge-danger",
+        CattleFarm.Models.AppointmentStatus.Rejected    => "badge-danger",
+        CattleFarm.Models.AppointmentStatus.NoShow      => "badge-warning",
+        _ => "badge-gray"
+    };
+    var canCancel = Model.Status is CattleFarm.Models.AppointmentStatus.Pending or CattleFarm.Models.AppointmentStatus.Accepted;
+    var canDelete = User.IsInRole("Admin") || User.IsInRole("Manager") || isOwner;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Appointment #@Model.Id</h1>
+        <p class="page-subtitle">
+            @Model.ScheduledAt.ToString("dddd, MMMM dd, yyyy") at @Model.ScheduledAt.ToString("HH:mm")
+            <span class="badge @statusBadge" style="margin-left:8px">@Model.Status</span>
+        </p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="/Appointment" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+        <a asp-action="ExportPdf" asp-route-id="@Model.Id" class="btn btn-outline"><i class="bi bi-file-earmark-pdf"></i> PDF Summary</a>
+        <a asp-action="ExportPrescriptionExcel" asp-route-id="@Model.Id" class="btn btn-outline"><i class="bi bi-file-earmark-spreadsheet"></i> Export Excel</a>
+
+        @if (isAssignedDoctor && Model.Status == CattleFarm.Models.AppointmentStatus.Pending)
+        {
+            <form method="post" asp-action="Approve" style="display:inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Accept request</button>
+            </form>
+            <form method="post" asp-action="Reject" style="display:inline" onsubmit="return confirmReject(this)">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="reason" id="rejectReason" value="" />
+                <button type="submit" class="btn btn-ghost"><i class="bi bi-x-circle"></i> Decline</button>
+            </form>
+        }
+
+        @if (isAssignedDoctor && Model.Status == CattleFarm.Models.AppointmentStatus.Accepted)
+        {
+            <a href="/Appointment/Complete/@Model.Id" class="btn btn-primary"><i class="bi bi-clipboard-check"></i> Complete visit</a>
+        }
+
+        @if (canCancel && (isOwner || isAssignedDoctor || User.IsInRole("Admin") || User.IsInRole("Manager")))
+        {
+            <form method="post" asp-action="Cancel" style="display:inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-ghost" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+            </form>
+        }
+
+        @if (canDelete)
+        {
+            <form method="post" asp-action="Delete" style="display:inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-ghost" style="color:var(--danger)" onclick="return confirm('Delete permanently?')"><i class="bi bi-trash"></i></button>
+            </form>
+        }
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="animate-in">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="bi bi-calendar-event"></i> Schedule</h3></div>
+        <div class="card-body">
+            <table class="data-table">
+                <tbody>
+                    <tr><td style="color:var(--text-muted);width:40%">Status</td><td><span class="badge @statusBadge">@Model.Status</span></td></tr>
+                    <tr><td style="color:var(--text-muted)">Scheduled</td><td><strong>@Model.ScheduledAt.ToString("MMMM dd, yyyy HH:mm")</strong></td></tr>
+                    <tr><td style="color:var(--text-muted)">Accepted</td><td>@(Model.AcceptedAt.HasValue ? Model.AcceptedAt.Value.ToLocalTime().ToString("MMMM dd, yyyy HH:mm") : "—")</td></tr>
+                    <tr><td style="color:var(--text-muted)">Completed</td><td>@(Model.CompletedAt.HasValue ? Model.CompletedAt.Value.ToLocalTime().ToString("MMMM dd, yyyy HH:mm") : "—")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="bi bi-people"></i> Participants</h3></div>
+        <div class="card-body">
+            <table class="data-table">
+                <tbody>
+                    <tr>
+                        <td style="color:var(--text-muted);width:40%">Cattle</td>
+                        <td><a href="/Cattle/Details/@Model.CattleId" style="font-weight:600">@(Model.Cattle?.Name ?? $"#{Model.CattleId}")</a></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--text-muted)">Veterinarian</td>
+                        <td>
+                            @if (Model.Doctor != null)
+                            {
+                                <a href="/Doctor/Details/@Model.DoctorId" style="font-weight:600">Dr. @Model.Doctor.FullName</a>
+                            }
+                            else { <span>—</span> }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--text-muted)">Farm</td>
+                        <td><a href="/Farm/Details/@Model.FarmId">@(Model.Farm?.Name ?? $"Farm #{Model.FarmId}")</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card animate-in" style="margin-top:18px">
+    <div class="card-header"><h3 class="card-title"><i class="bi bi-journal-medical"></i> Visit details</h3></div>
+    <div class="card-body">
+        <div style="margin-bottom:16px">
+            <label style="font-size:11px;text-transform:uppercase;color:var(--text-muted)">Reason</label>
+            <div style="font-weight:600">@Model.Reason</div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--text-muted)">Notes</label>
+                <div style="white-space:pre-line">@Model.Notes</div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.Status == CattleFarm.Models.AppointmentStatus.Completed && (isOwner || User.IsInRole("Admin") || User.IsInRole("Manager") || isAssignedDoctor))
+{
+    <div class="card animate-in" style="margin-top:18px">
+        <div class="card-header"><h3 class="card-title"><i class="bi bi-file-earmark-medical"></i> Completion evidence</h3></div>
+        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:8px">Visit evidence</label>
+                @if (!string.IsNullOrEmpty(Model.EvidenceImagePath))
+                {
+                    <a href="@Model.EvidenceImagePath" target="_blank">
+                        <img src="@Model.EvidenceImagePath" alt="Evidence" style="max-width:100%;border-radius:8px;border:1px solid var(--border)" />
+                    </a>
+                }
+                else { <span>—</span> }
+            </div>
+            <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:8px">Prescription</label>
+                @if (!string.IsNullOrEmpty(Model.PrescriptionPath))
+                {
+                    var isPdf = Model.PrescriptionPath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+                    if (isPdf)
+                    {
+                        <a href="@Model.PrescriptionPath" target="_blank" class="btn btn-outline"><i class="bi bi-file-pdf"></i> Download prescription (PDF)</a>
+                    }
+                    else
+                    {
+                        <a href="@Model.PrescriptionPath" target="_blank">
+                            <img src="@Model.PrescriptionPath" alt="Prescription" style="max-width:100%;border-radius:8px;border:1px solid var(--border)" />
+                        </a>
+                    }
+                }
+                else { <span>—</span> }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.CompletionNotes))
+            {
+                <div style="grid-column:1/-1">
+                    <label style="font-size:11px;text-transform:uppercase;color:var(--text-muted)">Vet notes</label>
+                    <div style="white-space:pre-line">@Model.CompletionNotes</div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (Model.Status == CattleFarm.Models.AppointmentStatus.Pending && isOwner)
+{
+    <div class="alert alert-info animate-in" style="margin-top:18px">
+        <i class="bi bi-hourglass-split"></i> Waiting for <strong>Dr. @(Model.Doctor?.FullName)</strong> to accept this request. Only this veterinarian can respond.
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function confirmReject(form) {
+            var reason = prompt('Optional reason for declining:');
+            if (reason === null) return false;
+            document.getElementById('rejectReason').value = reason;
+            return true;
+        }
+    </script>
+}

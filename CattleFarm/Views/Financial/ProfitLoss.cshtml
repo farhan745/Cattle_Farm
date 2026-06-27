@@ -1,0 +1,200 @@
+@model IEnumerable<CattleFarm.ViewModels.MonthlyProfitLossViewModel>
+@{
+    ViewData["Title"] = "Profit & Loss Statement";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    int selectedFarmId = (int)(ViewBag.SelectedFarmId ?? 0);
+    int selectedYear = (int)(ViewBag.Year ?? DateTime.Today.Year);
+    var monthlyData = Model.ToList();
+    
+    decimal totalRevenue = monthlyData.Sum(x => x.Revenue);
+    decimal totalExpense = monthlyData.Sum(x => x.Expense);
+    decimal netProfit = totalRevenue - totalExpense;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-file-earmark-bar-graph-fill" style="color:var(--primary)"></i> Profit & Loss Statement</h1>
+        <p class="page-subtitle">Monthly breakdown of revenues, operational expenses, and net profit margins</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px">
+        <a href="/Financial" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Financial Dashboard</a>
+        <a href="/Financial/RevenueBreakdown?farmId=@(selectedFarmId > 0 ? selectedFarmId.ToString() : "")&year=@selectedYear" class="btn btn-outline-primary"><i class="bi bi-pie-chart"></i> Revenue Breakdown</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card animate-fade-in" style="margin-bottom:24px">
+    <div class="card-body" style="padding:16px 24px">
+        <form method="get" action="/Financial/ProfitLoss" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Farm:</label>
+                <select name="farmId" class="form-control" style="width:200px" onchange="this.form.submit()">
+                    @foreach (var farm in farms)
+                    {
+                        if (farm.Id == selectedFarmId)
+                        {
+                            <option value="@farm.Id" selected="selected">@farm.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@farm.Id">@farm.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Year:</label>
+                <select name="year" class="form-control" style="width:120px" onchange="this.form.submit()">
+                    @for (int y = DateTime.Today.Year - 4; y <= DateTime.Today.Year + 1; y++)
+                    {
+                        if (y == selectedYear)
+                        {
+                            <option value="@y" selected="selected">@y</option>
+                        }
+                        else
+                        {
+                            <option value="@y">@y</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-filter"></i> Apply Filter</button>
+        </form>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="stat-grid animate-fade-in" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+    <div class="stat-card green">
+        <div class="stat-icon green"><i class="bi bi-graph-up-arrow"></i></div>
+        <div>
+            <div class="stat-value" style="color:var(--success)">@Currency.Format(totalRevenue)</div>
+            <div class="stat-label">Total Revenue (@selectedYear)</div>
+        </div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon red"><i class="bi bi-graph-down-arrow"></i></div>
+        <div>
+            <div class="stat-value" style="color:var(--danger)">@Currency.Format(totalExpense)</div>
+            <div class="stat-label">Total Expense (@selectedYear)</div>
+        </div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-icon blue"><i class="bi bi-wallet2"></i></div>
+        <div>
+            <div class="stat-value" style="color:@(netProfit >= 0 ? "var(--primary)" : "var(--danger)")">
+                @Currency.Format(netProfit)
+            </div>
+            <div class="stat-label">Net Profit Margin</div>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start" class="animate-fade-in">
+    <!-- Chart -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Monthly Revenue vs Expenses</h3>
+        </div>
+        <div class="card-body">
+            <div style="height:350px;position:relative">
+                <canvas id="profitLossChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Profit & Loss Table</h3>
+        </div>
+        <div class="card-body" style="padding:0">
+            <div class="table-wrapper" style="border:none">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th style="text-align:right">Revenue</th>
+                            <th style="text-align:right">Expenses</th>
+                            <th style="text-align:right">Net Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in monthlyData)
+                        {
+                            var marginColor = m.NetProfit >= 0 ? "var(--primary)" : "var(--danger)";
+                            <tr>
+                                <td><strong>@m.MonthName</strong></td>
+                                <td style="text-align:right;color:var(--success)">+@Currency.Format(m.Revenue)</td>
+                                <td style="text-align:right;color:var(--danger)">-@Currency.Format(m.Expense)</td>
+                                <td style="text-align:right;font-weight:700;color:@marginColor">
+                                    @Currency.Format(m.NetProfit)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const months = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(monthlyData.Select(x => x.MonthName.Substring(0, 3))));
+    const revenues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(monthlyData.Select(x => x.Revenue)));
+    const expenses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(monthlyData.Select(x => x.Expense)));
+    const netProfits = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(monthlyData.Select(x => x.NetProfit)));
+
+    new Chart(document.getElementById('profitLossChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Net Profit',
+                    data: netProfits,
+                    type: 'line',
+                    borderColor: 'rgba(59,130,246,0.95)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    order: 1
+                },
+                {
+                    label: 'Revenue',
+                    data: revenues,
+                    backgroundColor: 'rgba(34,197,94,0.7)',
+                    borderRadius: 4,
+                    order: 2
+                },
+                {
+                    label: 'Expenses',
+                    data: expenses,
+                    backgroundColor: 'rgba(239,68,68,0.7)',
+                    borderRadius: 4,
+                    order: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Value' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+}

@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.CustomerDashboardViewModel
+﻿@model CattleFarm.ViewModels.CustomerDashboardViewModel
 @{ ViewData["Title"] = "My Account"; }
 
 @section Styles {
@@ -16,7 +16,7 @@
         overflow: hidden;
     }
     .customer-hero::after {
-        content: '🛒';
+        content: '';
         position: absolute;
         right: 24px;
         top: 50%;
@@ -104,7 +104,7 @@
 @* ── Hero ─────────────────────────────────────────────────── *@
 <div class="customer-hero">
     <div>
-        <h1>👋 Welcome, @User.Identity?.Name</h1>
+        <h1>Welcome, @User.Identity?.Name</h1>
         <p>Browse products sold on our website and track your orders</p>
     </div>
 </div>
@@ -112,19 +112,19 @@
 @* ── Stats ───────────────────────────────────────────────── *@
 <div class="stat-grid" style="margin-bottom:24px">
     <div class="stat-card blue">
-        <div class="stat-icon blue">🛒</div>
+        <div class="stat-icon blue"></div>
         <div><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Total Orders</div></div>
     </div>
     <div class="stat-card green">
-        <div class="stat-icon green">💰</div>
+        <div class="stat-icon green"></div>
         <div><div class="stat-value">@Currency.Format(Model.TotalSpent)</div><div class="stat-label">Total Spent</div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">📦</div>
+        <div class="stat-icon"></div>
         <div><div class="stat-value">@Model.FeaturedProducts.Count</div><div class="stat-label">Products Available</div></div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">⭐</div>
+        <div class="stat-icon"></div>
         <div><div class="stat-value">@Model.FeaturedProducts.Count(p => p.IsFeatured)</div><div class="stat-label">Featured Items</div></div>
     </div>
 </div>
@@ -134,13 +134,13 @@
     @* ── Products ────────────────────────────────────────── *@
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">🛍️ Products Available in Our Store</h3>
+            <h3 class="card-title">Products Available in Our Store</h3>
             <a href="/Product" class="btn btn-primary btn-sm"><i class="bi bi-shop"></i> Browse All</a>
         </div>
         @if (!Model.FeaturedProducts.Any())
         {
             <div style="text-align:center;padding:48px 20px;color:var(--text-muted)">
-                <div style="font-size:48px;margin-bottom:12px">🏪</div>
+                <div style="font-size:48px;margin-bottom:12px"></div>
                 <div style="font-weight:600">No products available yet</div>
                 <div style="font-size:13px;margin-top:4px">Check back soon for fresh farm products</div>
             </div>
@@ -152,11 +152,11 @@
                 {
                     var emoji = p.Category switch
                     {
-                        CattleFarm.Models.ProductCategory.Milk            => "🥛",
-                        CattleFarm.Models.ProductCategory.Beef            => "🥩",
-                        CattleFarm.Models.ProductCategory.Manure          => "🌱",
-                        CattleFarm.Models.ProductCategory.BreedingService => "🐄",
-                        _ => "📦"
+                        CattleFarm.Models.ProductCategory.Milk            => "",
+                        CattleFarm.Models.ProductCategory.Beef            => "",
+                        CattleFarm.Models.ProductCategory.Manure          => "",
+                        CattleFarm.Models.ProductCategory.BreedingService => "",
+                        _ => ""
                     };
                     <div class="product-card" onclick="window.location='/Product/Details/@p.Id'">
                         <div class="product-thumb">
@@ -194,14 +194,14 @@
     @* ── Orders Sidebar ───────────────────────────────────── *@
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">📦 Recent Orders</h3>
+            <h3 class="card-title">Recent Orders</h3>
             <a href="/Order" class="btn btn-ghost btn-sm">View all</a>
         </div>
         <div class="table-wrapper" style="margin:0">
             @if (!Model.RecentOrders.Any())
             {
                 <div style="text-align:center;padding:32px 16px;color:var(--text-muted)">
-                    <div style="font-size:36px;margin-bottom:8px">🛒</div>
+                    <div style="font-size:36px;margin-bottom:8px"></div>
                     <div style="font-size:13px;font-weight:600">No orders yet</div>
                     <a href="/Product" class="btn btn-primary btn-sm" style="margin-top:10px">Shop Now</a>
                 </div>

@@ -1,4 +1,4 @@
-using CattleFarm.Services.Interfaces;
+﻿using CattleFarm.Services.Interfaces;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
@@ -21,8 +21,15 @@ namespace CattleFarm.Services.Implementations
         private async Task SendAsync(string toEmail, string toName, string subject, string htmlBody)
         {
             var cfg = _config.GetSection("Email");
+            var host = Required(cfg["Host"], "Email:Host");
+            var port = int.TryParse(cfg["Port"], out var parsedPort) ? parsedPort : 587;
+            var username = Required(cfg["Username"], "Email:Username");
+            var password = Required(cfg["Password"], "Email:Password");
+            var fromAddress = Required(cfg["FromAddress"], "Email:FromAddress");
+            var fromName = string.IsNullOrWhiteSpace(cfg["FromName"]) ? "Smart Cattle Farm" : cfg["FromName"]!;
+
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(cfg["FromName"], cfg["FromAddress"]));
+            message.From.Add(new MailboxAddress(fromName, fromAddress));
             message.To.Add(new MailboxAddress(toName, toEmail));
             message.Subject = subject;
             message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
@@ -30,8 +37,8 @@ namespace CattleFarm.Services.Implementations
             using var client = new SmtpClient();
             try
             {
-                await client.ConnectAsync(cfg["Host"], int.Parse(cfg["Port"] ?? "587"), SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(cfg["Username"], cfg["Password"]);
+                await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(username, password);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
                 _logger.LogInformation("Email sent to {Email} — {Subject}", toEmail, subject);
@@ -43,6 +50,14 @@ namespace CattleFarm.Services.Implementations
             }
         }
 
+        private static string Required(string? value, string key)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.StartsWith("YOUR_", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"{key} is not configured. Use user secrets or environment variables for production credentials.");
+
+            return value;
+        }
+
         public async Task SendWelcomeEmailAsync(string toEmail, string toName)
         {
             var html = $@"
@@ -50,11 +65,11 @@ namespace CattleFarm.Services.Implementations
   <table width=""100%""><tr><td align=""center"" style=""padding:40px 20px;"">
     <table width=""560"" style=""background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"">
       <tr><td style=""background:linear-gradient(135deg,#1C3A2A,#2D5A3D);padding:40px;text-align:center;"">
-        <div style=""font-size:40px;"">🐄</div>
+        <div style=""font-size:40px;""></div>
         <div style=""color:#fff;font-size:22px;font-weight:700;"">Welcome to Smart Cattle Farm!</div>
       </td></tr>
       <tr><td style=""padding:48px;"">
-        <p style=""color:#1A1A18;font-size:17px;"">Hi <strong>{toName}</strong>, welcome aboard! 🎉</p>
+        <p style=""color:#1A1A18;font-size:17px;"">Hi <strong>{toName}</strong>, welcome aboard! </p>
         <p style=""color:#6B6B66;line-height:1.7;"">Your account is ready. Start managing your farm, tracking cattle health, monitoring milk production, and much more.</p>
         <div style=""text-align:center;margin:32px 0;"">
           <a href=""https://localhost:7170"" style=""background:#C8761A;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;"">Go to Dashboard →</a>
@@ -66,7 +81,7 @@ namespace CattleFarm.Services.Implementations
     </table>
   </td></tr></table>
 </body></html>";
-            await SendAsync(toEmail, toName, "Welcome to Smart Cattle Farm! 🐄", html);
+            await SendAsync(toEmail, toName, "Welcome to Smart Cattle Farm! ", html);
         }
 
         public async Task SendPaymentConfirmationAsync(string toEmail, string toName, string planName, string txId, decimal amount)
@@ -76,7 +91,7 @@ namespace CattleFarm.Services.Implementations
   <table width=""100%""><tr><td align=""center"" style=""padding:40px 20px;"">
     <table width=""560"" style=""background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"">
       <tr><td style=""background:linear-gradient(135deg,#1C3A2A,#2D5A3D);padding:40px;text-align:center;"">
-        <div style=""font-size:40px;"">✅</div>
+        <div style=""font-size:40px;""></div>
         <div style=""color:#fff;font-size:22px;font-weight:700;"">Payment Confirmed!</div>
       </td></tr>
       <tr><td style=""padding:48px;"">
@@ -98,7 +113,7 @@ namespace CattleFarm.Services.Implementations
     </table>
   </td></tr></table>
 </body></html>";
-            await SendAsync(toEmail, toName, $"Payment Confirmed — {planName} Plan Active ✓", html);
+            await SendAsync(toEmail, toName, $"Payment Confirmed — {planName} Plan Active ", html);
         }
 
         public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
@@ -108,7 +123,7 @@ namespace CattleFarm.Services.Implementations
   <table width=""100%""><tr><td align=""center"" style=""padding:40px 20px;"">
     <table width=""560"" style=""background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"">
       <tr><td style=""background:linear-gradient(135deg,#1C3A2A,#2D5A3D);padding:40px;text-align:center;"">
-        <div style=""font-size:40px;"">🔑</div>
+        <div style=""font-size:40px;""></div>
         <div style=""color:#fff;font-size:22px;font-weight:700;"">Reset Your Password</div>
       </td></tr>
       <tr><td style=""padding:48px;"">
@@ -127,6 +142,67 @@ namespace CattleFarm.Services.Implementations
   </td></tr></table>
 </body></html>";
             await SendAsync(toEmail, "Valued User", "Reset Your Password — Smart Cattle Farm", html);
+        }
+
+        public async Task SendDoctorInvitationAsync(string toEmail, string toName, string farmName, string inviteLink, DateTime expiresAt)
+        {
+            var html = $@"
+<!DOCTYPE html><html><body style=""background:#FAF8F4;font-family:'Segoe UI',Arial,sans-serif;"">
+  <table width=""100%""><tr><td align=""center"" style=""padding:40px 20px;"">
+    <table width=""560"" style=""background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"">
+      <tr><td style=""background:linear-gradient(135deg,#1C3A2A,#2D5A3D);padding:40px;text-align:center;"">
+        <div style=""font-size:40px;""></div>
+        <div style=""color:#fff;font-size:22px;font-weight:700;"">Veterinarian Partnership Invitation</div>
+      </td></tr>
+      <tr><td style=""padding:48px;"">
+        <p style=""color:#1A1A18;font-size:17px;"">Dear <strong>Dr. {toName}</strong>,</p>
+        <p style=""color:#6B6B66;line-height:1.7;"">You have been formally invited to join the veterinary services team at <strong>{farmName}</strong> on the Smart Cattle Farm platform.</p>
+        <p style=""color:#6B6B66;line-height:1.7;"">Joining will allow you to manage appointments, check health records, prescribe medications, and track cattle vaccination status digitally.</p>
+        <p style=""color:#6B6B66;line-height:1.7;"">Please complete your registration and set up your professional veterinary profile by clicking the button below:</p>
+        <div style=""text-align:center;margin:32px 0;"">
+          <a href=""{inviteLink}"" style=""background:#C8761A;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;"">Accept Invitation & Register</a>
+        </div>
+        <p style=""color:#8C8C85;font-size:12px;line-height:1.5;margin-top:24px;text-align:center;"">
+          This secure link is valid until <strong>{expiresAt.ToLocalTime():MMMM dd, yyyy hh:mm tt}</strong> and can only be used once.
+        </p>
+        <p style=""color:#8C8C85;font-size:11px;line-height:1.5;margin-top:16px;word-break:break-all;"">
+          If the button above doesn't work, copy and paste this URL into your browser:<br/><span style=""color:#C8761A;"">{inviteLink}</span>
+        </p>
+      </td></tr>
+      <tr><td style=""background:#F2EDE4;padding:24px;text-align:center;"">
+        <p style=""color:#6B6B66;font-size:12px;margin:0;"">© {DateTime.Now.Year} Smart Cattle Farm</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>";
+            await SendAsync(toEmail, toName, $"Veterinarian Invitation from {farmName} ", html);
+        }
+
+        public async Task SendDoctorWelcomeAsync(string toEmail, string toName, string loginUrl)
+        {
+            var html = $@"
+<!DOCTYPE html><html><body style=""background:#FAF8F4;font-family:'Segoe UI',Arial,sans-serif;"">
+  <table width=""100%""><tr><td align=""center"" style=""padding:40px 20px;"">
+    <table width=""560"" style=""background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"">
+      <tr><td style=""background:linear-gradient(135deg,#1C3A2A,#2D5A3D);padding:40px;text-align:center;"">
+        <div style=""font-size:40px;""></div>
+        <div style=""color:#fff;font-size:22px;font-weight:700;"">Welcome, Dr. {toName}!</div>
+      </td></tr>
+      <tr><td style=""padding:48px;"">
+        <p style=""color:#1A1A18;font-size:17px;"">Dear <strong>Dr. {toName}</strong>,</p>
+        <p style=""color:#6B6B66;line-height:1.7;"">Your veterinary professional profile and user account have been successfully created and linked on Smart Cattle Farm.</p>
+        <p style=""color:#6B6B66;line-height:1.7;"">You can now log in to access your dashboard, consult health requests, track your schedule, and coordinate with farm workers.</p>
+        <div style=""text-align:center;margin:32px 0;"">
+          <a href=""{loginUrl}"" style=""background:#C8761A;color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;"">Log In to Your Account</a>
+        </div>
+      </td></tr>
+      <tr><td style=""background:#F2EDE4;padding:24px;text-align:center;"">
+        <p style=""color:#6B6B66;font-size:12px;margin:0;"">© {DateTime.Now.Year} Smart Cattle Farm</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>";
+            await SendAsync(toEmail, toName, "Welcome to Smart Cattle Farm, Doctor! ", html);
         }
     }
 }

@@ -2,4 +2,125 @@
 @{
     ViewData["Title"] = "Edit Feed Record";
 }
-@await Html.PartialAsync("Create", Model)
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title">Edit Feed Record</h1>
+        <p class="page-subtitle">Update logged feed consumption, supplier details, or cost metrics</p>
+    </div>
+    <a href="/Feed" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Logs</a>
+</div>
+
+<div class="card animate-fade-in" style="max-width:680px">
+    <div class="card-body" style="padding:32px">
+        <form method="post" asp-action="Edit">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+                <!-- Farm -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-house-door" style="color:var(--primary)"></i> Farm</label>
+                    <select asp-for="FarmId" class="form-select" style="width:100%" required>
+                        <option value="">Select farm...</option>
+                        @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                        {
+                            <option value="@farm.Id" selected="@(Model.FarmId == farm.Id)">@farm.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="FarmId" class="form-error"></span>
+                </div>
+
+                <!-- Cattle -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-geo-alt" style="color:var(--primary)"></i> Cattle (optional)</label>
+                    <select asp-for="CattleId" class="form-select" style="width:100%">
+                        <option value="0">Entire Herd</option>
+                        @foreach (var c in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattle)
+                        {
+                            <option value="@c.Id" selected="@(Model.CattleId == c.Id)">@c.Name (@c.TagId)</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Feed Type -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-egg-fried" style="color:var(--primary)"></i> Feed Type</label>
+                    <select asp-for="FeedType" class="form-select" style="width:100%" required>
+                        @foreach (var ft in Enum.GetValues<CattleFarm.Models.FeedType>())
+                        {
+                            <option value="@ft">@ft</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Feed Name -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-tag" style="color:var(--primary)"></i> Feed Name / Brand</label>
+                    <input asp-for="FeedName" class="form-control" placeholder="e.g. Premium Hay Mix" required />
+                    <span asp-validation-for="FeedName" class="form-error"></span>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-speedometer2" style="color:var(--primary)"></i> Quantity (kg)</label>
+                    <input asp-for="QuantityKg" type="number" step="0.1" class="form-control" placeholder="0.0" id="qty" oninput="calcTotal()" required />
+                    <span asp-validation-for="QuantityKg" class="form-error"></span>
+                </div>
+
+                <!-- Cost per Kg -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-currency-dollar" style="color:var(--primary)"></i> Cost per kg (@Currency.GetSettings().DefaultCurrency)</label>
+                    <input asp-for="CostPerKg" type="number" step="0.01" class="form-control" placeholder="0.00" id="cpk" oninput="calcTotal()" required />
+                </div>
+
+                <!-- Date -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-calendar" style="color:var(--primary)"></i> Date</label>
+                    <input asp-for="Date" type="date" class="form-control" required />
+                    <span asp-validation-for="Date" class="form-error"></span>
+                </div>
+
+                <!-- Supplier -->
+                <div class="form-group" style="margin:0">
+                    <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-truck" style="color:var(--primary)"></i> Supplier</label>
+                    <input asp-for="Supplier" class="form-control" placeholder="Supplier name" />
+                </div>
+            </div>
+
+            <!-- Cost summary box -->
+            <div style="border: 1px solid var(--accent); box-shadow: var(--glow-amber); background: rgba(255, 184, 0, 0.03); padding: 18px 24px; border-radius: var(--radius-md); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);">
+                <span style="font-family: var(--font-heading); font-size: 13.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Estimated Total Cost</span>
+                <span id="totalCost" style="font-family: var(--font-mono); font-size: 22px; font-weight: 800; color: var(--accent);">@Currency.GetSettings().Symbol 0.00</span>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label class="form-label" style="font-family:var(--font-heading);font-weight:700"><i class="bi bi-chat-left-text" style="color:var(--primary)"></i> Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Storage location, quality notes..."></textarea>
+            </div>
+
+            <!-- Submit -->
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg"></i> Save Changes
+                </button>
+                <a href="/Feed" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const activeCurrencySymbol = '@Html.Raw(Currency.GetSettings().Symbol)';
+    function calcTotal() {
+        const qty = parseFloat(document.getElementById('qty').value) || 0;
+        const cpk = parseFloat(document.getElementById('cpk').value) || 0;
+        document.getElementById('totalCost').textContent = activeCurrencySymbol + ' ' + (qty * cpk).toLocaleString('en-US', { minimumFractionDigits: 2 });
+    }
+    
+    // Initial run to show total cost
+    window.addEventListener('DOMContentLoaded', calcTotal);
+</script>
+}

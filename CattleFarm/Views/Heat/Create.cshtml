@@ -1,0 +1,110 @@
+@model CattleFarm.Models.HeatRecord
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Record Heat Observation" : "Edit Heat Observation";
+    var isEdit = Model.Id > 0;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient">@ViewData["Title"]</h1>
+        <p class="page-subtitle">Log estrus signs, expected next heat, and breeding readiness.</p>
+    </div>
+    <a href="/Breeding/HeatCalendar" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Heat Calendar</a>
+</div>
+
+<div class="card glass-card shadow animate-slide-up" style="max-width:800px;margin:0 auto">
+    <div class="card-body">
+        <form method="post" asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+            @if (isEdit) { <input type="hidden" asp-for="Id" /> }
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+                <div class="form-group">
+                    <label class="form-label">Farm *</label>
+                    <select asp-for="FarmId" class="form-control" id="farmSelect" onchange="loadCattle(this.value)" required>
+                        <option value="">Select farm...</option>
+                        @foreach (var farm in (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms)
+                        {
+                            <option value="@farm.Id" selected="@(Model.FarmId == farm.Id)">@farm.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="FarmId" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Female Cattle *</label>
+                    <select asp-for="CattleId" class="form-control" id="cattleSelect" required>
+                        <option value="">Select cattle...</option>
+                        @foreach (var c in (IEnumerable<CattleFarm.Models.Cattle>)ViewBag.Cattle)
+                        {
+                            <option value="@c.Id" selected="@(Model.CattleId == c.Id)">@c.Name (@c.TagId)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CattleId" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Observation Date *</label>
+                    <input asp-for="ObservationDate" type="date" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Heat Status</label>
+                    <select asp-for="HeatStatus" class="form-control" asp-items="Html.GetEnumSelectList<CattleFarm.Models.HeatStatus>()"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duration (hours)</label>
+                    <input asp-for="HeatDurationHours" type="number" step="0.5" min="0" max="48" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Next Expected Heat</label>
+                    <input asp-for="NextExpectedHeatDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Detection Method</label>
+                    <select asp-for="DetectionMethod" class="form-control">
+                        <option value="">Select method...</option>
+                        <option>Visual</option>
+                        <option>Pedometer</option>
+                        <option>Tail Paint</option>
+                        <option>Mount Detector</option>
+                        <option>Worker Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Observed By</label>
+                    <input asp-for="ObservedBy" class="form-control" placeholder="Name of observer" />
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label style="display:flex;gap:8px;align-items:center">
+                    <input asp-for="ReadyForBreeding" type="checkbox" />
+                    <span>Ready for breeding</span>
+                </label>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label">Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> @(isEdit ? "Save Changes" : "Save Observation")</button>
+                <a href="/Heat" class="btn btn-outline btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function loadCattle(farmId) {
+    if (!farmId) return;
+    fetch('/Cattle/ByFarm?farmId=' + farmId + '&gender=Female')
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('cattleSelect');
+            select.innerHTML = '<option value="">Select cattle...</option>';
+            data.forEach(c => select.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.name} (${c.tagId})</option>`));
+        });
+}
+</script>
+}

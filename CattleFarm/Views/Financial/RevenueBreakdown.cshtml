@@ -1,0 +1,202 @@
+@model IEnumerable<CattleFarm.ViewModels.RevenueBreakdownViewModel>
+@{
+    ViewData["Title"] = "Revenue Breakdown";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    int selectedFarmId = (int)(ViewBag.SelectedFarmId ?? 0);
+    int selectedYear = (int)(ViewBag.Year ?? DateTime.Today.Year);
+    int? selectedMonth = ViewBag.Month as int?;
+    var breakdownList = Model.ToList();
+    decimal totalRevenue = (decimal)(ViewBag.TotalRevenue ?? 0);
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-pie-chart-fill" style="color:var(--primary)"></i> Revenue Breakdown</h1>
+        <p class="page-subtitle">Percentage and structural analysis of income resources across cattle, milk, crops, and service operations</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px">
+        <a href="/Financial" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Financial Dashboard</a>
+        <a href="/Financial/ProfitLoss?farmId=@(selectedFarmId > 0 ? selectedFarmId.ToString() : "")&year=@selectedYear" class="btn btn-outline-primary"><i class="bi bi-file-earmark-bar-graph"></i> Profit & Loss</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card animate-fade-in" style="margin-bottom:24px">
+    <div class="card-body" style="padding:16px 24px">
+        <form method="get" action="/Financial/RevenueBreakdown" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Farm:</label>
+                <select name="farmId" class="form-control" style="width:200px" onchange="this.form.submit()">
+                    @foreach (var farm in farms)
+                    {
+                        if (farm.Id == selectedFarmId)
+                        {
+                            <option value="@farm.Id" selected="selected">@farm.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@farm.Id">@farm.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Year:</label>
+                <select name="year" class="form-control" style="width:120px" onchange="this.form.submit()">
+                    @for (int y = DateTime.Today.Year - 4; y <= DateTime.Today.Year + 1; y++)
+                    {
+                        if (y == selectedYear)
+                        {
+                            <option value="@y" selected="selected">@y</option>
+                        }
+                        else
+                        {
+                            <option value="@y">@y</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Month:</label>
+                <select name="month" class="form-control" style="width:150px" onchange="this.form.submit()">
+                    @if (!selectedMonth.HasValue)
+                    {
+                        <option value="" selected="selected">All Months</option>
+                    }
+                    else
+                    {
+                        <option value="">All Months</option>
+                    }
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        var monthName = new System.Globalization.DateTimeFormatInfo().GetMonthName(m);
+                        if (m == selectedMonth)
+                        {
+                            <option value="@m" selected="selected">@monthName</option>
+                        }
+                        else
+                        {
+                            <option value="@m">@monthName</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-filter"></i> Apply Filter</button>
+        </form>
+    </div>
+</div>
+
+@if (!breakdownList.Any() || totalRevenue <= 0)
+{
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:60px 20px">
+            <i class="bi bi-pie-chart" style="font-size:48px;color:var(--text-muted);display:block;margin-bottom:16px"></i>
+            <h3 style="font-weight:700;margin-bottom:8px">No revenue breakdown data</h3>
+            <p style="color:var(--text-muted)">Record cattle sales, milk product orders, or operational revenues to see visual breakdown charts.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:24px;align-items:start" class="animate-fade-in">
+        <!-- Donut Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Income Stream Shares</h3>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;align-items:center">
+                <div style="width:280px;height:280px;position:relative;margin-bottom:20px">
+                    <canvas id="revenueDonutChart"></canvas>
+                </div>
+                <div style="font-family:var(--font-heading);font-weight:700;color:var(--text-secondary)">
+                    Total Invoiced: <span style="font-size:18px;color:var(--primary);font-family:var(--font-mono)">@Currency.Format(totalRevenue)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table breakdown -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Revenues by Categories</h3>
+            </div>
+            <div class="card-body" style="padding:0">
+                <div class="table-wrapper" style="border:none">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Category / Revenue Source</th>
+                                <th style="text-align:right">Total Amount</th>
+                                <th style="text-align:right">Percentage Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in breakdownList.OrderByDescending(x => x.Amount))
+                            {
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px">
+                                            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:rgba(34,197,94,.8)"></span>
+                                            <strong>@b.Source</strong>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:right;font-weight:600;color:var(--primary)">@Currency.Format(b.Amount)</td>
+                                    <td style="text-align:right;font-weight:700">@b.Percentage.ToString("F1")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+@if (breakdownList.Any() && totalRevenue > 0)
+{
+    <script>
+        const sources = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(breakdownList.Select(x => x.Source)));
+        const amounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(breakdownList.Select(x => x.Amount)));
+        
+        // Dynamic harmonized palettes
+        const colors = [
+            'rgba(34,197,94,0.85)',
+            'rgba(59,130,246,0.85)',
+            'rgba(245,158,11,0.85)',
+            'rgba(168,85,247,0.85)',
+            'rgba(239,68,68,0.85)',
+            'rgba(13,148,136,0.85)'
+        ];
+        
+        new Chart(document.getElementById('revenueDonutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: sources,
+                datasets: [{
+                    data: amounts,
+                    backgroundColor: colors.slice(0, sources.length),
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 14
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    </script>
+}
+}

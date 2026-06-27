@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.AttendanceViewModel
+﻿@model CattleFarm.ViewModels.AttendanceViewModel
 @{
     ViewData["Title"] = "Delete Attendance";
     var rawStatus = Model.Notes ?? Model.Status.ToString();
@@ -12,7 +12,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">🗑️ Delete Attendance Record</h1>
+        <h1 class="page-title">Delete Attendance Record</h1>
         <p class="page-subtitle">This action cannot be undone</p>
     </div>
     <a href="/Attendance" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Records</a>
@@ -23,7 +23,7 @@
         <div class="card-body" style="display:flex;flex-direction:column;gap:20px">
 
             <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(239,68,68,.06);border-radius:10px;border:1px solid rgba(239,68,68,.2)">
-                <div style="font-size:36px">⚠️</div>
+                <div style="font-size:36px"></div>
                 <div>
                     <div style="font-weight:700;color:#dc2626;margin-bottom:4px">Confirm Deletion</div>
                     <div style="font-size:13px;color:var(--text-muted)">

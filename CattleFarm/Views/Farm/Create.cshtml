@@ -1,11 +1,11 @@
-@model CattleFarm.ViewModels.FarmViewModel
+﻿@model CattleFarm.ViewModels.FarmViewModel
 @{
     ViewData["Title"] = Model.Id == 0 ? "Register Farm" : "Edit Farm";
     var isEdit = Model.Id > 0;
 }
 <div class="page-header">
     <div>
-        <h1 class="page-title">@(isEdit ? "✏️ Edit Farm" : "🏡 Register New Farm")</h1>
+        <h1 class="page-title">@(isEdit ? "Edit Farm" : "Register New Farm")</h1>
         <p class="page-subtitle">@(isEdit ? $"Editing {Model.Name}" : "Complete the form to register your farm")</p>
     </div>
     <a href="/Farm" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
@@ -18,7 +18,7 @@
     <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
         <div style="display:flex;flex-direction:column;gap:20px">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">📋 Farm Details</h3></div>
+                <div class="card-header"><h3 class="card-title">Farm Details</h3></div>
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         <div class="form-group" style="grid-column:1/-1">
@@ -64,15 +64,15 @@
         <!-- Image Upload -->
         <div style="display:flex;flex-direction:column;gap:20px">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">🖼️ Farm Image</h3></div>
+                <div class="card-header"><h3 class="card-title">Farm Image</h3></div>
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
                     { <img id="farmPreview" src="@Model.ExistingImagePath" style="width:100%;height:200px;object-fit:cover;border-radius:8px;margin-bottom:12px" /> }
                     else
-                    { <div id="farmPlaceholder" style="width:100%;height:200px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px">🏡</div>
+                    { <div id="farmPlaceholder" style="width:100%;height:200px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px"></div>
                       <img id="farmPreview" style="display:none;width:100%;height:200px;object-fit:cover;border-radius:8px;margin-bottom:12px" /> }
                     <label class="img-upload-zone" for="farmImageInput">
-                        <div style="font-size:24px;margin-bottom:4px">📷</div>
+                        <div style="font-size:24px;margin-bottom:4px"></div>
                         <div style="font-size:13px;font-weight:600">Click to upload farm image</div>
                         <div style="font-size:11px;color:var(--text-muted)">JPG, PNG — max 5MB</div>
                     </label>

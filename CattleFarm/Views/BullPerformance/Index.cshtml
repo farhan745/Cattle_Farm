@@ -1,0 +1,107 @@
+@model IEnumerable<CattleFarm.Models.BullPerformanceRecord>
+@{
+    ViewData["Title"] = "Bull Semen Quality & Performance Records";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    var selectedFarmId = (int?)ViewBag.FarmId;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-shield-check"></i> Bull Semen Quality & Performance</h1>
+        <p class="page-subtitle">Track bull performance evaluations, semen motility, morphology, and lab tests.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="/Breeding" class="btn btn-outline"><i class="bi bi-chevron-left"></i> Breeding Records</a>
+        <a href="/Breeding/HeatCalendar" class="btn btn-outline"><i class="bi bi-calendar-event"></i> Heat Calendar</a>
+        <a href="/BullPerformance/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Record Evaluation</a>
+    </div>
+</div>
+
+<div class="card glass-card mb-4 animate-slide-up">
+    <div class="card-body">
+        <form method="get" action="/BullPerformance" class="row align-items-end g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Select Farm</label>
+                <select name="farmId" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Accessible Farms</option>
+                    @foreach (var farm in farms)
+                    {
+                        <option value="@farm.Id" selected="@(selectedFarmId == farm.Id)">@farm.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card glass-card animate-slide-up shadow-sm">
+    <div class="card-body" style="padding: 0;">
+        @if (!Model.Any())
+        {
+            <div style="padding: 50px; text-align: center; color: var(--text-muted);">
+                <i class="bi bi-clipboard2-pulse" style="font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.5;"></i>
+                No bull performance evaluation records logged yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle" style="margin-bottom: 0;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Bull Name</th>
+                            <th>Tag ID</th>
+                            <th>Evaluation Date</th>
+                            <th style="text-align:right;">Motility</th>
+                            <th style="text-align:right;">Morphology</th>
+                            <th style="text-align:right;">Concentration</th>
+                            <th style="text-align:right;">Volume</th>
+                            <th>Grade</th>
+                            <th>Evaluator</th>
+                            <th>Cost</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var record in Model)
+                        {
+                            var gradeBadge = record.QualityGrade switch
+                            {
+                                SemenQuality.Excellent => "bg-success text-white",
+                                SemenQuality.Good => "bg-info text-white",
+                                SemenQuality.Fair => "bg-warning text-dark",
+                                _ => "bg-danger text-white"
+                            };
+
+                            <tr>
+                                <td><span class="fw-bold">@record.Cattle?.Name</span></td>
+                                <td><code>@record.Cattle?.TagId</code></td>
+                                <td>@record.EvaluationDate.ToString("yyyy-MM-dd")</td>
+                                <td style="text-align:right; font-weight:600;" class="text-success">@(record.MotilityPercent.HasValue ? $"{record.MotilityPercent.Value:N1}%" : "-")</td>
+                                <td style="text-align:right; font-weight:600;" class="text-success">@(record.MorphologyPercent.HasValue ? $"{record.MorphologyPercent.Value:N1}%" : "-")</td>
+                                <td style="text-align:right;">@(record.ConcentrationMillionPerMl.HasValue ? $"{record.ConcentrationMillionPerMl.Value:N0} M/mL" : "-")</td>
+                                <td style="text-align:right;">@(record.VolumeML.HasValue ? $"{record.VolumeML.Value:N1} mL" : "-")</td>
+                                <td><span class="badge @gradeBadge">@record.QualityGrade</span></td>
+                                <td style="font-size: 13px;">@record.EvaluatedBy</td>
+                                <td style="font-weight: 500;">@(record.Cost.HasValue ? $"BDT {record.Cost.Value:N2}" : "-")</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="/BullPerformance/Details/@record.Id" class="btn btn-outline-primary btn-sm" title="Details"><i class="bi bi-info-circle"></i></a>
+                                        <a href="/BullPerformance/Edit/@record.Id" class="btn btn-outline-secondary btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                                        <form method="post" action="/BullPerformance/Delete/@record.Id" onsubmit="return confirm('Delete this record?')" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

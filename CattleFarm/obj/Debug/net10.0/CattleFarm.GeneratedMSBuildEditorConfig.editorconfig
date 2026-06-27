@@ -25,7 +25,7 @@ build_property.EnableComHosting =
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 10.0
 build_property.SupportLocalizedComponentNames = 
-build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = true
 build_property.MSBuildProjectDirectory = F:\VisualStudio\CattleFarm\CattleFarm
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
@@ -63,6 +63,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRmFybXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Admin/PendingVeterinarians.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cUGVuZGluZ1ZldGVyaW5hcmlhbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Admin/Subscriptions.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU3Vic2NyaXB0aW9ucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -71,8 +75,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cVXNlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Appointment/Complete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRcQ29tcGxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Appointment/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Appointment/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwb2ludG1lbnRcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Appointment/Index.cshtml]
@@ -95,6 +107,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXR0ZW5kYW5jZVxNYXJrLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Backup/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmFja3VwXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Breeding/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnJlZWRpbmdcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -107,12 +123,44 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnJlZWRpbmdcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Breeding/HeatCalendar.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnJlZWRpbmdcSGVhdENhbGVuZGFyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Breeding/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnJlZWRpbmdcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/BullPerformance/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnVsbFBlcmZvcm1hbmNlXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/BullPerformance/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnVsbFBlcmZvcm1hbmNlXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/BullPerformance/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQnVsbFBlcmZvcm1hbmNlXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/CattleMedicalRecord/AddMedicalRecord.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlTWVkaWNhbFJlY29yZFxBZGRNZWRpY2FsUmVjb3JkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/CattleMedicalRecord/EditMedicalRecord.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlTWVkaWNhbFJlY29yZFxFZGl0TWVkaWNhbFJlY29yZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/CattleMedicalRecord/MedicalHistory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlTWVkaWNhbFJlY29yZFxNZWRpY2FsSGlzdG9yeS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Cattle/BuyCattle.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlXEJ1eUNhdHRsZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Cattle/CattleReport.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlXENhdHRsZVJlcG9ydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Cattle/Create.cshtml]
@@ -151,6 +199,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlXFBheW1lbnRTdWNjZXNzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Cattle/SellCattle.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlXFNlbGxDYXR0bGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Cattle/Transfer.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlXFRyYW5zZmVyLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Cattle/WeightHistory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0dGxlXFdlaWdodEhpc3RvcnkuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Dashboard/Admin.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEFkbWluLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -179,8 +239,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFdvcmtlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/VisualStudio/CattleFarm/CattleFarm/Views/Doctor/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXENyZWF0ZS5jc2h0bWw=
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Doctor/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXERldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Doctor/Edit.cshtml]
@@ -189,6 +249,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Doctor/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Doctor/RegisterVeterinarian.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXFJlZ2lzdGVyVmV0ZXJpbmFyaWFuLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Employee/Create.cshtml]
@@ -209,6 +273,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Employee/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wbG95ZWVcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Employee/Performance.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wbG95ZWVcUGVyZm9ybWFuY2UuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/FarmJoin/Apply.cshtml]
@@ -247,6 +315,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmFybVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Feed/CostPerLiter.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmVlZFxDb3N0UGVyTGl0ZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Feed/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmVlZFxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -259,8 +331,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmVlZFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Feed/SeasonalRecommendations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmVlZFxTZWFzb25hbFJlY29tbWVuZGF0aW9ucy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Financial/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmluYW5jaWFsXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Financial/ProfitLoss.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmluYW5jaWFsXFByb2ZpdExvc3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Financial/RevenueBreakdown.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmluYW5jaWFsXFJldmVudWVCcmVha2Rvd24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Health/Create.cshtml]
@@ -279,6 +363,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSGVhbHRoXFZhY2NpbmF0aW9ucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Heat/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSGVhdFxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Heat/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSGVhdFxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Home/AnimationTest.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBbmltYXRpb25UZXN0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/Home/ComponentsTest.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb21wb25lbnRzVGVzdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -295,8 +395,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWlsa1Byb2R1Y3Rpb25cQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/MilkProduction/DropAlerts.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWlsa1Byb2R1Y3Rpb25cRHJvcEFsZXJ0cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/MilkProduction/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWlsa1Byb2R1Y3Rpb25cSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/MilkProduction/TopProducers.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWlsa1Byb2R1Y3Rpb25cVG9wUHJvZHVjZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Notification/Index.cshtml]
@@ -375,6 +483,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/VisualStudio/CattleFarm/CattleFarm/Views/SmartMonitoring/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU21hcnRNb25pdG9yaW5nXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/Subscription/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3Vic2NyaXB0aW9uXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -409,10 +521,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/TaskAssignment/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza0Fzc2lnbm1lbnRcSW5kZXguY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[F:/VisualStudio/CattleFarm/CattleFarm/Views/TaskAssignment/Index_old.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGFza0Fzc2lnbm1lbnRcSW5kZXhfb2xkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/VisualStudio/CattleFarm/CattleFarm/Views/TaskAssignment/OpenBoard.cshtml]

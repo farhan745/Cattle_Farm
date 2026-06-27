@@ -1,0 +1,10 @@
+{
+  "permission": {
+    "read": {
+      "F:/VisualStudio/CattleFarm/.kilo/get-shit-done/*": "allow"
+    },
+    "external_directory": {
+      "F:/VisualStudio/CattleFarm/.kilo/get-shit-done/*": "allow"
+    }
+  }
+}

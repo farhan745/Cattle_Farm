@@ -1,17 +1,20 @@
+# Test Credentials
 
-* **Admin User**:
-  - **Email**: `admin@cattlefarm.com`
-  - **Password**: `Admin@123`
+Do not store real emails or passwords in this repository.
 
-* **Owner User**:
-  - **Email**: `owner@cattlefarm.com`
-  - **Password**: `Owner@123`
+For local development, keep seeded account credentials in a private note outside the project, or use ASP.NET user secrets/environment variables.
 
-* **Manager User**:
-  - **Email**: `manager@cattlefarm.com`
-  - **Password**: `Manager@123`
+Suggested private format:
 
-* **Customer User**:
-  - **Email**: `customer@cattlefarm.com`
-  - **Password**: `Customer@123`
-
+```text
+Admin email:
+Admin password:
+Owner email:
+Owner password:
+Manager email:
+Manager password:
+Worker email:
+Worker password:
+Customer email:
+Customer password:
+```

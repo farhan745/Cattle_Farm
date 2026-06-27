@@ -23,5 +23,14 @@ namespace CattleFarm.Repositories.Implementations
             var unread = await _dbSet.Where(n => n.UserId == userId && !n.IsRead).ToListAsync();
             foreach (var n in unread) { n.IsRead = true; n.ReadAt = DateTime.UtcNow; }
         }
+
+        public Task<bool> HasUnreadAsync(int userId, NotificationType type, string? entityType, int? entityId)
+            => _dbSet.AnyAsync(n =>
+                n.UserId == userId &&
+                n.Type == type &&
+                n.RelatedEntityType == entityType &&
+                n.RelatedEntityId == entityId &&
+                !n.IsRead &&
+                !n.IsDeleted);
     }
 }

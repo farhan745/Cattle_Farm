@@ -1,0 +1,333 @@
+@model CattleFarm.Models.Cattle
+@{
+    Layout = null; // No navbar or sidebar when printing/viewing report
+    ViewData["Title"] = $"Cattle Profile Report - {Model.TagId}";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <style>
+        body {
+            background-color: #fff;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            padding: 30px;
+        }
+        .report-header {
+            border-bottom: 3px double #2b8a3e;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .report-title {
+            color: #2b8a3e;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section-title {
+            color: #2b8a3e;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .img-profile {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .table-custom th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .print-btn-container {
+            margin-bottom: 20px;
+        }
+        @@media print {
+            .print-btn-container {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Print / Action Buttons -->
+        <div class="print-btn-container d-flex justify-content-between align-items-center bg-light p-3 rounded mb-4">
+            <div>
+                <a href="/Cattle/Details/@Model.Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Profile</a>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-success btn-sm"><i class="bi bi-printer"></i> Print Report</button>
+            </div>
+        </div>
+
+        <!-- Report Header -->
+        <div class="report-header row align-items-center">
+            <div class="col-8">
+                <h2 class="report-title m-0">@Model.Farm?.Name</h2>
+                <h4 class="text-muted m-0">Cattle Profile & History Report</h4>
+                <p class="text-secondary m-0" style="font-size: 11px;">Generated on: @DateTime.Now.ToString("yyyy-MM-dd HH:mm tt")</p>
+            </div>
+            <div class="col-4 text-end">
+                <span class="badge @(Model.Status == CattleStatus.Active ? "bg-success" : "bg-secondary") p-2" style="font-size: 14px;">
+                    STATUS: @Model.Status.ToString().ToUpper()
+                </span>
+            </div>
+        </div>
+
+        <!-- Main Details Grid -->
+        <div class="row">
+            <!-- Profile Photo & Summary -->
+            <div class="col-3">
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Model.ImagePath" class="img-profile mb-3" alt="Cattle image" />
+                }
+                else
+                {
+                    <div class="bg-light text-muted d-flex align-items-center justify-content-center border rounded mb-3" style="height: 180px;">
+                        <i class="bi bi-image" style="font-size: 48px;"></i>
+                    </div>
+                }
+                <div class="card bg-light border-0 p-3">
+                    <div style="font-size: 12px;" class="text-muted">TAG ID</div>
+                    <div class="fw-bold" style="font-size: 18px; color: #2b8a3e;">@Model.TagId</div>
+                    <div style="font-size: 12px; margin-top: 10px;" class="text-muted">NAME</div>
+                    <div class="fw-bold" style="font-size: 16px;">@Model.Name</div>
+                </div>
+            </div>
+
+            <!-- Key Info Table -->
+            <div class="col-9">
+                <h3 class="section-title mt-0">General Description</h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Breed:</div>
+                            <div class="col-7">@Model.Breed</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Category:</div>
+                            <div class="col-7">@Model.Category.ToString()</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Gender:</div>
+                            <div class="col-7">@Model.Gender.ToString()</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Date of Birth:</div>
+                            <div class="col-7">@Model.DateOfBirth.ToString("yyyy-MM-dd")</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Current Weight:</div>
+                            <div class="col-7">@Model.Weight kg</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Health Status:</div>
+                            <div class="col-7">
+                                <span class="text-@(Model.HealthStatus == HealthStatus.Healthy ? "success" : Model.HealthStatus == HealthStatus.Sick ? "danger" : "warning") fw-semibold">
+                                    @Model.HealthStatus.ToString()
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Origin / Source:</div>
+                            <div class="col-7">@(Model.Origin ?? "Farm Born")</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Registered:</div>
+                            <div class="col-7">@Model.CreatedAt.ToString("yyyy-MM-dd")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="section-title">Purchase & Acquisition</h3>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Purchase Price:</div>
+                            <div class="col-7">BDT @Model.PurchasePrice.ToString("N2")</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-5 info-label">Purchase Date:</div>
+                            <div class="col-7">@(Model.PurchaseDate?.ToString("yyyy-MM-dd") ?? "N/A")</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.Status == CattleStatus.Transferred)
+                {
+                    <h3 class="section-title">Transfer Records</h3>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-5 info-label">Transferred To:</div>
+                                <div class="col-7">@Model.TransferredTo</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-5 info-label">Transfer Date:</div>
+                                <div class="col-7">@(Model.TransferDate?.ToString("yyyy-MM-dd") ?? "N/A")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (Model.Status == CattleStatus.Sold)
+                {
+                    <h3 class="section-title">Sale Records</h3>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-5 info-label">Sale Price:</div>
+                                <div class="col-7">BDT @(Model.SalePrice?.ToString("N2") ?? "0.00")</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-5 info-label">Sale Date:</div>
+                                <div class="col-7">@(Model.SaleDate?.ToString("yyyy-MM-dd") ?? "N/A")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h3 class="section-title">Special Notes & Description</h3>
+                    <p class="fst-italic text-secondary bg-light p-3 rounded">@Model.Description</p>
+                </div>
+            </div>
+        }
+
+        <!-- Vaccination History -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3 class="section-title">Vaccination History</h3>
+                @if (Model.Vaccinations == null || !Model.Vaccinations.Any())
+                {
+                    <p class="text-muted">No vaccinations recorded for this cattle.</p>
+                }
+                else
+                {
+                    <table class="table table-bordered table-striped table-custom">
+                        <thead>
+                            <tr>
+                                <th>Date Administered</th>
+                                <th>Vaccine Name</th>
+                                <th>Dose #</th>
+                                <th>Next Due Date</th>
+                                <th>Administered By</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var v in Model.Vaccinations.OrderByDescending(v => v.VaccinationDate))
+                            {
+                                <tr>
+                                    <td>@v.VaccinationDate.ToString("yyyy-MM-dd")</td>
+                                    <td class="fw-semibold">@v.VaccineName</td>
+                                    <td>@v.DoseNumber</td>
+                                    <td>@(v.NextDueDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                                    <td>@v.AdministeredBy</td>
+                                    <td style="font-size: 12px;">@v.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        <!-- Health Records -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3 class="section-title">Medical & Health logs</h3>
+                @if (Model.HealthRecords == null || !Model.HealthRecords.Any())
+                {
+                    <p class="text-muted">No health incident records logged.</p>
+                }
+                else
+                {
+                    <table class="table table-bordered table-striped table-custom">
+                        <thead>
+                            <tr>
+                                <th>Record Date</th>
+                                <th>Symptoms</th>
+                                <th>Temperature (°C)</th>
+                                <th>Health Status</th>
+                                <th>Risk Level</th>
+                                <th>Notes / Vet Recommendation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.HealthRecords.OrderByDescending(h => h.RecordDate))
+                            {
+                                <tr>
+                                    <td>@h.RecordDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@h.Symptoms</td>
+                                    <td>@(h.Temperature.HasValue ? $"{h.Temperature}°C" : "-")</td>
+                                    <td>
+                                        <span class="badge bg-@(h.HealthStatus == HealthStatus.Healthy ? "success" : h.HealthStatus == HealthStatus.Sick ? "danger" : "warning")">
+                                            @h.HealthStatus
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(h.RiskLevel == RiskLevel.Low ? "info" : h.RiskLevel == RiskLevel.Medium ? "warning" : "danger")">
+                                            @h.RiskLevel
+                                        </span>
+                                    </td>
+                                    <td style="font-size: 12px;">
+                                        <strong>Notes:</strong> @h.Notes <br />
+                                        <strong>Rec:</strong> @h.VetRecommendation
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</body>
+</html>

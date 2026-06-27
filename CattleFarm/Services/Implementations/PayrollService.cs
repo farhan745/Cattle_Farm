@@ -47,6 +47,14 @@ namespace CattleFarm.Services.Implementations
             return p == null ? null : MapToViewModel(p);
         }
 
+        public async Task<Payroll?> GetPayrollEntityByIdAsync(int id)
+        {
+            return await _context.Payrolls
+                .Include(p => p.Worker)
+                .Include(p => p.Farm)
+                .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+        }
+
         public async Task<IEnumerable<PayrollViewModel>> GetPayrollsByUserIdAsync(int userId)
         {
             return await _context.Payrolls

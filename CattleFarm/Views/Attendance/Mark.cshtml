@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.BulkAttendanceViewModel
+﻿@model CattleFarm.ViewModels.BulkAttendanceViewModel
 @{
     ViewData["Title"] = "Mark Attendance";
     var today = DateTime.Today.ToString("yyyy-MM-dd");
@@ -207,7 +207,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">📋 Mark Attendance</h1>
+        <h1 class="page-title">Mark Attendance</h1>
         <p class="page-subtitle">Record daily attendance for all active workers</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center">
@@ -257,7 +257,7 @@
 @if (Model.Rows.Count == 0)
 {
     <div class="card" style="text-align:center;padding:60px 20px">
-        <div style="font-size:64px;margin-bottom:16px">👷</div>
+        <div style="font-size:64px;margin-bottom:16px"></div>
         <h3 style="margin:0 0 8px;font-size:20px">No Active Workers Found</h3>
         <p style="color:var(--text-muted);margin:0 0 20px">There are no active workers registered on your farm yet.</p>
         <a href="/Worker/Create" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px">
@@ -271,8 +271,8 @@ else
     <div class="quick-bar">
         <i class="bi bi-lightning-charge" style="color:var(--primary)"></i>
         <span>Mark All As:</span>
-        <button type="button" class="qbtn qbtn-present" onclick="markAll('Present')">✔ All Present</button>
-        <button type="button" class="qbtn qbtn-absent"  onclick="markAll('Absent')">✘ All Absent</button>
+        <button type="button" class="qbtn qbtn-present" onclick="markAll('Present')">All Present</button>
+        <button type="button" class="qbtn qbtn-absent"  onclick="markAll('Absent')">All Absent</button>
         <button type="button" class="qbtn qbtn-late"    onclick="markAll('Late')">⏱ All Late</button>
         <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">
             <i class="bi bi-info-circle"></i> Changes are saved only when you click <strong>Save Attendance</strong>
@@ -337,8 +337,8 @@ else
                                             data-status="@row.Status"
                                             data-row="@i"
                                             onchange="onStatusChange(this)">
-                                        <option value="Present" selected="@(row.Status == "Present" ? "selected" : null)">✔ Present</option>
-                                        <option value="Absent"  selected="@(row.Status == "Absent"  ? "selected" : null)">✘ Absent</option>
+                                        <option value="Present" selected="@(row.Status == "Present" ? "selected" : null)">Present</option>
+                                        <option value="Absent"  selected="@(row.Status == "Absent"  ? "selected" : null)">Absent</option>
                                         <option value="Late"    selected="@(row.Status == "Late"    ? "selected" : null)">⏱ Late</option>
                                     </select>
                                 </td>
@@ -346,10 +346,10 @@ else
                                     <div style="display:flex;gap:6px;justify-content:center">
                                         <button type="button" class="btn btn-ghost btn-sm"
                                                 style="color:#10b981;font-size:11px;padding:4px 10px"
-                                                onclick="setStatus(@i,'Present')" title="Present">✔</button>
+                                                onclick="setStatus(@i,'Present')" title="Present"></button>
                                         <button type="button" class="btn btn-ghost btn-sm"
                                                 style="color:#ef4444;font-size:11px;padding:4px 10px"
-                                                onclick="setStatus(@i,'Absent')"  title="Absent">✘</button>
+                                                onclick="setStatus(@i,'Absent')"  title="Absent"></button>
                                         <button type="button" class="btn btn-ghost btn-sm"
                                                 style="color:#f59e0b;font-size:11px;padding:4px 10px"
                                                 onclick="setStatus(@i,'Late')"    title="Late">⏱</button>

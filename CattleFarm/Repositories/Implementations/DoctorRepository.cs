@@ -9,11 +9,18 @@ namespace CattleFarm.Repositories.Implementations
         public DoctorRepository(CattleFarmDbContext context) : base(context) { }
 
         public async Task<IEnumerable<Doctor>> GetAvailableDoctorsAsync()
-            => await _dbSet.Where(d => d.IsAvailable && d.IsActive).ToListAsync();
+            => await _dbSet.Where(d => !d.IsDeleted && d.IsActive && d.ApprovalStatus == ApprovalStatus.Approved && d.IsAvailable).ToListAsync();
+
+        public async Task<IEnumerable<Doctor>> GetPendingApprovalAsync()
+            => await _dbSet
+                .Include(d => d.User)
+                .Where(d => !d.IsDeleted && d.ApprovalStatus == ApprovalStatus.Pending)
+                .OrderByDescending(d => d.CreatedAt)
+                .ToListAsync();
 
         public async Task<(IEnumerable<Doctor> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search = null)
         {
-            var q = _dbSet.Where(d => !d.IsDeleted && d.IsActive).AsQueryable();
+            var q = _dbSet.Where(d => !d.IsDeleted && d.IsActive && d.ApprovalStatus == ApprovalStatus.Approved).AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
                 q = q.Where(d => d.FullName.Contains(search) || d.Specialization.Contains(search));
             int total = await q.CountAsync();

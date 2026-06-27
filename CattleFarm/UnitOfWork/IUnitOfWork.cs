@@ -1,3 +1,4 @@
+using CattleFarm.Models;
 using CattleFarm.Repositories.Interfaces;
 
 namespace CattleFarm.UnitOfWork
@@ -10,7 +11,9 @@ namespace CattleFarm.UnitOfWork
         IFarmRepository             Farms             { get; }
         IWorkerRepository           Workers           { get; }
         IDoctorRepository           Doctors           { get; }
-        IHealthRecordRepository     HealthRecords     { get; }
+        IDoctorInvitationRepository DoctorInvitations { get; }
+        IHealthRecordRepository         HealthRecords         { get; }
+        ICattleMedicalRecordRepository  CattleMedicalRecords  { get; }
         IVaccinationRepository      Vaccinations      { get; }
         IMilkProductionRepository   MilkProductions   { get; }
         IProductRepository          Products          { get; }
@@ -32,7 +35,15 @@ namespace CattleFarm.UnitOfWork
         ITransportRequestRepository TransportRequests { get; }
         ITripRepository             Trips             { get; }
 
+        // ── Gap-Fill Modules ───────────────────────────────────────────
+        IRepository<WeightRecord>           WeightRecords          { get; }
+        IRepository<HeatRecord>             HeatRecords            { get; }
+        IRepository<BullPerformanceRecord>  BullPerformanceRecords { get; }
+
         /// <summary>Commits all pending changes atomically. Returns affected row count.</summary>
         Task<int> SaveChangesAsync();
+
+        /// <summary>Begins a new database transaction.</summary>
+        Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync();
     }
 }

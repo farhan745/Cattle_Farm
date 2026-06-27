@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.EmployeeEditViewModel
+﻿@model CattleFarm.ViewModels.EmployeeEditViewModel
 @inject CattleFarm.Services.Interfaces.ICurrencyService Currency
 @{
     ViewData["Title"] = $"Edit Employee: {Model.FullName}";
@@ -6,7 +6,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">✏️ Edit Employee Profile</h1>
+        <h1 class="page-title">Edit Employee Profile</h1>
         <p class="page-subtitle">Update employee profile, contact information, salary, and active status</p>
     </div>
     <a href="/Employee" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
@@ -23,7 +23,7 @@
             <!-- Profile Info -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">👤 Personal & Contact Info</h3>
+                    <h3 class="card-title">Personal & Contact Info</h3>
                 </div>
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -49,7 +49,7 @@
             <!-- Professional Assignment -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">💼 Role & Salary Settings</h3>
+                    <h3 class="card-title">Role & Salary Settings</h3>
                 </div>
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -90,7 +90,7 @@
             <!-- Account Status Card -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">⚙️ Account Settings</h3>
+                    <h3 class="card-title">Account Settings</h3>
                 </div>
                 <div class="card-body">
                     <div class="form-group" style="margin-bottom:0">

@@ -9,7 +9,14 @@ namespace CattleFarm.Services.Implementations
     {
         private readonly IUnitOfWork _uow;
         private readonly IImageService _imageService;
-        public FarmService(IUnitOfWork uow, IImageService imageService) { _uow = uow; _imageService = imageService; }
+        private readonly IFarmAccessService _farmAccess;
+
+        public FarmService(IUnitOfWork uow, IImageService imageService, IFarmAccessService farmAccess)
+        {
+            _uow = uow;
+            _imageService = imageService;
+            _farmAccess = farmAccess;
+        }
 
         public async Task<IEnumerable<Farm>> GetAllAsync() => await _uow.Farms.GetAllAsync();
         public async Task<IEnumerable<Farm>> GetByOwnerAsync(int ownerId) => await _uow.Farms.GetByOwnerIdAsync(ownerId);
@@ -20,6 +27,24 @@ namespace CattleFarm.Services.Implementations
         {
             var items = await _uow.Farms.GetPagedAsync(page, pageSize, search);
             int total = await _uow.Farms.CountAsync();
+            return (items, total);
+        }
+
+        public async Task<(IEnumerable<Farm> Items, int Total)> GetPagedForUserAsync(int page, int pageSize, int userId, string? role, string? search = null)
+        {
+            var accessible = (await _farmAccess.GetAccessibleFarmsAsync(userId, role)).ToList();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                accessible = accessible.Where(f =>
+                    f.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    f.Location.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            var total = accessible.Count;
+            var items = accessible
+                .OrderByDescending(f => f.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
             return (items, total);
         }
 

@@ -19,7 +19,7 @@
         <!-- Main Form Details -->
         <div style="display:flex;flex-direction:column;gap:20px">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">📋 Production Details</h3></div>
+                <div class="card-header"><h3 class="card-title">Production Details</h3></div>
                 <div class="card-body">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                         
@@ -83,6 +83,54 @@
                             <span asp-validation-for="EveningYieldLiters" class="form-error"></span>
                         </div>
 
+                        <!-- Fat Percentage -->
+                        <div class="form-group">
+                            <label class="form-label" for="fatPercentage">Fat Percentage (%)</label>
+                            <div class="input-group">
+                                <input asp-for="FatPercentage" type="number" step="0.01" class="form-control" id="fatPercentage" placeholder="Optional (e.g. 3.85)" min="0" max="10" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="background:#FAF8F4;border:1px solid var(--border);border-left:none;padding:0 12px;display:flex;align-items:center;font-weight:600;font-size:12px">%</span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="FatPercentage" class="form-error"></span>
+                        </div>
+
+                        <!-- Protein Level -->
+                        <div class="form-group">
+                            <label class="form-label" for="proteinLevel">Protein Level (%)</label>
+                            <div class="input-group">
+                                <input asp-for="ProteinLevel" type="number" step="0.01" class="form-control" id="proteinLevel" placeholder="Optional (e.g. 3.20)" min="0" max="10" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="background:#FAF8F4;border:1px solid var(--border);border-left:none;padding:0 12px;display:flex;align-items:center;font-weight:600;font-size:12px">%</span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="ProteinLevel" class="form-error"></span>
+                        </div>
+
+                        <!-- Solid Not Fat -->
+                        <div class="form-group">
+                            <label class="form-label" for="solidNotFat">Solid-Not-Fat (SNF) (%)</label>
+                            <div class="input-group">
+                                <input asp-for="SolidNotFat" type="number" step="0.01" class="form-control" id="solidNotFat" placeholder="Optional (e.g. 8.50)" min="0" max="20" />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="background:#FAF8F4;border:1px solid var(--border);border-left:none;padding:0 12px;display:flex;align-items:center;font-weight:600;font-size:12px">%</span>
+                                </div>
+                            </div>
+                            <span asp-validation-for="SolidNotFat" class="form-error"></span>
+                        </div>
+
+                        <!-- Milk Quality Grade -->
+                        <div class="form-group">
+                            <label class="form-label" for="milkQualityGrade">Quality Grade</label>
+                            <select asp-for="MilkQualityGrade" class="form-control" id="milkQualityGrade">
+                                <option value="">Auto-Calculate based on Fat/Protein</option>
+                                <option value="A">Grade A (Premium)</option>
+                                <option value="B">Grade B (Standard)</option>
+                                <option value="C">Grade C (Sub-Standard)</option>
+                            </select>
+                            <span asp-validation-for="MilkQualityGrade" class="form-error"></span>
+                        </div>
+
                     </div>
 
                     <!-- Notes -->
@@ -99,7 +147,7 @@
         <!-- Sidebar Actions -->
         <div style="display:flex;flex-direction:column;gap:20px">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">⚡ Actions</h3></div>
+                <div class="card-header"><h3 class="card-title">Actions</h3></div>
                 <div class="card-body">
                     <button type="submit" class="btn btn-primary w-100 btn-lg" style="margin-bottom:12px">
                         <i class="bi bi-check-circle"></i> Save Record
@@ -111,7 +159,7 @@
             <!-- Helpful Tips Card -->
             <div class="card" style="background:var(--primary-light);border:1px solid rgba(45,80,22,0.15)">
                 <div class="card-body">
-                    <h4 style="font-family:var(--font-heading);color:var(--primary);margin-bottom:8px;font-size:15px">💡 Farmer's Tip</h4>
+                    <h4 style="font-family:var(--font-heading);color:var(--primary);margin-bottom:8px;font-size:15px">Farmer's Tip</h4>
                     <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">
                         Keeping precise daily yield data helps analyze the herd health trends, optimize feeds, and forecast future revenue. Average premium Holstein Friesian yield is 25-30 liters daily.
                     </p>

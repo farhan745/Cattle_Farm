@@ -1,0 +1,190 @@
+@model IEnumerable<CattleFarm.ViewModels.TopProducerItemViewModel>
+@{
+    ViewData["Title"] = "Top Milk Producers";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    int selectedFarmId = (int)(ViewBag.FarmId ?? 0);
+    int selectedDays = (int)(ViewBag.Days ?? 30);
+    var topCattles = Model.ToList();
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-trophy-fill" style="color:var(--warning)"></i> Top Milk Producers</h1>
+        <p class="page-subtitle">Ranked list of highest-producing dairy cattle across farms</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px">
+        <a href="/MilkProduction" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Logs</a>
+        <a href="/MilkProduction/DropAlerts?farmId=@(selectedFarmId > 0 ? selectedFarmId.ToString() : "")" class="btn btn-outline-danger"><i class="bi bi-exclamation-triangle"></i> Drop Alerts</a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom:24px">
+    <div class="card-body" style="padding:16px 24px">
+        <form method="get" action="/MilkProduction/TopProducers" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Farm:</label>
+                <select name="farmId" class="form-control" style="width:200px" onchange="this.form.submit()">
+                    @foreach (var farm in farms)
+                    {
+                        if (farm.Id == selectedFarmId)
+                        {
+                            <option value="@farm.Id" selected="selected">@farm.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@farm.Id">@farm.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div style="display:flex;align-items:center;gap:8px">
+                <label class="form-label" style="margin:0;white-space:nowrap">Timeframe:</label>
+                <select name="days" class="form-control" style="width:160px" onchange="this.form.submit()">
+                    @if (selectedDays == 7)
+                    {
+                        <option value="7" selected="selected">Last 7 Days</option>
+                    }
+                    else
+                    {
+                        <option value="7">Last 7 Days</option>
+                    }
+                    @if (selectedDays == 30)
+                    {
+                        <option value="30" selected="selected">Last 30 Days</option>
+                    }
+                    else
+                    {
+                        <option value="30">Last 30 Days</option>
+                    }
+                    @if (selectedDays == 90)
+                    {
+                        <option value="90" selected="selected">Last 90 Days</option>
+                    }
+                    else
+                    {
+                        <option value="90">Last 90 Days</option>
+                    }
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-filter"></i> Apply Filters</button>
+        </form>
+    </div>
+</div>
+
+@if (!topCattles.Any())
+{
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:60px 20px">
+            <i class="bi bi-trophy" style="font-size:48px;color:var(--text-muted);display:block;margin-bottom:16px"></i>
+            <h3 style="font-weight:700;margin-bottom:8px">No production data found</h3>
+            <p style="color:var(--text-muted)">There are no milk records logged for the selected farm and time period.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start" class="animate-fade-in">
+        <!-- Chart Representation -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Production Yield Analytics (Avg Liters/Day)</h3>
+            </div>
+            <div class="card-body">
+                <div style="height:400px;position:relative">
+                    <canvas id="topProducersChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Cattle Leaderboard</h3>
+            </div>
+            <div class="card-body" style="padding:0">
+                <div class="table-wrapper" style="border:none">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:60px;text-align:center">Rank</th>
+                                <th>Cattle</th>
+                                <th>Breed</th>
+                                <th style="text-align:right">Avg Daily</th>
+                                <th style="text-align:right">Total Liters</th>
+                                <th style="text-align:center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rank = 1; }
+                            @foreach (var c in topCattles)
+                            {
+                                var badgeClass = c.HealthStatus == CattleFarm.Models.HealthStatus.Healthy ? "badge-success" : "badge-danger";
+                                <tr>
+                                    <td style="text-align:center;font-weight:800;font-size:16px;color:@(rank == 1 ? "var(--warning)" : (rank == 2 ? "#94a3b8" : (rank == 3 ? "#b45309" : "var(--text-muted)")))">
+                                        #@rank
+                                    </td>
+                                    <td>
+                                        <a href="/Cattle/Details/@c.CattleId" style="font-weight:700;text-decoration:none;color:var(--primary)">@c.Name</a>
+                                        <span style="font-size:11px;color:var(--text-muted);display:block">Tag ID: @c.TagId</span>
+                                    </td>
+                                    <td>@c.Breed</td>
+                                    <td style="text-align:right;font-weight:700;color:var(--primary)">@c.AverageLiters.ToString("F1") L</td>
+                                    <td style="text-align:right;font-weight:600">@c.TotalLiters.ToString("F0") L</td>
+                                    <td style="text-align:center">
+                                        <span class="badge @badgeClass">@c.HealthStatus</span>
+                                    </td>
+                                </tr>
+                                rank++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+@if (topCattles.Any())
+{
+    <script>
+        const cLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topCattles.Select(x => x.Name)));
+        const cAverages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topCattles.Select(x => x.AverageLiters)));
+        
+        new Chart(document.getElementById('topProducersChart'), {
+            type: 'bar',
+            data: {
+                labels: cLabels,
+                datasets: [{
+                    label: 'Avg Daily Yield (L)',
+                    data: cAverages,
+                    backgroundColor: 'rgba(34,197,94,.75)',
+                    borderColor: 'rgb(34,197,94)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Liters' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+}
+}

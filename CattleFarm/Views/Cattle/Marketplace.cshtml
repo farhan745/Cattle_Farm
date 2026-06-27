@@ -1,14 +1,69 @@
 @model IEnumerable<CattleFarm.Models.Cattle>
 @{
     ViewData["Title"] = "Cattle Marketplace";
+    var currentUserId = (int?)ViewBag.CurrentUserId;
 }
+
+<style>
+    .cancel-listing-btn {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 8px;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .cancel-listing-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,.35); }
+    .owner-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+        background: rgba(37,99,235,.9);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        letter-spacing: .5px;
+    }
+    .manage-btn {
+        background: linear-gradient(135deg,#2563eb,#1d4ed8);
+        color:#fff;
+        border:none;
+        padding:8px 16px;
+        border-radius:8px;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        width:100%;
+        margin-top:8px;
+        text-decoration:none;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+        transition:all .2s;
+    }
+    .manage-btn:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(37,99,235,.35); color:#fff; }
+</style>
+
 <div class="page-header">
     <div>
-        <h1 class="page-title">🏪 Cattle Marketplace</h1>
+        <h1 class="page-title">Cattle Marketplace</h1>
         <p class="page-subtitle">Buy and sell healthy cattle from verified farms</p>
     </div>
     <div class="page-actions">
-        <a href="/Cattle/Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> List My Cattle</a>
+        <a href="/Cattle/Index" class="btn btn-outline"><i class="bi bi-grid"></i> My Cattle</a>
     </div>
 </div>
 
@@ -26,7 +81,7 @@
             </select>
             <select name="premium" class="form-control" style="width:auto">
                 <option value="">All Listings</option>
-                <option value="true">⭐ Premium Only</option>
+                <option value="true">Premium Only</option>
             </select>
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
@@ -35,25 +90,46 @@
 
 @if (!Model.Any())
 {
-    <div class="empty-state"><div class="empty-icon">🐄</div><h3>No cattle listed for sale</h3><p style="margin-top:8px">Be the first to <a href="/Cattle/Create">list your cattle</a></p></div>
+    <div class="empty-state"><div class="empty-icon"></div><h3>No cattle listed for sale</h3><p style="margin-top:8px">Be the first to <a href="/Cattle/Index">list your cattle</a></p></div>
 }
 else
 {
     <div class="cattle-grid">
         @foreach (var c in Model)
         {
+            @* Is the logged-in user the farm owner of this cattle? *@
+            var isOwner = currentUserId.HasValue && c.Farm?.OwnerId == currentUserId.Value;
+
             <div class="cattle-card" style="position:relative">
+
+                @* Premium badge *@
                 @if (c.IsPremiumListing)
-                { <div style="position:absolute;top:10px;left:10px;z-index:1"><span class="badge badge-warning">⭐ Premium</span></div> }
+                {
+                    <div style="position:absolute;top:10px;left:10px;z-index:2"><span class="badge badge-warning">⭐ Premium</span></div>
+                }
+
+                @* "Your Listing" badge for owner *@
+                @if (isOwner)
+                {
+                    <div class="owner-badge"><i class="bi bi-person-fill"></i> Your Listing</div>
+                }
+
                 <div class="cattle-card-img" style="height:200px">
-                    @if (!string.IsNullOrEmpty(c.ImagePath)) { <img src="@c.ImagePath" alt="@c.Name" style="height:200px" /> }
-                    else { <span style="font-size:64px">🐄</span> }
+                    @if (!string.IsNullOrEmpty(c.ImagePath))
+                    {
+                        <img src="@c.ImagePath" alt="@c.Name" style="height:200px" />
+                    }
+                    else
+                    {
+                        <span style="font-size:64px">🐄</span>
+                    }
                 </div>
+
                 <div class="cattle-card-body">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start">
                         <div>
                             <div class="cattle-card-title">@c.Name</div>
-                            <div class="cattle-card-meta">@c.Breed</div>
+                            <div class="cattle-card-meta">@c.Breed &bull; @(c.Farm?.Name ?? "—")</div>
                         </div>
                         <span class="badge badge-success">@c.HealthStatus</span>
                     </div>
@@ -61,16 +137,43 @@ else
                         <div><span style="color:var(--text-muted)">Age:</span> <strong>@((DateTime.Now.Year - c.DateOfBirth.Year)) yrs</strong></div>
                         <div><span style="color:var(--text-muted)">Weight:</span> <strong>@c.Weight kg</strong></div>
                         <div><span style="color:var(--text-muted)">Gender:</span> <strong>@c.Gender</strong></div>
-                        <div><span style="color:var(--text-muted)">Farm:</span> <strong>@(c.Farm?.Name ?? "—")</strong></div>
+                        <div><span style="color:var(--text-muted)">Tag:</span> <strong>@c.TagId</strong></div>
                     </div>
                     <div style="margin-top:12px;padding:10px;background:var(--primary-light);border-radius:6px;text-align:center">
-                        <div style="font-size:22px;font-weight:800;color:var(--primary)">@Currency.Format(c.SalePrice)</div>
+                        <div style="font-size:22px;font-weight:800;color:var(--primary)">@(c.SalePrice.HasValue ? c.SalePrice.Value.ToString("N0") + " BDT" : "—")</div>
                         <div style="font-size:11px;color:var(--text-muted)">Negotiable price</div>
                     </div>
                 </div>
+
                 <div class="cattle-card-footer">
-                    <a href="/Cattle/Details/@c.Id" class="btn btn-outline btn-sm">View Details</a>
-                    <a href="/Cattle/BuyCattle/@c.Id" class="btn btn-primary w-100" style="margin-top:8px">💰 Buy Now</a>
+                    @* View Details — always visible *@
+                    <a href="/Cattle/Details/@c.Id" class="btn btn-outline btn-sm w-100">
+                        <i class="bi bi-eye"></i> View Details
+                    </a>
+
+                    @if (isOwner)
+                    {
+                        @* Owner sees: Manage listing + Cancel listing *@
+                        <a href="/Cattle/SellCattle/@c.Id" class="manage-btn" style="margin-top:8px">
+                            <i class="bi bi-gear-fill"></i> Manage Listing
+                        </a>
+                        <form asp-action="RemoveFromMarketplace" method="post"
+                              onsubmit="return confirm('Remove «@c.Name» from the Marketplace?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="cattleId" value="@c.Id" />
+                            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                            <button type="submit" class="cancel-listing-btn">
+                                <i class="bi bi-x-circle-fill"></i> Cancel Listing
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        @* Buyer sees: Buy Now *@
+                        <a href="/Cattle/BuyCattle/@c.Id" class="btn btn-primary w-100" style="margin-top:8px">
+                            <i class="bi bi-cart-fill"></i> Buy Now
+                        </a>
+                    }
                 </div>
             </div>
         }

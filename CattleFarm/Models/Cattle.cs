@@ -28,10 +28,21 @@ namespace CattleFarm.Models
         public double Weight { get; set; }
 
         public Gender       Gender       { get; set; } = Gender.Female;
+        public CattleCategory Category   { get; set; } = CattleCategory.DairyCow;
         public HealthStatus HealthStatus { get; set; } = HealthStatus.Healthy;
         public CattleStatus Status       { get; set; } = CattleStatus.Active;
 
         public string? ImagePath { get; set; }
+
+        [StringLength(200)]
+        [Display(Name = "Origin / Source")]
+        public string? Origin { get; set; }
+
+        [StringLength(200)]
+        [Display(Name = "Transferred To")]
+        public string? TransferredTo { get; set; }
+
+        public DateTime? TransferDate { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         [Display(Name = "Purchase Price")]
@@ -66,11 +77,18 @@ namespace CattleFarm.Models
         public virtual Farm? Farm { get; set; }
 
         // Navigation
-        public virtual ICollection<HealthRecord>   HealthRecords   { get; set; } = new List<HealthRecord>();
+        public virtual ICollection<HealthRecord>        HealthRecords        { get; set; } = new List<HealthRecord>();
+        public virtual ICollection<CattleMedicalRecord> MedicalRecords       { get; set; } = new List<CattleMedicalRecord>();
         public virtual ICollection<Vaccination>    Vaccinations    { get; set; } = new List<Vaccination>();
         public virtual ICollection<MedicineRecord> MedicineRecords { get; set; } = new List<MedicineRecord>();
         public virtual ICollection<MilkProduction> MilkProductions { get; set; } = new List<MilkProduction>();
         public virtual ICollection<Appointment>    Appointments    { get; set; } = new List<Appointment>();
         public virtual ICollection<Review>         Reviews         { get; set; } = new List<Review>();
+        public virtual ICollection<WeightRecord>   WeightRecords   { get; set; } = new List<WeightRecord>();
+        public virtual ICollection<HeatRecord>     HeatRecords     { get; set; } = new List<HeatRecord>();
+        public virtual ICollection<BullPerformanceRecord> BullPerformanceRecords { get; set; } = new List<BullPerformanceRecord>();
+
+        // Per-cattle cost tracking (used for sell price calculation)
+        public virtual ICollection<CattleExpense>  CattleExpenses  { get; set; } = new List<CattleExpense>();
     }
 }

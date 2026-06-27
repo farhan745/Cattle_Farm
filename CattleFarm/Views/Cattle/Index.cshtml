@@ -1,17 +1,18 @@
 @model IEnumerable<CattleFarm.Models.Cattle>
 @{
     ViewData["Title"] = "Cattle Records";
-    int currentPage = (int)ViewData["CurrentPage"]!;
-    int totalPages  = (int)ViewData["TotalPages"]!;
-    int totalCount  = (int)ViewData["TotalCount"]!;
-    var likeCounts = ViewBag.LikeCounts as Dictionary<int, int> ?? new();
+    int currentPage   = (int)ViewData["CurrentPage"]!;
+    int totalPages    = (int)ViewData["TotalPages"]!;
+    int totalCount    = (int)ViewData["TotalCount"]!;
+    var likeCounts    = ViewBag.LikeCounts    as Dictionary<int, int> ?? new();
     var commentCounts = ViewBag.CommentCounts as Dictionary<int, int> ?? new();
-    var shareCounts = ViewBag.ShareCounts as Dictionary<int, int> ?? new();
+    var shareCounts   = ViewBag.ShareCounts   as Dictionary<int, int> ?? new();
+    int? currentUserId = (int?)ViewBag.CurrentUserId;
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">🐄 Cattle Records</h1>
+        <h1 class="page-title">Cattle Records</h1>
         <p class="page-subtitle">@totalCount total cattle across all farms</p>
     </div>
     <div class="page-actions">
@@ -57,7 +58,7 @@
 @if (!Model.Any())
 {
     <div class="empty-state">
-        <div class="empty-icon">🐄</div>
+        <div class="empty-icon"></div>
         <h3>No cattle found</h3>
         <p style="margin-top:8px">Try adjusting your filters or <a href="/Cattle/Create">add your first cattle</a>.</p>
     </div>
@@ -71,7 +72,7 @@ else
                 <div class="cattle-card-img">
                     @if (!string.IsNullOrEmpty(c.ImagePath))
                     { <img src="@c.ImagePath" alt="@c.Name" loading="lazy" /> }
-                    else { <span>🐄</span> }
+                    else { <span></span> }
                 </div>
                 <div class="cattle-card-body">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -80,20 +81,31 @@ else
                             <div class="cattle-card-meta">@c.Breed • @c.TagId</div>
                         </div>
                         @{
-                            var hBadge = c.HealthStatus switch { CattleFarm.Models.HealthStatus.Healthy => "badge-success", CattleFarm.Models.HealthStatus.AtRisk => "badge-warning", CattleFarm.Models.HealthStatus.Sick => "badge-danger", _ => "badge-danger" };
+                            var hBadge = c.HealthStatus switch {
+                                CattleFarm.Models.HealthStatus.Healthy => "badge-success",
+                                CattleFarm.Models.HealthStatus.AtRisk  => "badge-warning",
+                                CattleFarm.Models.HealthStatus.Sick    => "badge-danger",
+                                _                                       => "badge-danger"
+                            };
                         }
                         <span class="badge @hBadge">@c.HealthStatus</span>
                     </div>
                     <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--text-secondary)">
-                        <span>⚖️ @c.Weight kg</span>
-                        <span>@(c.Gender == CattleFarm.Models.Gender.Female ? "♀ Female" : "♂ Male")</span>
-                        <span>🎂 @((DateTime.Now.Year - c.DateOfBirth.Year))y</span>
+                        <span>@c.Weight kg</span>
+                        <span>@(c.Gender == CattleFarm.Models.Gender.Female ? "Female" : "Male")</span>
+                        <span>@((DateTime.Now.Year - c.DateOfBirth.Year))y</span>
                     </div>
                     @if (c.IsListedForSale)
                     {
                         <div style="margin-top:10px;padding:8px;background:var(--primary-light);border-radius:6px;font-size:12px;color:var(--primary-dark);font-weight:600">
-                            💰 For Sale — @Currency.Format(c.SalePrice)
-                            @if (c.IsPremiumListing) { <span class="badge badge-warning" style="margin-left:4px">⭐ Premium</span> }
+                            For Sale — @Currency.Format(c.SalePrice)
+                            @if (c.IsPremiumListing) { <span class="badge badge-warning" style="margin-left:4px">Premium</span> }
+                        </div>
+                    }
+                    @if (c.Status == CattleFarm.Models.CattleStatus.Sold)
+                    {
+                        <div style="margin-top:10px;padding:8px;background:rgba(22,163,74,.1);border-radius:6px;font-size:12px;color:#16a34a;font-weight:600">
+                            Sold — @c.SalePrice?.ToString("N0") ৳
                         </div>
                     }
                     <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
@@ -116,14 +128,60 @@ else
                 </div>
                 <div class="cattle-card-footer">
                     <span style="font-size:12px;color:var(--text-muted)">@c.Farm?.Name</span>
-                    <div style="display:flex;gap:6px">
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        @* ── Always: View Details ── *@
                         <a href="/Cattle/Details/@c.Id" class="btn btn-outline btn-sm">View</a>
-                        @if (c.IsListedForSale)
-                        {
-                            <a href="/Cattle/BuyCattle/@c.Id" class="btn btn-primary btn-sm">💰 Buy Now</a>
+                        <a href="/Cattle/WeightHistory?cattleId=@c.Id" class="btn btn-outline btn-sm" title="Weight history"><i class="bi bi-graph-up"></i></a>
+
+                        @{
+                            // Is the logged-in user the owner of this cattle's farm?
+                            bool isOwner = currentUserId.HasValue && c.Farm?.OwnerId == currentUserId.Value;
+                            bool isAdminOrOwner = User.IsInRole("Admin") || User.IsInRole("Owner");
                         }
+
+                        @if (isOwner || User.IsInRole("Admin"))
+                        {
+                            @* ── OWNER / ADMIN sees Sell or Cancel, never Buy ── *@
+                            @if (c.Status == CattleFarm.Models.CattleStatus.Active)
+                            {
+                                @if (c.IsListedForSale)
+                                {
+                                    @* Already listed → show Cancel Listing *@
+                                    <form asp-action="RemoveFromMarketplace" method="post" style="display:inline"
+                                          onsubmit="return confirm('Remove @c.Name from Marketplace?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="cattleId" value="@c.Id" />
+                                        <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                                        <button type="submit" class="btn btn-sm"
+                                                style="background:#ef4444;color:#fff;border-color:#ef4444"
+                                                title="Cancel marketplace listing">
+                                            <i class="bi bi-x-circle-fill"></i> Cancel
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    @* Not yet listed → show Sell *@
+                                    <a href="/Cattle/SellCattle/@c.Id"
+                                       class="btn btn-sm"
+                                       style="background:#16a34a;color:#fff;border-color:#16a34a"
+                                       title="Sell this cattle">
+                                        <i class="bi bi-tag-fill"></i> Sell
+                                    </a>
+                                }
+                            }
+                        }
+                        else if (c.IsListedForSale)
+                        {
+                            @* ── BUYER sees Buy only for others' listed cattle ── *@
+                            <a href="/Cattle/BuyCattle/@c.Id" class="btn btn-primary btn-sm">
+                                <i class="bi bi-cart-fill"></i> Buy
+                            </a>
+                        }
+
                         @if (User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager"))
                         {
+                            <a href="/Cattle/Transfer/@c.Id" class="btn btn-outline btn-sm" title="Transfer cattle"><i class="bi bi-truck"></i></a>
                             <a href="/Cattle/Edit/@c.Id" class="btn btn-ghost btn-sm"><i class="bi bi-pencil"></i></a>
                         }
                     </div>

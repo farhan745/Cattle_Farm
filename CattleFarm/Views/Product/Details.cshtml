@@ -1,19 +1,19 @@
-@model CattleFarm.Models.Product
+﻿@model CattleFarm.Models.Product
 @{
     ViewData["Title"] = Model.Name;
     var emoji = Model.Category switch
     {
-        CattleFarm.Models.ProductCategory.Milk => "🥛",
-        CattleFarm.Models.ProductCategory.Beef => "🥩",
-        CattleFarm.Models.ProductCategory.Manure => "🌱",
-        CattleFarm.Models.ProductCategory.BreedingService => "🐄",
-        _ => "📦"
+        CattleFarm.Models.ProductCategory.Milk => "",
+        CattleFarm.Models.ProductCategory.Beef => "",
+        CattleFarm.Models.ProductCategory.Manure => "",
+        CattleFarm.Models.ProductCategory.BreedingService => "",
+        _ => ""
     };
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">📦 @Model.Name</h1>
+        <h1 class="page-title">@Model.Name</h1>
         <p class="page-subtitle">@Model.Category Product — Provided by @(Model.Farm?.Name ?? "Our Farm")</p>
     </div>
     <div class="page-actions" style="display:flex;gap:8px;align-items:center">
@@ -48,7 +48,7 @@
                 @if (Model.IsFeatured)
                 {
                     <span style="position:absolute;top:16px;right:16px;background:#f59e0b;color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 4px 10px rgba(245,158,11,0.3)">
-                        ⭐ Featured
+                        Featured
                     </span>
                 }
             </div>

@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.ViewModels.EmployeeViewModel>
+﻿@model IEnumerable<CattleFarm.ViewModels.EmployeeViewModel>
 @inject CattleFarm.Services.Interfaces.ICurrencyService Currency
 @{
     ViewData["Title"] = "Employees";
@@ -77,7 +77,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">💼 Employees</h1>
+        <h1 class="page-title">Employees</h1>
         <p class="page-subtitle">Staff profiles and details management</p>
     </div>
     <div>
@@ -159,7 +159,7 @@
                 {
                     <tr>
                         <td colspan="8" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
-                            <div style="font-size:48px;margin-bottom:12px">💼</div>
+                            <div style="font-size:48px;margin-bottom:12px"></div>
                             <div style="font-weight:600;margin-bottom:6px">No employee profiles found</div>
                             @if (isAdminOrOwner)
                             {
@@ -202,10 +202,10 @@
                         <td>
                             @{
                                 var roleBadge = (e.Role ?? "Worker") switch {
-                                    "Owner"   => ("badge-warning",  "🏡 Owner"),
-                                    "Manager" => ("badge-info",     "🧑‍💼 Manager"),
-                                    "Doctor"  => ("badge-purple",   "👨‍⚕️ Doctor"),
-                                    _         => ("badge-gray",     "👷 Worker")
+                                    "Owner"   => ("badge-warning",  "Owner"),
+                                    "Manager" => ("badge-info",     "Manager"),
+                                    "Doctor"  => ("badge-purple",   "Doctor"),
+                                    _         => ("badge-gray",     "Worker")
                                 };
                             }
                             <span class="badge @roleBadge.Item1">@roleBadge.Item2</span>

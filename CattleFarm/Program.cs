@@ -2,14 +2,18 @@ using CattleFarm.Data;
 using CattleFarm.Authorization;
 using CattleFarm.Hubs;
 using CattleFarm.Models;
+using CattleFarm.Services.Background;
 using CattleFarm.Services.Implementations;
 using CattleFarm.Services.Interfaces;
 using CattleFarm.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 // ── Serilog ───────────────────────────────────────────────────────────────────
 Log.Logger = new LoggerConfiguration()
@@ -22,7 +26,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // ── Database ──────────────────────────────────────────────────────────────────
-builder.Services.AddDbContext<CattleFarmDbContext>(options =>
+builder.Services.AddDbContextPool<CattleFarmDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
         .ConfigureWarnings(warnings =>
             warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
@@ -34,6 +38,7 @@ builder.Services.AddScoped<IUnitOfWork, CattleFarm.UnitOfWork.UnitOfWork>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ISmsService, SmsService>();
 
 // ── Domain Services ───────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -58,7 +63,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
 builder.Services.AddScoped<ITaskAssignmentService, TaskAssignmentService>();
 builder.Services.AddScoped<IFarmJoinService, FarmJoinService>();
-builder.Services.AddScoped<IInvitationService, InvitationService>();
+builder.Services.AddScoped<IFarmAccessService, FarmAccessService>();
 // ── Currency Services ─────────────────────────────────────────────────────────
 builder.Services.Configure<CurrencySettings>(builder.Configuration.GetSection("CurrencySettings"));
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
@@ -66,14 +71,20 @@ builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 // ── Email + Payment Services ──────────────────────────────────────────────────
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPaymentGatewayService, SslCommerzService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
 
 builder.Services.AddHttpClient("SSLCommerz");
+builder.Services.AddHostedService<SystemAlertBackgroundService>();
 
 // ── HTTP Context Accessor (for audit logging in services) ─────────────────────
 builder.Services.AddHttpContextAccessor();
 
 // ── Cookie Authentication ─────────────────────────────────────────────────────
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
@@ -81,25 +92,48 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.Cookie.Name = "CattleFarm.Auth";
         options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest
+            : Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        var jwtKey = builder.Configuration["Jwt:Key"] ?? "LOCAL_DEVELOPMENT_KEY_CHANGE_BEFORE_PRODUCTION_32_CHARS";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "SmartCattleFarm",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SmartCattleFarm.Api",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.FromMinutes(2)
+        };
     });
 
-// ── File Upload Size Limit (50 MB) ────────────────────────────────────────────
+// ── File Upload Size Limit (10 MB) ────────────────────────────────────────────
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
 {
-    o.MultipartBodyLengthLimit = 52_428_800; // 50 MB
+    o.MultipartBodyLengthLimit = 10_485_760; // 10 MB
 });
 
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
     options.Cookie.Name = ".CattleFarm.Antiforgery";
-    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest
+        : Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
-builder.Services.AddControllersWithViews();
+var mvcBuilder = builder.Services.AddControllersWithViews();
+if (builder.Environment.IsDevelopment())
+    mvcBuilder.AddRazorRuntimeCompilation();
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IAuthorizationHandler, FarmOwnershipHandler>();
@@ -113,6 +147,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole(AppRoles.Owner, AppRoles.Admin));
 });
 
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 var app = builder.Build();
 
 // ── Seed Database ─────────────────────────────────────────────────────────────
@@ -122,8 +157,9 @@ using (var scope = app.Services.CreateScope())
     var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
     await DbSeeder.SeedAsync(db, env.IsDevelopment());
     // Ensure upload folders exist
+    var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
     foreach (var folder in new[] { "avatars", "cattle", "farms", "products", "workers", "doctors", "task-proofs", "licenses" })
-        Directory.CreateDirectory(Path.Combine(env.WebRootPath, "uploads", folder));
+        Directory.CreateDirectory(Path.Combine(webRoot, "uploads", folder));
 }
 
 // ── Error Handling ────────────────────────────────────────────────────────────
@@ -143,17 +179,15 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "root",
     pattern: "",
-    defaults: new { controller = "Account", action = "Login" });
+    defaults: new { controller = "Home", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<FarmDashboardHub>("/hubs/farm-dashboard");
 

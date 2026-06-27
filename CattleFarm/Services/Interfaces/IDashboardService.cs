@@ -8,7 +8,7 @@ namespace CattleFarm.Services.Interfaces
         Task<AdminDashboardViewModel>   GetAdminDashboardAsync();
         Task<OwnerDashboardViewModel>   GetOwnerDashboardAsync(int ownerId, int? farmId = null);
         Task<WorkerDashboardViewModel>  GetWorkerDashboardAsync(int workerId);
-        Task<DoctorDashboardViewModel>  GetDoctorDashboardAsync(int doctorId);
+        Task<DoctorDashboardViewModel>  GetDoctorDashboardAsync(int userId);
         Task<CustomerDashboardViewModel> GetCustomerDashboardAsync(int customerId);
     }
 }

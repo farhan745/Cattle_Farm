@@ -15,5 +15,6 @@ namespace CattleFarm.Services.Interfaces
         Task<bool>              ApproveAsync(int id);
         Task<bool>              RejectAsync(int id);
         Task<(IEnumerable<Farm> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search = null);
+        Task<(IEnumerable<Farm> Items, int Total)> GetPagedForUserAsync(int page, int pageSize, int userId, string? role, string? search = null);
     }
 }

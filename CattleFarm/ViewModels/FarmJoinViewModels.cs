@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CattleFarm.Models;
 
 namespace CattleFarm.ViewModels
 {
@@ -10,19 +11,19 @@ namespace CattleFarm.ViewModels
         public string WorkerName { get; set; } = string.Empty;
         public string? WorkerEmail { get; set; }
 
-        [Required(ErrorMessage = "Username দিতে হবে")]
+        [Required(ErrorMessage = "Username is required")]
         [StringLength(50, MinimumLength = 3)]
         public string Username { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email দিতে হবে")]
+        [Required(ErrorMessage = "Email is required")]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password দিতে হবে")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password কমপক্ষে 6 অক্ষর হতে হবে")]
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = string.Empty;
 
-        [Compare(nameof(Password), ErrorMessage = "Password মিলছে না")]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
@@ -65,6 +66,7 @@ namespace CattleFarm.ViewModels
         public int    WorkerUserId { get; set; }
         public string WorkerName  { get; set; } = string.Empty;
         public string WorkerEmail { get; set; } = string.Empty;
+        public string ApplicantRole { get; set; } = JoinApplicantRole.Worker;
         public string? Message    { get; set; }
         public string Status      { get; set; } = string.Empty;
         public DateTime AppliedAt { get; set; }

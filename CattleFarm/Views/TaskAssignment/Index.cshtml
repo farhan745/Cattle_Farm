@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.ViewModels.TaskViewModel>
+﻿@model IEnumerable<CattleFarm.ViewModels.TaskViewModel>
 @{
     ViewData["Title"] = "Task Assignments";
     var tasks = Model.ToList();
@@ -87,7 +87,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">📋 Task Assignments</h1>
+        <h1 class="page-title">Task Assignments</h1>
         <p class="page-subtitle">
             @if (isWorker) { <text>Your task board — submit proof to complete tasks</text> }
             else           { <text>Manage and track all farm task assignments</text> }
@@ -171,7 +171,7 @@
             <div class="kanban-cards">
                 @if (!pendingList.Any())
                 {
-                    <div class="kanban-empty"><div class="kanban-empty-icon">✅</div>Nothing pending</div>
+                    <div class="kanban-empty"><div class="kanban-empty-icon"></div>Nothing pending</div>
                 }
                 @foreach (var t in pendingList)
                 {
@@ -215,7 +215,7 @@
             <div class="kanban-cards">
                 @if (!inProgressList.Any())
                 {
-                    <div class="kanban-empty"><div class="kanban-empty-icon">🔄</div>Nothing in progress</div>
+                    <div class="kanban-empty"><div class="kanban-empty-icon"></div>Nothing in progress</div>
                 }
                 @foreach (var t in inProgressList)
                 {
@@ -256,7 +256,7 @@
             <div class="kanban-cards">
                 @if (!completedList.Any())
                 {
-                    <div class="kanban-empty"><div class="kanban-empty-icon">🏆</div>No completed tasks yet</div>
+                    <div class="kanban-empty"><div class="kanban-empty-icon"></div>No completed tasks yet</div>
                 }
                 @foreach (var t in completedList)
                 {
@@ -341,7 +341,7 @@ else
                     {
                         <tr>
                             <td colspan="7" style="text-align:center;padding:48px 20px;color:var(--text-muted)">
-                                <div style="font-size:48px;margin-bottom:12px">📋</div>
+                                <div style="font-size:48px;margin-bottom:12px"></div>
                                 <div style="font-weight:600;margin-bottom:6px">No tasks found</div>
                                 @if (isStaffManager)
                                 {

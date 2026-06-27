@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.RegisterViewModel
+﻿@model CattleFarm.ViewModels.RegisterViewModel
 @{
     Layout = null;
     ViewData["Title"] = "Create Account";
@@ -310,10 +310,10 @@
                                 Profile Photo (optional)
                             </label>
                             <div class="avatar-upload-zone" id="avatarZone" onclick="document.getElementById('ProfileImage').click()" title="Click to upload photo">
-                                <span class="upload-icon" id="uploadIcon">📷</span>
+                                <span class="upload-icon" id="uploadIcon"></span>
                                 <img id="avatarPreview" style="display:none" alt="Preview" />
                             </div>
-                            <input type="file" name="ProfileImage" id="ProfileImage" accept=".jpg,.jpeg,.png,.webp" style="display:none" onchange="previewAvatar(this)" />
+                            <input type="file" name="ProfileImage" id="ProfileImage" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" style="display:none" onchange="previewAvatar(this)" />
                             <div style="font-size:11px;color:#506058">JPG, PNG, WEBP · Max 5MB</div>
                         </div>
 
@@ -350,15 +350,52 @@
                             <div class="form-group" style="grid-column:1/-1">
                                 <label class="form-label">Account Type</label>
                                 <select asp-for="Role" class="form-control" id="roleSelect" onchange="onRoleChange(this.value)">
-                                    <option value="User">👤 Customer / General User</option>
-                                    <option value="Owner">🏡 Farm Owner</option>
-                                    <option value="Worker">👷 Farm Worker</option>
-                                    <option value="Doctor">👨‍⚕️ Veterinarian</option>
+                                    <option value="User">Customer</option>
+                                    <option value="Owner">Farm Owner</option>
+                                    <option value="Manager">Farm Manager</option>
+                                    <option value="Worker">Farm Worker</option>
+                                    <option value="Doctor">Veterinarian</option>
                                 </select>
                                 <div class="form-hint" id="roleHint">Farm Owners can register and manage multiple farms.</div>
                                 <div id="workerNote" style="display:none;margin-top:8px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12.5px;color:#92400e;">
                                     <i class="bi bi-info-circle-fill" style="color:#d97706;margin-right:6px;"></i>
-                                    Workers are assigned to a farm by the farm owner after registration. No farm selection is required during sign-up.
+                                    Workers are assigned to a farm by the farm owner after registration.
+                                </div>
+                                <div id="managerNote" style="display:none;margin-top:8px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:12.5px;color:#1e40af;">
+                                    <i class="bi bi-info-circle-fill" style="margin-right:6px;"></i>
+                                    Managers register first, then apply to a farm. The owner must approve before you can manage that farm.
+                                </div>
+                                <div id="vetNote" style="display:none;margin-top:8px;padding:10px 14px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;font-size:12.5px;color:#065f46;">
+                                    <i class="bi bi-info-circle-fill" style="margin-right:6px;"></i>
+                                    Your profile will be reviewed by an admin before you appear in the veterinarian list. You can sign in after approval.
+                                </div>
+                            </div>
+
+                            <div id="vetFields" style="display:none;grid-column:1/-1;padding:16px;background:#f8faf9;border:1px solid #d1e7dd;border-radius:10px;">
+                                <div style="font-weight:700;color:#1c3a2a;margin-bottom:12px;">Veterinarian details</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                                    <div class="form-group" style="grid-column:1/-1">
+                                        <label class="form-label">Specialization *</label>
+                                        <input asp-for="Specialization" class="form-control" placeholder="e.g. Bovine Medicine" />
+                                        <span asp-validation-for="Specialization" class="form-error"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Consultation fee *</label>
+                                        <input asp-for="ConsultationFee" class="form-control" type="number" step="10" min="0" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Years of experience</label>
+                                        <input asp-for="YearsOfExperience" class="form-control" type="number" min="0" max="60" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">License number</label>
+                                        <input asp-for="LicenseNumber" class="form-control" />
+                                    </div>
+                                    <div class="form-group" style="grid-column:1/-1">
+                                        <label class="form-label">Availability *</label>
+                                        <input asp-for="AvailableTimeSlot" class="form-control" placeholder="e.g. Mon–Fri 9:00–17:00" />
+                                        <span asp-validation-for="AvailableTimeSlot" class="form-error"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -399,18 +436,27 @@
     const roleHints = {
         'User':   'Customers can browse products, place orders, and track deliveries.',
         'Owner':  'Farm Owners can register and manage multiple farms.',
+        'Manager': '',
         'Worker': '',
-        'Doctor': 'Veterinarians can manage health records and appointments for cattle.'
+        'Doctor': ''
     };
 
     function onRoleChange(role) {
         const hint = document.getElementById('roleHint');
         const workerNote = document.getElementById('workerNote');
-        if (role === 'Worker') {
+        const managerNote = document.getElementById('managerNote');
+        const vetNote = document.getElementById('vetNote');
+        const vetFields = document.getElementById('vetFields');
+        const photoLabel = document.querySelector('label[for="ProfileImage"], label[asp-for="ProfileImage"]');
+
+        workerNote.style.display = role === 'Worker' ? 'block' : 'none';
+        managerNote.style.display = role === 'Manager' ? 'block' : 'none';
+        vetNote.style.display = role === 'Doctor' ? 'block' : 'none';
+        vetFields.style.display = role === 'Doctor' ? 'block' : 'none';
+
+        if (role === 'Worker' || role === 'Doctor' || role === 'Manager') {
             hint.style.display = 'none';
-            workerNote.style.display = 'block';
         } else {
-            workerNote.style.display = 'none';
             hint.style.display = 'block';
             hint.textContent = roleHints[role] || '';
         }

@@ -93,12 +93,12 @@ INSERT INTO [Farms] (
     [Description], [ImagePath], [Latitude], [Longitude], [ApprovalStatus], 
     [IsActive], [IsDeleted], [DeletedAt], [CreatedAt], [UpdatedAt], [OwnerId]
 ) VALUES 
-(1, N'বরকত ফার্ম', 'Savar, Dhaka', 0, 15.5, 120, 'Premium Dairy Farm in Savar, supplying fresh organic milk across Dhaka.', 'https://images.unsplash.com/photo-1500937386664-56d15943747d?w=400&q=80', 23.8583, 90.2667, 1, 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1),
-(2, N'সোনালী এগ্রো', 'Hathazari, Chattogram', 1, 20.0, 150, 'High-grade beef fattening farm, specializing in healthy Brahman & Shahiwal cows.', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400&q=80', 22.5085, 91.8083, 1, 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 1),
-(3, N'গ্রীন ভ্যালি ফার্ম', 'Sreemangal, Sylhet', 2, 35.0, 200, 'Integrated crop-livestock pasture farm producing high yield dairy and organic compost.', 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=80', 24.3083, 91.7333, 1, 1, 0, NULL, DATEADD(month, -6, GETUTCDATE()), GETUTCDATE(), 2),
-(4, N'নদীর পাড় ফার্ম', 'Paba, Rajshahi', 1, 12.0, 80, 'Beef breed ranch along the Padma riverbed, experiencing temporary transport overheads.', 'https://images.unsplash.com/photo-1500595046783-cd211893c574?w=400&q=80', 24.3733, 88.6049, 1, 1, 0, NULL, DATEADD(month, -3, GETUTCDATE()), GETUTCDATE(), 2),
-(5, N'সূর্যমুখী ফার্ম', 'Trishal, Mymensingh', 3, 18.2, 100, 'State of the art cattle breeding farm focusing on artificial insemination and high genetics.', 'https://images.unsplash.com/photo-1599381412411-d104e7baf04e?w=400&q=80', 24.5167, 90.3958, 1, 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 3),
-(6, N'মেঘনা এগ্রো', 'Daudkandi, Comilla', 0, 10.0, 70, 'Local milk collection center and dairy farm with top quality Holstein Friesians.', 'https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400&q=80', 23.5333, 90.7167, 1, 1, 0, NULL, DATEADD(month, -2, GETUTCDATE()), GETUTCDATE(), 3);
+(1, N'Barakat Farm', 'Savar, Dhaka', 0, 15.5, 120, 'Premium Dairy Farm in Savar, supplying fresh organic milk across Dhaka.', 'https://images.unsplash.com/photo-1500937386664-56d15943747d?w=400&q=80', 23.8583, 90.2667, 1, 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1),
+(2, N'Sonali Agro', 'Hathazari, Chattogram', 1, 20.0, 150, 'High-grade beef fattening farm, specializing in healthy Brahman & Shahiwal cows.', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400&q=80', 22.5085, 91.8083, 1, 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 1),
+(3, N'Green Valley Farm', 'Sreemangal, Sylhet', 2, 35.0, 200, 'Integrated crop-livestock pasture farm producing high yield dairy and organic compost.', 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=80', 24.3083, 91.7333, 1, 1, 0, NULL, DATEADD(month, -6, GETUTCDATE()), GETUTCDATE(), 2),
+(4, N'Nodir Par Farm', 'Paba, Rajshahi', 1, 12.0, 80, 'Beef breed ranch along the Padma riverbed, experiencing temporary transport overheads.', 'https://images.unsplash.com/photo-1500595046783-cd211893c574?w=400&q=80', 24.3733, 88.6049, 1, 1, 0, NULL, DATEADD(month, -3, GETUTCDATE()), GETUTCDATE(), 2),
+(5, N'Suryamukhi Farm', 'Trishal, Mymensingh', 3, 18.2, 100, 'State of the art cattle breeding farm focusing on artificial insemination and high genetics.', 'https://images.unsplash.com/photo-1599381412411-d104e7baf04e?w=400&q=80', 24.5167, 90.3958, 1, 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 3),
+(6, N'Meghna Agro', 'Daudkandi, Comilla', 0, 10.0, 70, 'Local milk collection center and dairy farm with top quality Holstein Friesians.', 'https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400&q=80', 23.5333, 90.7167, 1, 1, 0, NULL, DATEADD(month, -2, GETUTCDATE()), GETUTCDATE(), 3);
 SET IDENTITY_INSERT [Farms] OFF;
 GO
 
@@ -154,19 +154,12 @@ INSERT INTO [Doctors] (
 SET IDENTITY_INSERT [Doctors] OFF;
 GO
 
--- ────────── 7. PRODUCTS ──────────
-PRINT 'Seeding Products...';
-SET IDENTITY_INSERT [Products] ON;
-INSERT INTO [Products] (
-    [Id], [Name], [Category], [Description], [Price], [StockQuantity], 
-    [Unit], [MinStockLevel], [ImagePath], [IsAvailable], [IsDeleted], 
-    [DeletedAt], [CreatedAt], [UpdatedAt], [IsFeatured], [FarmId]
-) VALUES 
-(1, N'খাটি তরল দুধ (Fresh Raw Milk)', 0, 'Pure whole milk sourced daily from our grass-fed Friesian herd.', 90.00, 500.0, 'Liters', 50.0, 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80', 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1, 1),
-(2, N'প্রিমিয়াম গরুর মাংস (Premium Beef)', 1, 'Naturally fattened premium tender beef, slaughtered and processed under strict hygienic conditions.', 750.00, 100.0, 'Kg', 10.0, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80', 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 1, 2),
-(3, N'জৈব সার (Organic Compost Manure)', 2, 'Rich organic compost fertilizer processed from cow dung, perfect for agricultural use.', 15.00, 2000.0, 'Kg', 200.0, 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=400&q=80', 1, 0, NULL, DATEADD(month, -6, GETUTCDATE()), GETUTCDATE(), 0, 3),
-(4, N'হোলস্টাইন প্রজনন সেবা (Holstein Breeding Service)', 3, 'High pedigree Holstein Friesian bull straw breeding service for local farmers.', 3500.00, 50.0, 'Service', 5.0, 'https://images.unsplash.com/photo-1527153857715-3908f2bac5e8?w=400&q=80', 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 0, 4),
-(5, N'খাঁটি গাওয়া ঘি (Pure Cow Ghee)', 4, 'Traditional hand-churned cow milk ghee, highly aromatic and tasty.', 1400.00, 80.0, 'Kg', 10.0, 'https://images.unsplash.com/photo-1628191139360-408a56e2e216?w=400&q=80', 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1, 5),
+-- ────────── 7. PRODUCTS ──────�(1, N'Fresh Raw Milk', 0, 'Pure whole milk sourced daily from our grass-fed Friesian herd.', 90.00, 500.0, 'Liters', 50.0, 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80', 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1, 1),
+(2, N'Premium Beef', 1, 'Naturally fattened premium tender beef, slaughtered and processed under strict hygienic conditions.', 750.00, 100.0, 'Kg', 10.0, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80', 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 1, 2),
+(3, N'Organic Compost Manure', 2, 'Rich organic compost fertilizer processed from cow dung, perfect for agricultural use.', 15.00, 2000.0, 'Kg', 200.0, 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=400&q=80', 1, 0, NULL, DATEADD(month, -6, GETUTCDATE()), GETUTCDATE(), 0, 3),
+(4, N'Holstein Breeding Service', 3, 'High pedigree Holstein Friesian bull straw breeding service for local farmers.', 3500.00, 50.0, 'Service', 5.0, 'https://images.unsplash.com/photo-1527153857715-3908f2bac5e8?w=400&q=80', 1, 0, NULL, DATEADD(month, -4, GETUTCDATE()), GETUTCDATE(), 0, 4),
+(5, N'Pure Cow Ghee', 4, 'Traditional hand-churned cow milk ghee, highly aromatic and tasty.', 1400.00, 80.0, 'Kg', 10.0, 'https://images.unsplash.com/photo-1628191139360-408a56e2e216?w=400&q=80', 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1, 5),
+(6, N'Pasteurized Bottled Milk', 0, 'Clean pasteurized cow milk bottled in glass jars for direct consumption.', 110.00, 300.0, 'Liters', 30.0, 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&q=80', 1, 0, NULL, DATEADD(month, -2, GETUTCDATE()), GETUTCDATE(), 0, 6); 'https://images.unsplash.com/photo-1628191139360-408a56e2e216?w=400&q=80', 1, 0, NULL, DATEADD(month, -5, GETUTCDATE()), GETUTCDATE(), 1, 5),
 (6, N'পাস্তুরিত বোতলজাত দুধ (Pasteurized Bottled Milk)', 0, 'Clean pasteurized cow milk bottled in glass jars for direct consumption.', 110.00, 300.0, 'Liters', 30.0, 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&q=80', 1, 0, NULL, DATEADD(month, -2, GETUTCDATE()), GETUTCDATE(), 0, 6);
 SET IDENTITY_INSERT [Products] OFF;
 GO

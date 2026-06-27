@@ -1,7 +1,9 @@
-@model CattleFarm.Models.Farm
+﻿@model CattleFarm.Models.Farm
 @{
     ViewData["Title"] = Model.Name;
-    var canManageFarm = User.IsInRole("Admin") || User.IsInRole("Owner") || User.IsInRole("Manager");
+    var canManageFarm = ViewBag.CanOperateFarm == true;
+    var canEditFarmProfile = ViewBag.CanEditFarmProfile == true;
+    var activeFarmManagers = Model.FarmManagers.Where(m => m.IsActive && !m.IsDeleted).ToList();
     var activeFarmWorkers = Model.FarmWorkers.Where(fw => fw.IsActive && !fw.IsDeleted).ToList();
     var membershipUserIds = activeFarmWorkers.Select(fw => fw.WorkerUserId).ToHashSet();
     var membershipEmails = activeFarmWorkers
@@ -21,7 +23,7 @@
         <p class="page-subtitle">@Model.Location — @Model.FarmType Farm</p>
     </div>
     <div class="page-actions" style="display:flex;gap:8px;align-items:center">
-        @if (canManageFarm)
+        @if (canEditFarmProfile)
         {
             <a href="/Farm/Edit/@Model.Id" class="btn btn-outline"><i class="bi bi-pencil"></i> Edit</a>
         }
@@ -50,7 +52,7 @@
         <!-- Cattle -->
         <div class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                <h3 class="card-title">🐄 Cattle (@Model.Cattles.Count)</h3>
+                <h3 class="card-title">Cattle (@Model.Cattles.Count)</h3>
                 @if (canManageFarm)
                 {
                     <a href="/Cattle/Create?farmId=@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Add</a>
@@ -58,7 +60,7 @@
             </div>
             <div class="table-wrapper">
                 @if (!Model.Cattles.Any())
-                { <div class="empty-state" style="padding:24px"><div class="empty-icon">🐄</div><p>No cattle registered</p></div> }
+                { <div class="empty-state" style="padding:24px"><div class="empty-icon"></div><p>No cattle registered</p></div> }
                 else
                 {
                     <table class="data-table">
@@ -82,18 +84,60 @@
             </div>
         </div>
 
+        <!-- Managers -->
+        <div class="card">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                <h3 class="card-title">Managers (@activeFarmManagers.Count)</h3>
+                @if (canEditFarmProfile)
+                {
+                    <a href="/FarmJoin/Incoming" class="btn btn-ghost btn-sm">Join requests</a>
+                }
+            </div>
+            <div class="card-body">
+                @if (!activeFarmManagers.Any())
+                {
+                    <div class="empty-state" style="padding:16px"><div class="empty-icon"></div><p>No managers assigned</p></div>
+                }
+                else
+                {
+                    <div style="display:flex;flex-wrap:wrap;gap:10px">
+                        @foreach (var m in activeFarmManagers)
+                        {
+                            var name = m.ManagerUser?.FullName ?? "Manager";
+                            var initial = string.IsNullOrWhiteSpace(name) ? "M" : name.Trim()[0].ToString().ToUpperInvariant();
+                            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+                                <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px">@initial</div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:600">@name</div>
+                                    <div style="font-size:11px;color:var(--text-muted)">@m.Position · since @m.JoinedAt.ToString("MMM yyyy")</div>
+                                </div>
+                                @if (canEditFarmProfile)
+                                {
+                                    <form method="post" asp-controller="FarmJoin" asp-action="RemoveManager" style="margin-left:8px">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="farmManagerId" value="@m.Id" />
+                                        <button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('Remove this manager?')" title="Remove"></button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
         <!-- Workers -->
         <div class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                <h3 class="card-title">👷 Workers (@workerCount)</h3>
-                @if (canManageFarm)
+                <h3 class="card-title">Workers (@workerCount)</h3>
+                @if (canEditFarmProfile)
                 {
                     <a href="/Worker/Create?farmId=@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Hire</a>
                 }
             </div>
             <div class="card-body">
                 @if (workerCount == 0)
-                { <div class="empty-state" style="padding:16px"><div class="empty-icon">👷</div><p>No workers assigned</p></div> }
+                { <div class="empty-state" style="padding:16px"><div class="empty-icon"></div><p>No workers assigned</p></div> }
                 else
                 {
                     <div style="display:flex;flex-wrap:wrap;gap:10px">
@@ -158,8 +202,8 @@
             <div class="card-body">
                 @{
                     var (apColor, apIcon, apLabel) = Model.ApprovalStatus switch {
-                        CattleFarm.Models.ApprovalStatus.Approved => ("var(--success)", "✅", "Approved"),
-                        CattleFarm.Models.ApprovalStatus.Rejected => ("var(--danger)",  "❌", "Rejected"),
+                        CattleFarm.Models.ApprovalStatus.Approved => ("var(--success)", "", "Approved"),
+                        CattleFarm.Models.ApprovalStatus.Rejected => ("var(--danger)",  "", "Rejected"),
                         _                                         => ("var(--warning)", "⏳", "Pending Approval")
                     };
                 }
@@ -173,12 +217,12 @@
                         <form method="post" asp-action="Approve" style="flex:1">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.Id" />
-                            <button type="submit" class="btn btn-primary w-100">✅ Approve</button>
+                            <button type="submit" class="btn btn-primary w-100">Approve</button>
                         </form>
                         <form method="post" asp-action="Reject" style="flex:1">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.Id" />
-                            <button type="submit" class="btn btn-danger w-100">❌ Reject</button>
+                            <button type="submit" class="btn btn-danger w-100">Reject</button>
                         </form>
                     </div>
                 }
@@ -187,15 +231,15 @@
 
         <!-- Farm Info -->
         <div class="card">
-            <div class="card-header"><h3 class="card-title">📊 Farm Info</h3></div>
+            <div class="card-header"><h3 class="card-title">Farm Info</h3></div>
             <div class="card-body">
                 @{
                     var infoRows = new[] {
-                        ("🏷️ Type",     Model.FarmType.ToString()),
-                        ("📐 Size",     $"{Model.SizeInAcres} acres"),
-                        ("🐄 Capacity", $"{Model.Capacity} cattle"),
-                        ("👤 Owner",    Model.Owner?.FullName ?? "—"),
-                        ("📅 Registered", Model.CreatedAt.ToString("MMM dd, yyyy"))
+                        ("Type",     Model.FarmType.ToString()),
+                        ("Size",     $"{Model.SizeInAcres} acres"),
+                        ("Capacity", $"{Model.Capacity} cattle"),
+                        ("Owner",    Model.Owner?.FullName ?? "—"),
+                        ("Registered", Model.CreatedAt.ToString("MMM dd, yyyy"))
                     };
                 }
                 @foreach (var (label, value) in infoRows)
@@ -220,7 +264,7 @@
         @if (!string.IsNullOrEmpty(Model.Description))
         {
             <div class="card">
-                <div class="card-header"><h3 class="card-title">📝 Description</h3></div>
+                <div class="card-header"><h3 class="card-title">Description</h3></div>
                 <div class="card-body" style="font-size:13px;color:var(--text-secondary);line-height:1.6">@Model.Description</div>
             </div>
         }

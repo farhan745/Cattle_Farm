@@ -12,12 +12,18 @@ namespace CattleFarm.Controllers
     {
         private readonly IDashboardService _dashboard;
         private readonly IFarmService _farmService;
+        private readonly IFarmAccessService _farmAccess;
         private readonly INotificationService _notificationService;
 
-        public DashboardController(IDashboardService dashboard, IFarmService farmService, INotificationService notificationService)
+        public DashboardController(
+            IDashboardService dashboard,
+            IFarmService farmService,
+            IFarmAccessService farmAccess,
+            INotificationService notificationService)
         {
             _dashboard = dashboard;
             _farmService = farmService;
+            _farmAccess = farmAccess;
             _notificationService = notificationService;
         }
 
@@ -32,7 +38,7 @@ namespace CattleFarm.Controllers
             {
                 AppRoles.Admin   => View("Admin",    await _dashboard.GetAdminDashboardAsync()),
                 AppRoles.Owner   => await OwnerDashboard(userId, farmId),
-                AppRoles.Manager => await OwnerDashboard(userId, farmId),
+                AppRoles.Manager => await ManagerDashboard(userId, farmId),
                 AppRoles.Worker  => View("Worker",   await _dashboard.GetWorkerDashboardAsync(userId)),
                 AppRoles.Doctor  => View("Doctor",   await _dashboard.GetDoctorDashboardAsync(userId)),
                 _                => View("Customer", await _dashboard.GetCustomerDashboardAsync(userId))
@@ -48,8 +54,22 @@ namespace CattleFarm.Controllers
                 var vm = await _dashboard.GetOwnerDashboardAsync(userId, farmId ?? farms.First().Id);
                 return View("Owner", vm);
             }
-            // Multiple farms → show farm selector
             return View("FarmSelector", farms);
+        }
+
+        private async Task<IActionResult> ManagerDashboard(int userId, int? farmId)
+        {
+            var assignedFarmId = await _farmAccess.GetActiveManagerFarmIdAsync(userId);
+            if (!assignedFarmId.HasValue)
+            {
+                TempData["InfoMessage"] = "Apply to a farm to become its manager. You will only see farms you are approved for.";
+                return RedirectToAction("ManagerBrowse", "FarmJoin");
+            }
+
+            var vm = await _dashboard.GetOwnerDashboardAsync(userId, farmId ?? assignedFarmId.Value);
+            ViewBag.IsManagerView = true;
+            ViewBag.AssignedFarmId = assignedFarmId.Value;
+            return View("Owner", vm);
         }
 
         private int GetUserId()

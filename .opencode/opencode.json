@@ -1,0 +1,10 @@
+{
+  "permission": {
+    "read": {
+      "F:/VisualStudio/CattleFarm/.opencode/get-shit-done/*": "allow"
+    },
+    "external_directory": {
+      "F:/VisualStudio/CattleFarm/.opencode/get-shit-done/*": "allow"
+    }
+  }
+}

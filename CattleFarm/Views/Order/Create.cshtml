@@ -18,13 +18,13 @@
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="FarmId" />
     
-    <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start">
+    <div class="order-create-grid">
         <div style="display:flex;flex-direction:column;gap:20px">
             
             <!-- Product Section -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📦 Selected Product</h3>
+                    <h3 class="card-title">Selected Product</h3>
                 </div>
                 <div class="card-body">
                     @if (selectedProduct != null)
@@ -39,11 +39,11 @@
                                 {
                                     <span style="font-size:48px">
                                         @(selectedProduct.Category switch { 
-                                            CattleFarm.Models.ProductCategory.Milk => "🥛", 
-                                            CattleFarm.Models.ProductCategory.Beef => "🥩", 
-                                            CattleFarm.Models.ProductCategory.Manure => "♻️", 
-                                            CattleFarm.Models.ProductCategory.BreedingService => "🐄", 
-                                            _ => "📦" 
+                                            CattleFarm.Models.ProductCategory.Milk => "", 
+                                            CattleFarm.Models.ProductCategory.Beef => "", 
+                                            CattleFarm.Models.ProductCategory.Manure => "", 
+                                            CattleFarm.Models.ProductCategory.BreedingService => "", 
+                                            _ => "" 
                                         })
                                     </span>
                                 }
@@ -90,7 +90,7 @@
             <!-- Delivery Section -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📍 Delivery Details</h3>
+                    <h3 class="card-title">Delivery Details</h3>
                 </div>
                 <div class="card-body">
                     <div class="form-group">
@@ -110,14 +110,14 @@
         <div style="display:flex;flex-direction:column;gap:20px">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">💳 Payment Method</h3>
+                    <h3 class="card-title">Payment Method</h3>
                 </div>
                 <div class="card-body">
                     <div style="display:flex;flex-direction:column;gap:12px">
                         <label style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer">
                             <input type="radio" asp-for="PaymentMethod" value="@CattleFarm.Models.PaymentMethod.Cash" checked style="accent-color:var(--primary);width:18px;height:18px" />
                             <div>
-                                <div style="font-weight:600">💵 Cash on Delivery</div>
+                                <div style="font-weight:600">Cash on Delivery</div>
                                 <div style="font-size:12px;color:var(--text-muted)">Pay cash when product arrives</div>
                             </div>
                         </label>
@@ -125,7 +125,7 @@
                         <label style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer">
                             <input type="radio" asp-for="PaymentMethod" value="@CattleFarm.Models.PaymentMethod.Bkash" style="accent-color:var(--primary);width:18px;height:18px" />
                             <div>
-                                <div style="font-weight:600">📱 Online Payment</div>
+                                <div style="font-weight:600">Online Payment</div>
                                 <div style="font-size:12px;color:var(--text-muted)">bKash, Nagad, Cards (SSLCommerz)</div>
                             </div>
                         </label>
@@ -135,7 +135,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📊 Order Summary</h3>
+                    <h3 class="card-title">Order Summary</h3>
                 </div>
                 <div class="card-body">
                     <div style="display:flex;justify-content:space-between;margin-bottom:8px">

@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.Models.Farm>
+﻿@model IEnumerable<CattleFarm.Models.Farm>
 @{ ViewData["Title"] = "Select Your Farm"; }
 
 <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px">
@@ -15,14 +15,14 @@
                     <div class="cattle-card" style="cursor:pointer">
                         <div class="cattle-card-img" style="height:140px">
                             @if (!string.IsNullOrEmpty(farm.ImagePath)) { <img src="@farm.ImagePath" alt="@farm.Name" style="height:140px" /> }
-                            else { <span style="font-size:48px">🏡</span> }
+                            else { <span style="font-size:48px"></span> }
                         </div>
                         <div class="cattle-card-body">
                             <div class="cattle-card-title">@farm.Name</div>
-                            <div class="cattle-card-meta">📍 @farm.Location</div>
+                            <div class="cattle-card-meta">@farm.Location</div>
                             <div style="display:flex;gap:12px;margin-top:10px;font-size:12px;color:var(--text-secondary)">
-                                <span>🐄 @farm.Cattles.Count cattle</span>
-                                <span>📐 @farm.SizeInAcres acres</span>
+                                <span>@farm.Cattles.Count cattle</span>
+                                <span>@farm.SizeInAcres acres</span>
                             </div>
                         </div>
                         <div class="cattle-card-footer">

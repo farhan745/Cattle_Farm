@@ -1,4 +1,4 @@
-@model CattleFarm.Models.User
+﻿@model CattleFarm.Models.User
 @{
     ViewData["Title"] = "My Profile";
     var user = Model;
@@ -67,7 +67,7 @@
                 };
             }
             <span class="badge @subBadge.Item2" style="font-size:12px;padding:6px 14px">
-                @(user.SubscriptionType == "Owner" ? "⭐" : "📋") @subBadge.Item1
+                @(user.SubscriptionType == "Owner" ? "" : "") @subBadge.Item1
             </span>
 
             <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E8E0D4;font-size:12px;color:#9CA3AF">
@@ -81,7 +81,7 @@
         <!-- ── Profile Form ── -->
         <div class="card animate-in">
             <div class="card-header">
-                <h3 class="card-title">✏️ Edit Profile</h3>
+                <h3 class="card-title">Edit Profile</h3>
             </div>
             <div class="card-body">
                 <form method="post" asp-action="Profile" asp-controller="Account">
@@ -130,7 +130,7 @@
         <!-- ── Danger Zone ── -->
         <div class="card animate-in" style="border: 1px solid rgba(239, 68, 68, 0.25); background: rgba(254, 242, 242, 0.45);">
             <div class="card-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.15)">
-                <h3 class="card-title" style="color: #ef4444; font-weight: 700;">⚠️ Danger Zone</h3>
+                <h3 class="card-title" style="color: #ef4444; font-weight: 700;">Danger Zone</h3>
             </div>
             <div class="card-body">
                 <h4 style="font-size:15px;font-weight:700;margin-bottom:6px;color:#1C3A2A">Delete Account</h4>
@@ -227,7 +227,7 @@ async function uploadAvatar(input) {
             const navAvatar = document.getElementById('navAvatar');
             if (navAvatar) navAvatar.src = data.url;
 
-            showToast('Profile photo updated! ✓', 'success');
+            showToast('Profile photo updated! ', 'success');
         } else {
             showToast(data.error || 'Upload failed. Try again.', 'error');
         }

@@ -1,4 +1,4 @@
-@model IEnumerable<CattleFarm.Models.User>
+﻿@model IEnumerable<CattleFarm.Models.User>
 @{
     ViewData["Title"] = "User Management";
     int currentPage = (int)(ViewData["CurrentPage"] ?? 1);
@@ -30,7 +30,7 @@
 <div class="card">
     <div class="table-wrapper">
         @if (!Model.Any())
-        { <div class="empty-state" style="padding:40px"><div class="empty-icon">👥</div><h3>No users found</h3></div> }
+        { <div class="empty-state" style="padding:40px"><div class="empty-icon"></div><h3>No users found</h3></div> }
         else
         {
             <table class="data-table">
@@ -57,7 +57,7 @@
                             <td style="font-size:12px;color:var(--text-muted)">@(u.PhoneNumber ?? "—")</td>
                             <td>
                                 <span class="badge @(u.IsActive ? "badge-success" : "badge-gray")">@(u.IsActive ? "Active" : "Inactive")</span>
-                                @if (u.IsEmailVerified) { <span class="badge badge-info" style="margin-left:4px" title="Email verified">✓</span> }
+                                @if (u.IsEmailVerified) { <span class="badge badge-info" style="margin-left:4px" title="Email verified"></span> }
                             </td>
                             <td style="font-size:11px;color:var(--text-muted)">@u.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>

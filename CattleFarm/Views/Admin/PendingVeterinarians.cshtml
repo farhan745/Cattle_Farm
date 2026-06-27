@@ -1,0 +1,73 @@
+@model IEnumerable<CattleFarm.Models.Doctor>
+@{
+    ViewData["Title"] = "Veterinarian Approvals";
+}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 class="page-title">Veterinarian Approvals</h1>
+        <p class="page-subtitle">Review new registrations before they appear in the public veterinarian list</p>
+    </div>
+    <a href="/Doctor" class="btn btn-outline"><i class="bi bi-person-badge"></i> View approved list</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:48px;color:#6B6B66;">
+            <i class="bi bi-check-circle" style="font-size:40px;color:#137a3a;display:block;margin-bottom:12px;"></i>
+            No pending veterinarian registrations.
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table" style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="border-bottom:1px solid #e2e8f0;text-align:left;font-size:12px;text-transform:uppercase;color:#64748b;">
+                        <th style="padding:12px;">Doctor</th>
+                        <th style="padding:12px;">Contact</th>
+                        <th style="padding:12px;">Specialization</th>
+                        <th style="padding:12px;">Fee</th>
+                        <th style="padding:12px;">Registered</th>
+                        <th style="padding:12px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model)
+                    {
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                            <td style="padding:14px;">
+                                <strong>@d.FullName</strong>
+                                @if (!string.IsNullOrEmpty(d.LicenseNumber))
+                                {
+                                    <div style="font-size:12px;color:#64748b;">License: @d.LicenseNumber</div>
+                                }
+                            </td>
+                            <td style="padding:14px;font-size:13px;">
+                                @d.Email<br />@d.Phone
+                            </td>
+                            <td style="padding:14px;">@d.Specialization</td>
+                            <td style="padding:14px;">@Currency.Format(d.ConsultationFee)</td>
+                            <td style="padding:14px;font-size:13px;">@d.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                            <td style="padding:14px;">
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    <form method="post" asp-action="ApproveVeterinarian" asp-route-id="@d.Id">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                                    </form>
+                                    <form method="post" asp-action="RejectVeterinarian" asp-route-id="@d.Id" onsubmit="return confirm('Reject this veterinarian?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline btn-sm" style="color:#b91c1c;border-color:#fecaca;">Reject</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

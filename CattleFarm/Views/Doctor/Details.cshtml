@@ -1,0 +1,59 @@
+﻿@model CattleFarm.Models.Doctor
+@{
+    ViewData["Title"] = $"Dr. {Model.FullName}";
+}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 class="page-title">Dr. @Model.FullName</h1>
+        <p class="page-subtitle">@Model.Specialization</p>
+    </div>
+    <a href="/Doctor" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to list</a>
+</div>
+
+<div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start">
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:28px;">
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" alt="Dr. @Model.FullName" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #2D5A3D;margin-bottom:16px;" />
+            }
+            else
+            {
+                <div style="width:120px;height:120px;border-radius:50%;background:#D5E7D7;display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 16px;"></div>
+            }
+            <span class="badge @(Model.IsAvailable ? "badge-success" : "badge-gray")">@(Model.IsAvailable ? "Available" : "Busy")</span>
+            @if (Model.EmergencyAvailable)
+            {
+                <span class="badge" style="margin-left:4px;">Emergency on-call</span>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Profile</h3></div>
+        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:14px;">
+            <div><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Email</div><div style="font-weight:600;">@(Model.Email ?? "—")</div></div>
+            <div><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Phone</div><div style="font-weight:600;">@(Model.Phone ?? "—")</div></div>
+            <div><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">License</div><div style="font-weight:600;">@(Model.LicenseNumber ?? "—")</div></div>
+            <div><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Consultation fee</div><div style="font-weight:600;color:#2D5A3D;">@Currency.Format(Model.ConsultationFee)</div></div>
+            <div><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Experience</div><div style="font-weight:600;">@(Model.YearsOfExperience > 0 ? $"{Model.YearsOfExperience} years" : "—")</div></div>
+            <div><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Qualification</div><div style="font-weight:600;">@(Model.Qualification ?? "—")</div></div>
+            <div style="grid-column:1/-1;"><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Availability</div><div style="font-weight:600;">@(Model.AvailableTimeSlot ?? "Contact for schedule")</div></div>
+            @if (!string.IsNullOrWhiteSpace(Model.Address))
+            {
+                <div style="grid-column:1/-1;"><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Address</div><div style="font-weight:600;">@Model.Address</div></div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Notes))
+            {
+                <div style="grid-column:1/-1;"><div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase;">Notes</div><div>@Model.Notes</div></div>
+            }
+        </div>
+        <div class="card-footer">
+            @if (User.IsInRole("Owner") || User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a href="/Appointment/Create?doctorId=@Model.Id" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Book this veterinarian</a>
+            }
+        </div>
+    </div>
+</div>

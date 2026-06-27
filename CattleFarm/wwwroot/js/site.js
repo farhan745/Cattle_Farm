@@ -24,6 +24,14 @@ function toggleSidebar() {
     sidebar?.classList.toggle('open');
     overlay?.classList.toggle('open');
 }
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+    const sidebar  = document.getElementById('sidebar');
+    const overlay  = document.getElementById('sidebarOverlay');
+    sidebar?.classList.toggle('open');
+    overlay?.classList.toggle('open');
+}
 function closeSidebar() {
     document.getElementById('sidebar')?.classList.remove('open');
     document.getElementById('sidebarOverlay')?.classList.remove('open');
@@ -37,7 +45,8 @@ function showToast(title, message, type = 'success', duration = 4000) {
     const colors = { success: '#27ae60', error: '#c0392b', warning: '#e67e22', info: '#2980b9' };
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<i class="bi ${icons[type] || icons.info}" style="color:${colors[type]};font-size:18px;flex-shrink:0"></i><div class="toast-body"><div class="toast-title">${title}</div><div style="font-size:12px;color:var(--text-secondary)">${message}</div></div><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;flex-shrink:0;align-self:flex-start" aria-label="Close notification">✕</button>`;
+    toast.style.setProperty('--duration', `${duration}ms`);
+    toast.innerHTML = `<i class="bi ${icons[type] || icons.info}" style="color:${colors[type]};font-size:18px;flex-shrink:0"></i><div class="toast-body"><div class="toast-title">${title}</div><div style="font-size:12px;color:var(--text-secondary)">${message}</div></div><button class="toast-dismiss" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;flex-shrink:0;align-self:flex-start" aria-label="Close notification">✕</button>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), duration);
 }
@@ -94,7 +103,7 @@ function formatCurrency(amount, currency = '৳') {
 
 // ── Scroll-triggered animations ───────────────────────────────────────────────
 function initScrollAnimations() {
-    const els = document.querySelectorAll('.animate-in');
+    const els = document.querySelectorAll('.animate-in, .slide-in-left, .slide-in-right, .zoom-in, .fade-in-up');
     if (!els.length) return;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry, i) => {
@@ -122,4 +131,177 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page load stagger for main content
     const pageContent = document.querySelector('.page-content');
     if (pageContent) pageContent.classList.add('page-load-anim');
+});
+
+// ── Premium dashboard reveal support ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const revealItems = document.querySelectorAll('.animate-in:not(.visible), .slide-in-left:not(.visible), .slide-in-right:not(.visible), .zoom-in:not(.visible), .fade-in-up:not(.visible)');
+    if (!revealItems.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        revealItems.forEach(item => item.classList.add('visible'));
+        return;
+    }
+
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -32px 0px' });
+
+    revealItems.forEach(item => revealObserver.observe(item));
+});
+
+// ── Public landing page interactions ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const landingNav = document.querySelector('[data-landing-nav]');
+    if (landingNav) {
+        const updateNav = () => landingNav.classList.toggle('is-scrolled', window.scrollY > 24);
+        updateNav();
+        window.addEventListener('scroll', updateNav, { passive: true });
+    }
+
+    const counters = document.querySelectorAll('.landing-count-up[data-target], .count-up[data-target]');
+    if (!counters.length) return;
+
+    const easeOutQuart = value => 1 - Math.pow(1 - value, 4);
+    const formatCounter = (value, decimals) => Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    });
+
+    const runCounter = (element) => {
+        if (element.dataset.counted === 'true') return;
+        element.dataset.counted = 'true';
+
+        const target = Number(element.dataset.target || 0);
+        const suffix = element.dataset.suffix || '';
+        const decimals = String(element.dataset.target || '').includes('.') ? 1 : 0;
+        const start = performance.now();
+        const duration = 1600;
+
+        const tick = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const current = target * easeOutQuart(progress);
+            element.textContent = `${formatCounter(current, progress === 1 ? decimals : 0)}${suffix}`;
+            if (progress < 1) requestAnimationFrame(tick);
+        };
+
+        requestAnimationFrame(tick);
+    };
+
+    if (!('IntersectionObserver' in window)) {
+        counters.forEach(runCounter);
+        return;
+    }
+
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            runCounter(entry.target);
+            counterObserver.unobserve(entry.target);
+        });
+    }, { threshold: 0.35 });
+
+    counters.forEach(counter => counterObserver.observe(counter));
+});
+
+// ── Carousel ──────────────────────────────────────────────────────────────────
+function initCarousels() {
+    const carousels = document.querySelectorAll('.carousel-wrapper');
+    carousels.forEach(carousel => {
+        const track = carousel.querySelector('.carousel-track');
+        const slides = carousel.querySelectorAll('.carousel-slide');
+        const dots = carousel.querySelectorAll('.carousel-dot, .carousel-dots button');
+        if (!track || slides.length === 0) return;
+
+        let currentIndex = 0;
+        let autoplayTimer = null;
+
+        const updateActiveDot = (index) => {
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === index);
+            });
+            currentIndex = index;
+        };
+
+        const scrollToSlide = (index) => {
+            const slideWidth = slides[0].offsetWidth;
+            const gap = parseInt(window.getComputedStyle(track).gap) || 0;
+            track.scrollTo({
+                left: index * (slideWidth + gap),
+                behavior: 'smooth'
+            });
+            updateActiveDot(index);
+        };
+
+        const startAutoplay = () => {
+            stopAutoplay();
+            autoplayTimer = setInterval(() => {
+                let nextIndex = (currentIndex + 1) % slides.length;
+                scrollToSlide(nextIndex);
+            }, 5000);
+        };
+
+        const stopAutoplay = () => {
+            if (autoplayTimer) {
+                clearInterval(autoplayTimer);
+                autoplayTimer = null;
+            }
+        };
+
+        // Dot clicking
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                scrollToSlide(index);
+                startAutoplay(); // Restart timer on click
+            });
+        });
+
+        // Scroll listener to update dots on manual swipe/scroll
+        let scrollTimeout;
+        track.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const slideWidth = slides[0].offsetWidth;
+                const gap = parseInt(window.getComputedStyle(track).gap) || 0;
+                const newIndex = Math.round(track.scrollLeft / (slideWidth + gap));
+                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < slides.length) {
+                    updateActiveDot(newIndex);
+                }
+            }, 100);
+        }, { passive: true });
+
+        // Start autoplay initially
+        startAutoplay();
+    });
+}
+
+// ── Microinteractions: Ripple Effect ──────────────────────────────────────────
+function initRippleEffect() {
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-ripple');
+        if (!btn) return;
+        
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const span = document.createElement('span');
+        span.className = 'ripple-span';
+        span.style.left = `${x}px`;
+        span.style.top = `${y}px`;
+        
+        btn.appendChild(span);
+        
+        setTimeout(() => span.remove(), 650);
+    });
+}
+
+// ── Initialize Task 3 Features ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    initCarousels();
+    initRippleEffect();
 });

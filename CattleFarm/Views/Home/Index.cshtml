@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Dashboard";
     var isAdmin  = User.IsInRole("Admin");
     var canCrud  = isAdmin || User.IsInRole("Manager");
@@ -25,7 +25,7 @@
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;margin-bottom:24px;">
     <div class="card animate-in" style="text-align:center;">
         <div class="card-body" style="padding:32px 20px;">
-            <div style="font-size:42px;margin-bottom:12px;">📋</div>
+            <div style="font-size:42px;margin-bottom:12px;"></div>
             <h3 style="font-size:16px;font-weight:700;margin-bottom:6px;">All Cattle</h3>
             <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Browse, search, and view all cattle records in the farm.</p>
             <a href="/Cattle" class="btn btn-outline" id="dashboardAllCattleBtn">
@@ -38,7 +38,7 @@
     {
         <div class="card animate-in" style="text-align:center;">
             <div class="card-body" style="padding:32px 20px;">
-                <div style="font-size:42px;margin-bottom:12px;">➕</div>
+                <div style="font-size:42px;margin-bottom:12px;"></div>
                 <h3 style="font-size:16px;font-weight:700;margin-bottom:6px;">Add New Cattle</h3>
                 <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Register a new cattle record with full details.</p>
                 <a href="/Cattle/Create" class="btn btn-primary" id="dashboardAddCattleBtn">
@@ -50,7 +50,7 @@
 
     <div class="card animate-in" style="text-align:center;">
         <div class="card-body" style="padding:32px 20px;">
-            <div style="font-size:42px;margin-bottom:12px;">🔍</div>
+            <div style="font-size:42px;margin-bottom:12px;"></div>
             <h3 style="font-size:16px;font-weight:700;margin-bottom:6px;">Search Records</h3>
             <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Find cattle by name or breed quickly.</p>
             <a href="/Cattle" class="btn btn-outline" id="dashboardSearchBtn">

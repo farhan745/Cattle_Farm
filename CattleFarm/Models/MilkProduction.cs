@@ -21,6 +21,26 @@ namespace CattleFarm.Models
         [StringLength(500)]
         public string? Notes { get; set; }
 
+        // ── Milk Quality Records ──────────────────────────────────────────────
+        [Range(0, 10)]
+        [Column(TypeName = "decimal(5,2)")]
+        [Display(Name = "Fat %")]
+        public decimal? FatPercentage { get; set; }
+
+        [Range(0, 10)]
+        [Column(TypeName = "decimal(5,2)")]
+        [Display(Name = "Protein %")]
+        public decimal? ProteinLevel { get; set; }
+
+        [Range(0, 20)]
+        [Column(TypeName = "decimal(5,2)")]
+        [Display(Name = "Solid-Not-Fat %")]
+        public decimal? SolidNotFat { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "Quality Grade")]
+        public string? MilkQualityGrade { get; set; } // e.g. "A", "B", "C"
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // FK

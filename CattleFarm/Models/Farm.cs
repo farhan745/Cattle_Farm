@@ -53,7 +53,7 @@ namespace CattleFarm.Models
         public virtual ICollection<Cattle>          Cattles          { get; set; } = new List<Cattle>();
         public virtual ICollection<Worker>          Workers          { get; set; } = new List<Worker>();
         public virtual ICollection<FarmWorker>      FarmWorkers      { get; set; } = new List<FarmWorker>();
-        public virtual ICollection<Doctor>          Doctors          { get; set; } = new List<Doctor>();
+        public virtual ICollection<FarmManager>     FarmManagers     { get; set; } = new List<FarmManager>();
         public virtual ICollection<Product>         Products         { get; set; } = new List<Product>();
         public virtual ICollection<Expense>         Expenses         { get; set; } = new List<Expense>();
         public virtual ICollection<Revenue>         Revenues         { get; set; } = new List<Revenue>();

@@ -32,6 +32,72 @@ namespace CattleFarm.Controllers
             return View(employees);
         }
 
+        // GET: Employee/Performance
+        [Authorize(Roles = AppRoles.AdminManagerOrOwner)]
+        public async Task<IActionResult> Performance(int? farmId = null)
+        {
+            var userId = GetCurrentUserId();
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+
+            var farms = role == AppRoles.Owner
+                ? await _farmService.GetByOwnerAsync(userId)
+                : await _farmService.GetAllAsync();
+
+            var selectedFarmId = farmId ?? farms.FirstOrDefault()?.Id ?? 0;
+
+            var workersQuery = _context.Workers.AsQueryable();
+            if (selectedFarmId > 0)
+            {
+                workersQuery = workersQuery.Where(w => w.FarmId == selectedFarmId);
+            }
+
+            var workers = await workersQuery.Where(w => !w.IsDeleted).ToListAsync();
+            var performanceList = new List<WorkerPerformanceViewModel>();
+
+            var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
+
+            foreach (var worker in workers)
+            {
+                var workerAttendances = await _context.Attendances
+                    .Where(a => a.WorkerId == worker.Id && a.Date >= thirtyDaysAgo)
+                    .ToListAsync();
+
+                var totalAttendances = workerAttendances.Count;
+                var presentAttendances = workerAttendances.Count(a => a.Status == "Present");
+                double attendanceRate = totalAttendances > 0 ? (double)presentAttendances / totalAttendances * 100 : 100.0;
+
+                var tasks = await _context.TaskAssignments
+                    .Where(t => t.AssignedWorkerId == worker.Id && t.CreatedAt >= thirtyDaysAgo && !t.IsDeleted)
+                    .ToListAsync();
+
+                var totalTasks = tasks.Count;
+                var completedTasks = tasks.Count(t => t.Status == "Completed" || t.Status == "Approved" || t.Status == "BonusAdded");
+                double taskCompletionRate = totalTasks > 0 ? (double)completedTasks / totalTasks * 100 : 100.0;
+
+                double overallScore = (attendanceRate + taskCompletionRate) / 2.0;
+
+                performanceList.Add(new WorkerPerformanceViewModel
+                {
+                    WorkerId = worker.Id,
+                    WorkerName = worker.FullName,
+                    Role = worker.Role,
+                    ImagePath = worker.ImagePath,
+                    TotalTasks = totalTasks,
+                    CompletedTasks = completedTasks,
+                    TaskCompletionRate = taskCompletionRate,
+                    TotalAttendances = totalAttendances,
+                    PresentCount = presentAttendances,
+                    AttendanceRate = attendanceRate,
+                    OverallScore = overallScore
+                });
+            }
+
+            ViewBag.Farms = farms;
+            ViewBag.SelectedFarmId = selectedFarmId;
+
+            return View(performanceList);
+        }
+
         // GET: Employee/Details/{id}
         [Authorize(Roles = AppRoles.AdminManagerOrOwner + "," + AppRoles.Worker)]
         public async Task<IActionResult> Details(int id)

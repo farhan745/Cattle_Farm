@@ -12,5 +12,6 @@ namespace CattleFarm.Services.Interfaces
         Task<bool>            UpdateAsync(int id, MilkProductionViewModel vm);
         Task<bool>            DeleteAsync(int id);
         Task<double>          GetTotalYieldByFarmAsync(int farmId, DateTime? from, DateTime? to);
+        Task<IEnumerable<MilkDropAlertViewModel>> DetectYieldDropsAsync(int farmId);
     }
 }

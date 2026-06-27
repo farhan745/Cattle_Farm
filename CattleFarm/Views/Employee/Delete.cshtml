@@ -1,4 +1,4 @@
-@model CattleFarm.ViewModels.EmployeeViewModel
+﻿@model CattleFarm.ViewModels.EmployeeViewModel
 @inject CattleFarm.Services.Interfaces.ICurrencyService Currency
 @{
     ViewData["Title"] = $"Delete Employee: {Model.FullName}";
@@ -6,7 +6,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">🗑️ Delete Employee Profile</h1>
+        <h1 class="page-title">Delete Employee Profile</h1>
         <p class="page-subtitle">Permanently delete or suspend this employee profile from the system</p>
     </div>
     <a href="/Employee" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to List</a>
@@ -17,7 +17,7 @@
         <div class="card-body" style="display:flex;flex-direction:column;gap:20px">
 
             <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(239,68,68,.06);border-radius:10px;border:1px solid rgba(239,68,68,.2)">
-                <div style="font-size:36px">⚠️</div>
+                <div style="font-size:36px"></div>
                 <div>
                     <div style="font-weight:700;color:#dc2626;margin-bottom:4px">Confirm Profile Deletion</div>
                     <div style="font-size:13px;color:var(--text-muted);line-height:1.4">

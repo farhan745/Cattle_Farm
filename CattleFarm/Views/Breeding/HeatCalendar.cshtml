@@ -1,0 +1,126 @@
+@model IEnumerable<CattleFarm.Models.HeatRecord>
+@{
+    ViewData["Title"] = "Estrus (Heat) Monitoring Calendar";
+    var farms = (IEnumerable<CattleFarm.Models.Farm>)ViewBag.Farms;
+    var selectedFarmId = (int?)ViewBag.SelectedFarmId;
+}
+
+<div class="page-header animate-fade-in">
+    <div>
+        <h1 class="page-title text-gradient"><i class="bi bi-calendar-event"></i> Heat & Estrus Calendar</h1>
+        <p class="page-subtitle">Estrus cycle monitoring, breeding readiness, and expected heat cycles</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="/Heat" class="btn btn-outline"><i class="bi bi-list"></i> Heat Observations List</a>
+        <a href="/Heat/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Record Observation</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card glass-card mb-4 animate-slide-up">
+    <div class="card-body">
+        <form method="get" action="/Breeding/HeatCalendar" class="row align-items-end g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Select Farm</label>
+                <select name="farmId" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Accessible Farms</option>
+                    @foreach (var farm in farms)
+                    {
+                        <option value="@farm.Id" selected="@(selectedFarmId == farm.Id)">@farm.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row animate-slide-up" style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start;">
+    <!-- Section 1: Active Heat Cycles / Ready for Breeding -->
+    <div class="card glass-card">
+        <div class="card-header bg-danger bg-opacity-10 text-danger border-danger border-opacity-10">
+            <h3 class="card-title"><i class="bi bi-heart-pulse-fill"></i> Ready for Breeding (Active Estrus)</h3>
+        </div>
+        <div class="card-body">
+            @{
+                var activeHeats = Model.Where(h => h.HeatStatus == HeatStatus.InHeat || h.ReadyForBreeding).OrderBy(h => h.ObservationDate).ToList();
+            }
+            @if (!activeHeats.Any())
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-check-circle" style="font-size: 40px; display:block; margin-bottom: 10px;"></i>
+                    No cows currently marked in active heat or ready for breeding.
+                </div>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var record in activeHeats)
+                    {
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2 border rounded glass-card-hover">
+                            <div>
+                                <h5 class="mb-1 text-danger fw-bold"><i class="bi bi-gender-female"></i> @record.Cattle?.Name (@record.Cattle?.TagId)</h5>
+                                <p class="mb-1 text-secondary" style="font-size:13px;">
+                                    <strong>Observed:</strong> @record.ObservationDate.ToString("yyyy-MM-dd") (@(record.HeatDurationHours.HasValue ? $"{record.HeatDurationHours} hrs" : "Unknown duration"))
+                                </p>
+                                <span class="badge bg-light text-dark border">Method: @record.DetectionMethod</span>
+                                <span class="badge bg-success">Ready for breeding</span>
+                            </div>
+                            <div class="text-end">
+                                <a href="/Breeding/Create?farmId=@record.FarmId&cattleId=@record.CattleId" class="btn btn-danger btn-sm text-white"><i class="bi bi-magic"></i> Breed Now</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Section 2: Expected Upcoming Estrus cycles -->
+    <div class="card glass-card">
+        <div class="card-header bg-info bg-opacity-10 text-info border-info border-opacity-10">
+            <h3 class="card-title"><i class="bi bi-hourglass-split"></i> Expected Upcoming Cycles (Next 21 Days)</h3>
+        </div>
+        <div class="card-body">
+            @{
+                var upcomingHeats = Model.Where(h => h.NextExpectedHeatDate.HasValue && h.NextExpectedHeatDate.Value >= DateTime.Today).OrderBy(h => h.NextExpectedHeatDate).ToList();
+            }
+            @if (!upcomingHeats.Any())
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-calendar3" style="font-size: 40px; display:block; margin-bottom: 10px;"></i>
+                    No expected estrus cycles found in the system.
+                </div>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var record in upcomingHeats)
+                    {
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2 border rounded glass-card-hover">
+                            <div>
+                                <h5 class="mb-1 text-info fw-bold"><i class="bi bi-cow"></i> @record.Cattle?.Name (@record.Cattle?.TagId)</h5>
+                                <p class="mb-1 text-secondary" style="font-size:13px;">
+                                    <strong>Expected Date:</strong> <span class="fw-bold text-dark">@record.NextExpectedHeatDate?.ToString("yyyy-MM-dd")</span>
+                                </p>
+                                <p class="mb-1 text-secondary" style="font-size:12px;">
+                                    Last observed: @record.ObservationDate.ToString("yyyy-MM-dd") (Status: @record.HeatStatus)
+                                </p>
+                            </div>
+                            <div>
+                                @{
+                                    var daysLeft = (record.NextExpectedHeatDate.GetValueOrDefault() - DateTime.Today).Days;
+                                    <span class="badge bg-@(daysLeft <= 3 ? "danger animate-pulse" : "info") text-white p-2">
+                                        @daysLeft Days Left
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

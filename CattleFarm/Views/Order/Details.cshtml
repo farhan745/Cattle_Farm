@@ -25,6 +25,8 @@
     </div>
     <div style="display:flex;gap:8px">
         <a href="/Order" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Back to Orders</a>
+        <a asp-action="ExportInvoicePdf" asp-route-id="@Model.Id" class="btn btn-outline"><i class="bi bi-file-earmark-pdf"></i> PDF Invoice</a>
+        <a asp-action="ExportInvoiceExcel" asp-route-id="@Model.Id" class="btn btn-outline"><i class="bi bi-file-earmark-spreadsheet"></i> Excel Invoice</a>
         
         @if (Model.OrderStatus == CattleFarm.Models.OrderStatus.Pending)
         {
@@ -63,7 +65,7 @@
 
         <!-- Items Table -->
         <div class="card">
-            <div class="card-header"><h3 class="card-title">📦 Items in this Order</h3></div>
+            <div class="card-header"><h3 class="card-title">Items in this Order</h3></div>
             <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
@@ -94,7 +96,7 @@
 
         <!-- Delivery & Address Info -->
         <div class="card">
-            <div class="card-header"><h3 class="card-title">📍 Shipping &amp; Logistics</h3></div>
+            <div class="card-header"><h3 class="card-title">Shipping &amp; Logistics</h3></div>
             <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
                 <div>
                     <div style="font-weight:600;font-size:13px;color:var(--text-muted);margin-bottom:6px">Delivery Address</div>
@@ -113,7 +115,7 @@
         
         <!-- Summary Panel -->
         <div class="card">
-            <div class="card-header"><h3 class="card-title">💵 Payment Summary</h3></div>
+            <div class="card-header"><h3 class="card-title">Payment Summary</h3></div>
             <div class="card-body">
                 <div style="display:flex;justify-content:space-between;margin-bottom:10px">
                     <span style="color:var(--text-muted)">Payment Method:</span>
@@ -162,7 +164,7 @@
             @if (Model.OrderStatus != CattleFarm.Models.OrderStatus.Cancelled && Model.OrderStatus != CattleFarm.Models.OrderStatus.Delivered)
             {
                 <div class="card">
-                    <div class="card-header"><h3 class="card-title">⚙️ Fulfillment Panel</h3></div>
+                    <div class="card-header"><h3 class="card-title">Fulfillment Panel</h3></div>
                     <div class="card-body">
                         <form method="post" asp-action="UpdateStatus">
                             @Html.AntiForgeryToken()

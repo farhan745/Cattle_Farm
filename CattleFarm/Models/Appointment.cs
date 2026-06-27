@@ -10,7 +10,7 @@ namespace CattleFarm.Models
         [Required]
         public DateTime ScheduledAt { get; set; }
 
-        public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
+        public AppointmentStatus Status { get; set; } = AppointmentStatus.Pending;
 
         [Required, StringLength(500)]
         public string Reason { get; set; } = string.Empty;
@@ -18,6 +18,16 @@ namespace CattleFarm.Models
         [StringLength(2000)]
         public string? Notes { get; set; }
 
+        /// <summary>Photo evidence uploaded when the vet marks the visit complete.</summary>
+        public string? EvidenceImagePath { get; set; }
+
+        /// <summary>Prescription document (image or PDF) for the owner.</summary>
+        public string? PrescriptionPath { get; set; }
+
+        [StringLength(2000)]
+        public string? CompletionNotes { get; set; }
+
+        public DateTime? AcceptedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime CreatedAt    { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt   { get; set; }

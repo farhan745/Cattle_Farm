@@ -1,0 +1,65 @@
+﻿@model IEnumerable<CattleFarm.Models.CattleMedicalRecord>
+@{
+    var cattle = ViewBag.Cattle as CattleFarm.Models.Cattle;
+    ViewData["Title"] = $"Medical History — {cattle?.Name}";
+}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Medical History</h1>
+        <p class="page-subtitle">@cattle?.Name (@cattle?.TagId) — @cattle?.Farm?.Name</p>
+    </div>
+    <div class="page-actions" style="display:flex;gap:8px">
+        <a href="/Cattle/Details/@cattle?.Id" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Cattle Profile</a>
+        @if (User.IsInRole("Doctor"))
+        {
+            <a href="/CattleMedicalRecord/AddMedicalRecord?cattleId=@cattle?.Id" class="btn btn-primary"><i class="bi bi-journal-medical"></i> Log Examination</a>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        @if (!Model.Any())
+        {
+            <div class="empty-state" style="padding:40px">
+                <div class="empty-icon"></div>
+                <p>No medical examination records for this cattle yet.</p>
+            </div>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Veterinarian</th>
+                        <th>Complaint</th>
+                        <th>Diagnosis</th>
+                        <th>Medicine</th>
+                        <th>Next Visit</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>@r.ExaminationDate.ToString("MMM dd, yyyy")</td>
+                            <td>@(r.Doctor?.FullName ?? "—")</td>
+                            <td style="max-width:180px">@r.ChiefComplaint</td>
+                            <td style="max-width:180px">@r.Diagnosis</td>
+                            <td>@(r.MedicineName ?? "—") @(r.MedicineDose != null ? $"({r.MedicineDose})" : "")</td>
+                            <td>@(r.NextVisitDate?.ToString("MMM dd, yyyy") ?? "—")</td>
+                            <td>
+                                @if (User.IsInRole("Doctor") && User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == r.DoctorId.ToString())
+                                {
+                                    <a href="/CattleMedicalRecord/EditMedicalRecord/@r.Id" class="btn btn-ghost btn-sm">Edit</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

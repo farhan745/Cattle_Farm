@@ -1,6 +1,11 @@
-@model CattleFarm.ViewModels.FarmJoinBrowseViewModel
+﻿@model CattleFarm.ViewModels.FarmJoinBrowseViewModel
 @{
-    ViewData["Title"] = "Farm খোঁজো";
+    var isManager = string.Equals(ViewBag.JoinMode as string, "Manager", StringComparison.OrdinalIgnoreCase);
+    var browseUrl = isManager ? "/FarmJoin/ManagerBrowse" : "/FarmJoin/Browse";
+    var applyUrl = isManager ? "/FarmJoin/ManagerApply" : "/FarmJoin/Apply";
+    var requestsUrl = isManager ? "/FarmJoin/ManagerRequests" : "/FarmJoin/MyRequests";
+    var leaveAction = isManager ? "LeaveManager" : "Leave";
+    ViewData["Title"] = isManager ? "Find a Farm" : "Browse Farms";
 }
 
 @section Styles {
@@ -22,16 +27,18 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">🌾 Farm খোঁজো</h1>
+        <h1 class="page-title">@(isManager ? "Find a Farm" : "Browse Farms")</h1>
         <p class="page-subtitle">
             @if (Model.MyActiveFarmName != null)
-            { <text>তুমি এখন <strong>@Model.MyActiveFarmName</strong> এ আছো</text> }
+            { <text>You are currently assigned to <strong>@Model.MyActiveFarmName</strong></text> }
+            else if (isManager)
+            { <text>Apply to a farm. The owner must approve before you can manage it.</text> }
             else
-            { <text>একটি farm এ join করো</text> }
+            { <text>Apply to join a farm as a worker</text> }
         </p>
     </div>
-    <a href="/FarmJoin/MyRequests" class="btn btn-outline">
-        <i class="bi bi-list-check"></i> আমার Applications
+    <a href="@requestsUrl" class="btn btn-outline">
+        <i class="bi bi-list-check"></i> My Applications
     </a>
 </div>
 
@@ -47,9 +54,9 @@
 @if (!Model.Farms.Any())
 {
     <div style="text-align:center;padding:64px 20px;color:var(--text-muted)">
-        <div style="font-size:48px;margin-bottom:12px">🌾</div>
-        <div style="font-weight:700">কোনো farm পাওয়া যায়নি</div>
-        <div style="font-size:13px;margin-top:6px">Admin এখনো কোনো farm approve করেননি।</div>
+        <div style="font-size:48px;margin-bottom:12px"></div>
+        <div style="font-weight:700">No farms available</div>
+        <div style="font-size:13px;margin-top:6px">No approved farms are listed yet.</div>
     </div>
 }
 else
@@ -64,24 +71,27 @@ else
                 }
                 else
                 {
-                    <div class="farm-img">🏡</div>
+                    <div class="farm-img"></div>
                 }
                 <div class="farm-body">
                     <div class="farm-name">@farm.Name</div>
                     <div class="farm-loc"><i class="bi bi-geo-alt"></i> @farm.Location</div>
-                    <div style="font-size:12px;color:var(--text-muted)">
-                        <i class="bi bi-people"></i> @farm.WorkerCount জন কাজ করছে
-                    </div>
+                    @if (!isManager)
+                    {
+                        <div style="font-size:12px;color:var(--text-muted)">
+                            <i class="bi bi-people"></i> @farm.WorkerCount worker(s)
+                        </div>
+                    }
                 </div>
                 <div class="farm-footer">
                     @if (farm.AlreadyJoined)
                     {
                         <span class="badge badge-success"><i class="bi bi-check-circle"></i> Joined</span>
-                        <form asp-action="Leave" method="post">
+                        <form asp-action="@leaveAction" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="farmId" value="@farm.Id" />
                             <button type="submit" class="btn btn-outline btn-sm"
-                                    onclick="return confirm('এই farm থেকে leave নেবে?')">
+                                    onclick="return confirm('Leave this farm?')">
                                 Leave
                             </button>
                         </form>
@@ -89,23 +99,26 @@ else
                     else if (farm.ApplicationStatus == "Pending" || farm.ApplicationStatus == "Applied")
                     {
                         <span class="badge badge-warning"><i class="bi bi-clock"></i> Pending</span>
-                        <span style="font-size:11px;color:var(--text-muted)">Owner এর approval বাকি</span>
+                        <span style="font-size:11px;color:var(--text-muted)">Awaiting owner approval</span>
                     }
                     else if (farm.ApplicationStatus == "Cooldown")
                     {
                         <span class="badge badge-danger"><i class="bi bi-slash-circle"></i> Cooldown</span>
                         <span style="font-size:11px;color:var(--text-muted)">
-                            @farm.CooldownEnds?.ToLocalTime().ToString("MMM dd") পর্যন্ত
+                            Until @farm.CooldownEnds?.ToLocalTime().ToString("MMM dd")
                         </span>
                     }
                     else if (Model.MyActiveFarmId.HasValue && !farm.AlreadyJoined)
                     {
-                        <span style="font-size:12px;color:var(--text-muted)">অন্য farm এ আছো</span>
+                        <span style="font-size:12px;color:var(--text-muted)">Already on another farm</span>
                     }
                     else
                     {
-                        <span style="font-size:12px;color:var(--text-muted)">@farm.WorkerCount workers</span>
-                        <a href="/FarmJoin/Apply?farmId=@farm.Id&farmName=@Uri.EscapeDataString(farm.Name)"
+                        @if (!isManager)
+                        {
+                            <span style="font-size:12px;color:var(--text-muted)">@farm.WorkerCount workers</span>
+                        }
+                        <a href="@applyUrl?farmId=@farm.Id&farmName=@Uri.EscapeDataString(farm.Name)"
                            class="btn btn-primary btn-sm">
                             <i class="bi bi-send"></i> Apply
                         </a>
