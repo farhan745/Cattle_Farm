@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CattleFarm.Hubs;
 using CattleFarm.Models;
+using CattleFarm.Services.Interfaces;
 using CattleFarm.Services.Implementations;
 using CattleFarm.UnitOfWork;
 using CattleFarm.Repositories.Interfaces;
@@ -21,6 +22,7 @@ namespace CattleFarm.Tests
             var mockHubContext = new Mock<IHubContext<FarmDashboardHub>>();
             var mockClients = new Mock<IHubClients>();
             var mockClientProxy = new Mock<IClientProxy>();
+            var mockSms = new Mock<ISmsService>();
 
             // Setup HasUnreadAsync to return true (duplicate found)
             mockNotificationRepo.Setup(r => r.HasUnreadAsync(
@@ -32,7 +34,7 @@ namespace CattleFarm.Tests
 
             mockUow.Setup(u => u.Notifications).Returns(mockNotificationRepo.Object);
 
-            var service = new NotificationService(mockUow.Object, mockHubContext.Object, null!);
+            var service = new NotificationService(mockUow.Object, mockHubContext.Object, null!, mockSms.Object);
 
             // Act
             await service.SendAsync(1, "Test Alert", "Test Message", NotificationType.LowFeedStock, "FeedInventory", 1);
@@ -52,6 +54,8 @@ namespace CattleFarm.Tests
             var mockHubContext = new Mock<IHubContext<FarmDashboardHub>>();
             var mockClients = new Mock<IHubClients>();
             var mockClientProxy = new Mock<IClientProxy>();
+            var mockUserRepo = new Mock<IUserRepository>();
+            var mockSms = new Mock<ISmsService>();
 
             // Setup HasUnreadAsync to return false (no duplicate)
             mockNotificationRepo.Setup(r => r.HasUnreadAsync(
@@ -62,12 +66,14 @@ namespace CattleFarm.Tests
             )).ReturnsAsync(false);
 
             mockUow.Setup(u => u.Notifications).Returns(mockNotificationRepo.Object);
+            mockUow.Setup(u => u.Users).Returns(mockUserRepo.Object);
+            mockUserRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((User?)null);
 
             // Setup SignalR Hub Mocks to prevent null reference on notification push
             mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
             mockClients.Setup(c => c.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
 
-            var service = new NotificationService(mockUow.Object, mockHubContext.Object, null!);
+            var service = new NotificationService(mockUow.Object, mockHubContext.Object, null!, mockSms.Object);
 
             // Act
             await service.SendAsync(1, "Test Alert", "Test Message", NotificationType.LowFeedStock, "FeedInventory", 1);

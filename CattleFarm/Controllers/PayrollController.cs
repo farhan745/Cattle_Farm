@@ -9,6 +9,8 @@ using CattleFarm.ViewModels;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+
 
 namespace CattleFarm.Controllers
 {
@@ -78,20 +80,24 @@ namespace CattleFarm.Controllers
                 sheet.Cell(row, 1).Value = payroll.WorkerName;
                 sheet.Cell(row, 2).Value = payroll.FarmName;
                 sheet.Cell(row, 3).Value = $"{monthName} {payroll.Year}";
-                sheet.Cell(row, 4).Value = payroll.BaseSalary;
+                sheet.Cell(row, 4).Value = (double)payroll.BaseSalary;
                 sheet.Cell(row, 5).Value = payroll.OvertimeHours;
-                sheet.Cell(row, 6).Value = payroll.OvertimePay;
-                sheet.Cell(row, 7).Value = payroll.Bonus;
-                sheet.Cell(row, 8).Value = payroll.Deductions;
-                sheet.Cell(row, 9).Value = payroll.NetSalary;
+                sheet.Cell(row, 6).Value = (double)payroll.OvertimePay;
+                sheet.Cell(row, 7).Value = (double)payroll.Bonus;
+                sheet.Cell(row, 8).Value = (double)payroll.Deductions;
+                sheet.Cell(row, 9).Value = (double)payroll.NetSalary;
                 sheet.Cell(row, 10).Value = payroll.IsPaid ? "Paid" : "Unpaid";
                 sheet.Cell(row, 11).Value = payroll.PaidAt?.ToString("yyyy-MM-dd HH:mm") ?? "";
-                sheet.Cell(row, 12).Value = payroll.GeneratedAt;
+                sheet.Cell(row, 12).Value = payroll.GeneratedAt.ToString("yyyy-MM-dd HH:mm");
             }
 
-            var totalRow = 5 + payrolls.Count;
-            sheet.Cell(totalRow, 8).Value = "Total";
-            sheet.Cell(totalRow, 9).Value = payrolls.Sum(p => p.NetSalary);
+            var totalRow = 4 + payrolls.Count;
+            sheet.Cell(totalRow, 3).Value = "Total";
+            sheet.Cell(totalRow, 4).Value = (double)payrolls.Sum(p => p.BaseSalary);
+            sheet.Cell(totalRow, 6).Value = (double)payrolls.Sum(p => p.OvertimePay);
+            sheet.Cell(totalRow, 7).Value = (double)payrolls.Sum(p => p.Bonus);
+            sheet.Cell(totalRow, 8).Value = (double)payrolls.Sum(p => p.Deductions);
+            sheet.Cell(totalRow, 9).Value = (double)payrolls.Sum(p => p.NetSalary);
             sheet.Range(3, 1, 3, 12).Style.Font.Bold = true;
             sheet.Row(totalRow).Style.Font.Bold = true;
             sheet.Columns().AdjustToContents();

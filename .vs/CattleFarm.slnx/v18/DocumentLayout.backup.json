@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "F:\\VisualStudio\\CattleFarm\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|f:\\visualstudio\\cattlefarm\\cattlefarm\\controllers\\reportscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|solutionrelative:cattlefarm\\controllers\\reportscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|f:\\visualstudio\\cattlefarm\\cattlefarm\\cattlefarm.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|solutionrelative:cattlefarm\\cattlefarm.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|f:\\visualstudio\\cattlefarm\\cattlefarm\\views\\smartmonitoring\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|solutionrelative:cattlefarm\\views\\smartmonitoring\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
@@ -36,10 +48,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|f:\\visualstudio\\cattlefarm\\cattlefarm\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|solutionrelative:cattlefarm\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|f:\\visualstudio\\cattlefarm\\cattlefarm\\cattlefarm.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|solutionrelative:cattlefarm\\cattlefarm.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
       "AbsoluteMoniker": "D:0:0:{BE07AFAE-DFCF-FBFC-381F-A9973EB1DD03}|CattleFarm\\CattleFarm.csproj|f:\\visualstudio\\cattlefarm\\cattlefarm\\services\\implementations\\taskassignmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -266,17 +274,29 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "ReportsController.cs",
+              "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Controllers\\ReportsController.cs",
+              "RelativeDocumentMoniker": "CattleFarm\\Controllers\\ReportsController.cs",
+              "ToolTip": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Controllers\\ReportsController.cs*",
+              "RelativeToolTip": "CattleFarm\\Controllers\\ReportsController.cs*",
+              "ViewState": "AgIAAJ8AAAAAAAAAAAAIwK4AAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-29T14:41:47.678Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Microsoft.Common.CurrentVersion.targets",
               "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
               "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
               "ViewState": "AgIAAAgVAAAAAAAAAAAswBoVAABPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
-              "WhenOpened": "2026-06-26T19:56:00.715Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-26T19:56:00.715Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "WeightHistory.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Cattle\\WeightHistory.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Cattle\\WeightHistory.cshtml",
@@ -288,7 +308,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "BuyCattle.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Cattle\\BuyCattle.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Cattle\\BuyCattle.cshtml",
@@ -300,7 +320,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 1,
+              "Title": "CattleFarm.csproj",
+              "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\CattleFarm.csproj",
+              "RelativeDocumentMoniker": "CattleFarm\\CattleFarm.csproj",
+              "ToolTip": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\CattleFarm.csproj",
+              "RelativeToolTip": "CattleFarm\\CattleFarm.csproj",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAgwCgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-05-19T20:08:33.051Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\SmartMonitoring\\Index.cshtml",
+              "RelativeDocumentMoniker": "CattleFarm\\Views\\SmartMonitoring\\Index.cshtml",
+              "ToolTip": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\SmartMonitoring\\Index.cshtml",
+              "RelativeToolTip": "CattleFarm\\Views\\SmartMonitoring\\Index.cshtml",
+              "ViewState": "AgIAAMsAAAAAAAAAAAAAAM4AAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-27T16:24:42.738Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
               "Title": "AccountController.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Controllers\\AccountController.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Controllers\\AccountController.cs",
@@ -312,20 +358,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "CattleFarm.csproj",
-              "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\CattleFarm.csproj",
-              "RelativeDocumentMoniker": "CattleFarm\\CattleFarm.csproj",
-              "ToolTip": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\CattleFarm.csproj",
-              "RelativeToolTip": "CattleFarm\\CattleFarm.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-05-19T20:08:33.051Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "TaskAssignmentService.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Services\\Implementations\\TaskAssignmentService.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Services\\Implementations\\TaskAssignmentService.cs",
@@ -337,7 +370,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "Program.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Program.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Program.cs",
@@ -349,7 +382,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "CattleController.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Controllers\\CattleController.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Controllers\\CattleController.cs",
@@ -361,7 +394,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "gmail.md",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\gmail.md",
               "RelativeDocumentMoniker": "CattleFarm\\gmail.md",
@@ -373,7 +406,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "CattleFarmDbContext.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Models\\CattleFarmDbContext.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Models\\CattleFarmDbContext.cs",
@@ -385,7 +418,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "TaskAssignment.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Models\\TaskAssignment.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Models\\TaskAssignment.cs",
@@ -397,7 +430,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 13,
               "Title": "TaskAssignmentViewModels.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\ViewModels\\TaskAssignmentViewModels.cs",
               "RelativeDocumentMoniker": "CattleFarm\\ViewModels\\TaskAssignmentViewModels.cs",
@@ -409,7 +442,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 14,
               "Title": "PayrollService.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Services\\Implementations\\PayrollService.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Services\\Implementations\\PayrollService.cs",
@@ -421,7 +454,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 15,
               "Title": "Farm.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Models\\Farm.cs",
               "RelativeDocumentMoniker": "CattleFarm\\Models\\Farm.cs",
@@ -433,7 +466,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 16,
               "Title": "PayrollViewModels.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\ViewModels\\PayrollViewModels.cs",
               "RelativeDocumentMoniker": "CattleFarm\\ViewModels\\PayrollViewModels.cs",
@@ -445,7 +478,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 17,
               "Title": "appsettings.json",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\appsettings.json",
               "RelativeDocumentMoniker": "CattleFarm\\appsettings.json",
@@ -457,7 +490,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 18,
               "Title": "README.md",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\README.md",
               "RelativeDocumentMoniker": "CattleFarm\\README.md",
@@ -469,7 +502,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 19,
               "Title": "EmployeePayrollViewModels.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\ViewModels\\EmployeePayrollViewModels.cs",
               "RelativeDocumentMoniker": "CattleFarm\\ViewModels\\EmployeePayrollViewModels.cs",
@@ -481,7 +514,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 62,
+              "DocumentIndex": 64,
               "Title": "CattleFarm.csproj.Backup.tmp",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\CattleFarm.csproj.Backup.tmp",
               "RelativeDocumentMoniker": "CattleFarm\\CattleFarm.csproj.Backup.tmp",
@@ -493,7 +526,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 20,
               "Title": "PaymentSuccess.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Order\\PaymentSuccess.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Order\\PaymentSuccess.cshtml",
@@ -505,7 +538,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 21,
               "Title": "PaymentFail.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Order\\PaymentFail.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Order\\PaymentFail.cshtml",
@@ -517,7 +550,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 22,
               "Title": "PaymentCancel.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Order\\PaymentCancel.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Order\\PaymentCancel.cshtml",
@@ -529,7 +562,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 23,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Order\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Order\\Index.cshtml",
@@ -541,7 +574,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 24,
               "Title": "Details.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Order\\Details.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Order\\Details.cshtml",
@@ -553,7 +586,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 25,
               "Title": "Create.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Order\\Create.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Order\\Create.cshtml",
@@ -565,7 +598,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 26,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Notification\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Notification\\Index.cshtml",
@@ -577,7 +610,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 27,
               "Title": "_ViewImports.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\_ViewImports.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\_ViewImports.cshtml",
@@ -589,7 +622,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 28,
               "Title": "_ViewStart.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\_ViewStart.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\_ViewStart.cshtml",
@@ -601,7 +634,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 29,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\MilkProduction\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\MilkProduction\\Index.cshtml",
@@ -613,7 +646,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 30,
               "Title": "Create.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\MilkProduction\\Create.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\MilkProduction\\Create.cshtml",
@@ -625,7 +658,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 31,
               "Title": "Privacy.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Home\\Privacy.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Home\\Privacy.cshtml",
@@ -637,7 +670,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 32,
               "Title": "Landing.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Home\\Landing.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Home\\Landing.cshtml",
@@ -649,7 +682,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 33,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Home\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Home\\Index.cshtml",
@@ -661,7 +694,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 34,
               "Title": "Vaccinations.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Health\\Vaccinations.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Health\\Vaccinations.cshtml",
@@ -673,7 +706,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 35,
               "Title": "VaccinationForm.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Health\\VaccinationForm.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Health\\VaccinationForm.cshtml",
@@ -685,7 +718,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 36,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Health\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Health\\Index.cshtml",
@@ -697,7 +730,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 37,
               "Title": "Create.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Health\\Create.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Health\\Create.cshtml",
@@ -709,7 +742,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 38,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Financial\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Financial\\Index.cshtml",
@@ -721,7 +754,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 39,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Feed\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Feed\\Index.cshtml",
@@ -733,7 +766,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 40,
               "Title": "Edit.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Feed\\Edit.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Feed\\Edit.cshtml",
@@ -745,7 +778,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 41,
               "Title": "Create.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Feed\\Create.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Feed\\Create.cshtml",
@@ -757,7 +790,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 42,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Farm\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Farm\\Index.cshtml",
@@ -769,7 +802,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 43,
               "Title": "Details.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Farm\\Details.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Farm\\Details.cshtml",
@@ -781,7 +814,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 44,
               "Title": "Create.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Farm\\Create.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Farm\\Create.cshtml",
@@ -793,7 +826,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 45,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Doctor\\Index.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Doctor\\Index.cshtml",
@@ -805,7 +838,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 46,
               "Title": "Edit.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Doctor\\Edit.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Doctor\\Edit.cshtml",
@@ -817,7 +850,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 61,
+              "DocumentIndex": 63,
               "Title": "Create.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Doctor\\Create.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Doctor\\Create.cshtml",
@@ -829,7 +862,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 47,
               "Title": "Owner.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Dashboard\\Owner.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Dashboard\\Owner.cshtml",
@@ -841,7 +874,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 48,
               "Title": "NoFarms.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Dashboard\\NoFarms.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Dashboard\\NoFarms.cshtml",
@@ -853,7 +886,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
+              "DocumentIndex": 49,
               "Title": "FarmSelector.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Dashboard\\FarmSelector.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Dashboard\\FarmSelector.cshtml",
@@ -865,7 +898,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 50,
               "Title": "Doctor.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Dashboard\\Doctor.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Dashboard\\Doctor.cshtml",
@@ -877,7 +910,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 51,
               "Title": "Admin.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Dashboard\\Admin.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Dashboard\\Admin.cshtml",
@@ -889,7 +922,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 50,
+              "DocumentIndex": 52,
               "Title": "Customer.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Dashboard\\Customer.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Dashboard\\Customer.cshtml",
@@ -901,7 +934,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 51,
+              "DocumentIndex": 53,
               "Title": "Register.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Account\\Register.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Account\\Register.cshtml",
@@ -913,7 +946,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 52,
+              "DocumentIndex": 54,
               "Title": "Profile.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Account\\Profile.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Account\\Profile.cshtml",
@@ -925,7 +958,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 53,
+              "DocumentIndex": 55,
               "Title": "AccessDenied.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Account\\AccessDenied.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Account\\AccessDenied.cshtml",
@@ -937,7 +970,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 54,
+              "DocumentIndex": 56,
               "Title": "AuditLogs.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Admin\\AuditLogs.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Admin\\AuditLogs.cshtml",
@@ -949,7 +982,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 55,
+              "DocumentIndex": 57,
               "Title": "Farms.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Admin\\Farms.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Admin\\Farms.cshtml",
@@ -961,7 +994,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 56,
+              "DocumentIndex": 58,
               "Title": "Subscriptions.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Admin\\Subscriptions.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Admin\\Subscriptions.cshtml",
@@ -973,7 +1006,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 57,
+              "DocumentIndex": 59,
               "Title": "Login.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Account\\Login.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Account\\Login.cshtml",
@@ -985,7 +1018,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 58,
+              "DocumentIndex": 60,
               "Title": "Users.cshtml",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\Views\\Admin\\Users.cshtml",
               "RelativeDocumentMoniker": "CattleFarm\\Views\\Admin\\Users.cshtml",
@@ -997,7 +1030,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 59,
+              "DocumentIndex": 61,
               "Title": "jquery.slim.js",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\wwwroot\\lib\\jquery\\dist\\jquery.slim.js",
               "RelativeDocumentMoniker": "CattleFarm\\wwwroot\\lib\\jquery\\dist\\jquery.slim.js",
@@ -1009,7 +1042,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 60,
+              "DocumentIndex": 62,
               "Title": "AppRoles.cs",
               "DocumentMoniker": "F:\\VisualStudio\\CattleFarm\\CattleFarm\\AppRoles.cs",
               "RelativeDocumentMoniker": "CattleFarm\\AppRoles.cs",

@@ -1,27 +1,27 @@
-name: .NET CI
+name: .NET CI (Pull Request Check)
 
+# This workflow runs only on Pull Requests for quick feedback.
+# Pushes to 'main' are handled by 'deploy.yml' which also runs tests.
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
 
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    name: 🔍 Build & Test (PR Check)
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: '10.0.x'
 
-      - name: Restore
+      - name: Restore NuGet packages
         run: dotnet restore CattleFarm.slnx
 
       - name: Build

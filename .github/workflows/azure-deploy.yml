@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# GitHub Actions — Auto-Deploy to Azure App Service (Docker-based)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# main branch-এ push হলে automatically:
+#   1. .NET build and test রান করবে
+#   2. Docker image build করে Azure Container Registry (ACR) অথবা Docker Hub-এ পাঠাবে
+#   3. Azure Web App refresh হবে এবং নতুন container চালু হবে।
+#
+# ─── GitHub Secrets Setup ────────────────────────────────────────────────────
+# Settings → Secrets and variables → Actions-এ নিচের secret-গুলো যোগ করো:
+#   AZURE_WEBAPP_PUBLISH_PROFILE  - Azure Portal থেকে Web App-এর Publish Profile ডাউনলোড করে কপি করো।
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: Build and Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore NuGet Packages
+        run: dotnet restore CattleFarm.slnx
+
+      - name: Build Project
+        run: dotnet build CattleFarm.slnx --configuration Release --no-restore
+
+      # GitHub Docker Container Registry (GHCR)-এ পুশ করার ধাপ
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/cattlefarm:latest
+
+      # Azure App Service Web App-এ ডিপ্লয়
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'CattleFarm' # ⚠️ তোমার Azure Web App এর নাম দাও
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: 'ghcr.io/${{ github.repository_owner }}/cattlefarm:latest'

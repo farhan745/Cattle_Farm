@@ -14,13 +14,13 @@ namespace CattleFarm.Services.Implementations
     {
         private readonly ILogger<SmsService> _logger;
         private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public SmsService(ILogger<SmsService> logger, IConfiguration configuration)
+        public SmsService(ILogger<SmsService> logger, IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _configuration = configuration;
-            _httpClient = new HttpClient();
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<bool> SendSmsAsync(string toPhoneNumber, string message)
@@ -54,7 +54,8 @@ namespace CattleFarm.Services.Implementations
 
                 request.Content = new FormUrlEncodedContent(postData);
 
-                var response = await _httpClient.SendAsync(request);
+                var httpClient = _httpClientFactory.CreateClient();
+                var response = await httpClient.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("Twilio SMS sent successfully to {Phone}", toPhoneNumber);
@@ -76,4 +77,3 @@ namespace CattleFarm.Services.Implementations
         }
     }
 }
-

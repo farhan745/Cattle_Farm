@@ -67,6 +67,10 @@
               "target": "Package",
               "version": "[0.105.0, )"
             },
+            "ExcelNumberFormat": {
+              "target": "Package",
+              "version": "[1.1.0, )"
+            },
             "MailKit": {
               "target": "Package",
               "version": "[4.17.0, )"

@@ -282,7 +282,7 @@ Real-time messaging is handled by [FarmDashboardHub.cs](file:///f:/VisualStudio/
 User authentication is managed using HTTP Cookie-based state, avoiding stateless JWT overhead for MVC pages:
 * **Cookie Expiration**: Set to an 8-hour expiry with `SlidingExpiration = true`, extending active sessions if user activity is detected.
 * **Security Settings**: Cookies are configured with `HttpOnly = true` to block access from JavaScript scripts, and `SameAsRequest` secure policies.
-* **Form Upload Size Limits**: The web server multipart forms are configured to support up to **50 MB** file attachments (essential for high-resolution livestock tracking photo uploads).
+* **Form Upload Size Limits**: The web server multipart forms are configured to support up to **10 MB** per request. Image and document upload services apply a stricter **5 MB** per-file validation limit for livestock photos, avatars, task proofs, and supported PDF attachments.
 
 ---
 

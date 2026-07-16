@@ -78,10 +78,15 @@
         -webkit-overflow-scrolling: touch;
         border: 1px solid var(--border);
         border-radius: var(--radius-md, 8px);
+        min-width: 0;
     }
 
-    .data-table th, .data-table td {
-        white-space: nowrap !important;
+    .data-table th {
+        white-space: nowrap;
+    }
+
+    .data-table td {
+        white-space: normal;
     }
 
     @@media (max-width: 992px) {
@@ -110,19 +115,19 @@
 </style>
 }
 
-<div class="page-header">
-    <div>
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
+    <div style="flex:1;min-width:0">
         <h1 class="page-title">Payroll Management</h1>
         <p class="page-subtitle">Manage employee salaries, bonuses, deductions, and payout statuses</p>
     </div>
-    <div>
+    <div class="page-actions" style="display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;white-space:nowrap">
         @if (isAdminOrOwner)
         {
             <a asp-action="ExportExcel" class="btn btn-outline">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel
             </a>
             <a href="/Payroll/Generate" class="btn btn-primary">
-                <i class="bi bi-gear-fill"></i> Generate Monthly Payroll
+                <i class="bi bi-gear-fill"></i> Generate
             </a>
         }
     </div>

@@ -26,6 +26,9 @@ appsettings.Local.json
 secrets.json
 *.user
 
+# SSL Certificates (never commit these)
+nginx/ssl/
+
 # Temporary archives and local scratch files
 *.zip
 *.tmp

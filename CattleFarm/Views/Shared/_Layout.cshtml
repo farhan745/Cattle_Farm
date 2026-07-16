@@ -368,6 +368,7 @@
     }
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         // Sidebar collapse & toggle
@@ -423,6 +424,73 @@
         }
         loadNotifCount();
         setInterval(loadNotifCount, 60000);
+
+        // ── SignalR Real-time Notifications ────────────────────────────────
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            var signalRUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            <text>
+        (function () {
+            const userId = '@signalRUserId';
+            if (!userId || typeof signalR === 'undefined') return;
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/hubs/farm-dashboard')
+                .withAutomaticReconnect([0, 2000, 5000, 10000])
+                .configureLogging(signalR.LogLevel.Warning)
+                .build();
+
+            connection.on('NotificationReceived', function (data) {
+                // Update badge
+                const count = data.unreadCount || 0;
+                ['notif-count', 'header-notif-count'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.style.display = count > 0 ? 'flex' : 'none';
+                    el.textContent = count > 9 ? '9+' : count;
+                });
+                // Show toast
+                const typeToastMap = {
+                    'HealthAlert': 'error', 'Vaccination': 'warning',
+                    'Appointment': 'info', 'AppointmentRequested': 'info',
+                    'OrderUpdate': 'success', 'Payment': 'warning',
+                    'Subscription': 'info', 'SalaryUpdate': 'info',
+                    'LowFeedStock': 'warning'
+                };
+                const toastType = typeToastMap[data.type] || 'info';
+                if (typeof showToast === 'function') {
+                    showToast(data.title || 'Notification', data.message || '', toastType, 6000);
+                }
+            });
+
+            connection.on('NotificationRead', function () { loadNotifCount(); });
+            connection.on('NotificationsRead', function (data) {
+                const count = (data && data.unreadCount) || 0;
+                ['notif-count', 'header-notif-count'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.style.display = count > 0 ? 'flex' : 'none';
+                    el.textContent = count > 9 ? '9+' : count;
+                });
+            });
+
+            async function startConnection() {
+                try {
+                    await connection.start();
+                    await connection.invoke('JoinUserGroup', userId);
+                } catch (err) {
+                    setTimeout(startConnection, 5000);
+                }
+            }
+
+            connection.onreconnected(async function () {
+                await connection.invoke('JoinUserGroup', userId);
+            });
+
+            startConnection();
+        })();
+            </text>
+        }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

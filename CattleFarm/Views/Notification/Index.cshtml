@@ -1,45 +1,93 @@
-﻿@model IEnumerable<CattleFarm.Models.Notification>
+@model IEnumerable<CattleFarm.Models.Notification>
 @{ ViewData["Title"] = "Notifications"; }
+
 <div class="page-header">
-    <div><h1 class="page-title">Notifications</h1><p class="page-subtitle">@Model.Count(n => !n.IsRead) unread</p></div>
+    <div>
+        <h1 class="page-title">Notifications</h1>
+        <p class="page-subtitle">@Model.Count(n => !n.IsRead) unread notification(s)</p>
+    </div>
     <div class="page-actions">
         @if (Model.Any(n => !n.IsRead))
         {
-            <form method="post" asp-action="MarkAllRead">@Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-outline"><i class="bi bi-check2-all"></i> Mark All Read</button>
+            <form method="post" asp-action="MarkAllRead">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline">
+                    <i class="bi bi-check2-all"></i> Mark All Read
+                </button>
             </form>
         }
     </div>
 </div>
-<div class="card">
+
+<div class="card" style="overflow:hidden">
     @if (!Model.Any())
-    { <div class="empty-state" style="padding:60px"><div class="empty-icon"></div><h3>All caught up!</h3></div> }
+    {
+        <div style="padding:60px 20px;text-align:center">
+            <i class="bi bi-bell-slash" style="font-size:48px;color:var(--text-muted);display:block;margin-bottom:12px"></i>
+            <h3 style="margin:0 0 6px;font-size:16px;color:var(--text-secondary)">All caught up!</h3>
+            <p style="color:var(--text-muted);font-size:13px;margin:0">You have no notifications right now.</p>
+        </div>
+    }
     @foreach (var n in Model)
     {
-        var icon = n.Type switch {
-            CattleFarm.Models.NotificationType.HealthAlert => "",
-            CattleFarm.Models.NotificationType.Vaccination => "",
-            CattleFarm.Models.NotificationType.Appointment => "",
-            CattleFarm.Models.NotificationType.OrderUpdate => "",
-            CattleFarm.Models.NotificationType.Payment => "",
-            CattleFarm.Models.NotificationType.Subscription => "",
-            _ => ""
-        };
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;background:@(n.IsRead?"var(--bg-card)":"var(--primary-light)")">
-            <div style="font-size:22px;flex-shrink:0">@icon</div>
-            <div style="flex:1">
-                <div style="font-size:14px;font-weight:@(n.IsRead?"500":"700")">@n.Title</div>
-                <div style="font-size:13px;color:var(--text-secondary);margin-top:3px">@n.Message</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:6px">@n.CreatedAt.ToString("MMM dd, yyyy — HH:mm")</div>
+        string iconClass, iconColor;
+        switch (n.Type)
+        {
+            case CattleFarm.Models.NotificationType.HealthAlert:
+                iconClass = "bi-heart-pulse-fill"; iconColor = "#ef4444"; break;
+            case CattleFarm.Models.NotificationType.Vaccination:
+                iconClass = "bi-shield-plus-fill"; iconColor = "#8b5cf6"; break;
+            case CattleFarm.Models.NotificationType.Appointment:
+                iconClass = "bi-calendar-check-fill"; iconColor = "#3b82f6"; break;
+            case CattleFarm.Models.NotificationType.AppointmentRequested:
+                iconClass = "bi-calendar-event-fill"; iconColor = "#0ea5e9"; break;
+            case CattleFarm.Models.NotificationType.OrderUpdate:
+                iconClass = "bi-bag-check-fill"; iconColor = "#10b981"; break;
+            case CattleFarm.Models.NotificationType.Payment:
+                iconClass = "bi-credit-card-fill"; iconColor = "#f59e0b"; break;
+            case CattleFarm.Models.NotificationType.Subscription:
+                iconClass = "bi-star-fill"; iconColor = "#f97316"; break;
+            case CattleFarm.Models.NotificationType.SalaryUpdate:
+                iconClass = "bi-cash-stack"; iconColor = "#6366f1"; break;
+            case CattleFarm.Models.NotificationType.LowFeedStock:
+                iconClass = "bi-exclamation-triangle-fill"; iconColor = "#f59e0b"; break;
+            default:
+                iconClass = "bi-bell-fill"; iconColor = "#64748b"; break;
+        }
+
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;background:@(n.IsRead ? "var(--bg-card)" : "rgba(99,102,241,0.05)")">
+            <div style="width:38px;height:38px;border-radius:50%;background:@(iconColor + "22");display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px">
+                <i class="bi @iconClass" style="font-size:16px;color:@iconColor"></i>
             </div>
-            @if (!n.IsRead)
-            {
-                <form method="post" asp-action="MarkRead">@Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@n.Id" />
-                    <button type="submit" class="btn btn-outline btn-sm"><i class="bi bi-check2"></i></button>
-                </form>
-            }
-            else { <span class="badge badge-gray">Read</span> }
+            <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:@(n.IsRead ? "500" : "700");color:var(--text-primary)">@n.Title</div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;line-height:1.5">@n.Message</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;display:flex;align-items:center;gap:8px">
+                    <i class="bi bi-clock"></i>
+                    @n.CreatedAt.ToString("MMM dd, yyyy — HH:mm")
+                    @if (!n.IsRead)
+                    {
+                        <span style="width:7px;height:7px;border-radius:50%;background:#6366f1;display:inline-block"></span>
+                        <span style="color:#6366f1;font-weight:600;font-size:10px">NEW</span>
+                    }
+                </div>
+            </div>
+            <div style="flex-shrink:0;padding-top:2px">
+                @if (!n.IsRead)
+                {
+                    <form method="post" asp-action="MarkRead">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@n.Id" />
+                        <button type="submit" class="btn btn-outline btn-sm" title="Mark as read">
+                            <i class="bi bi-check2"></i>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <span class="badge badge-gray">Read</span>
+                }
+            </div>
         </div>
     }
 </div>

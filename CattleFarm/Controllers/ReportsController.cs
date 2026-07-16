@@ -1,9 +1,12 @@
 using CattleFarm.Models;
 using CattleFarm.Services.Interfaces;
 using CattleFarm.UnitOfWork;
-using ClosedXML.Excel;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace CattleFarm.Controllers
@@ -95,6 +98,7 @@ namespace CattleFarm.Controllers
             return View();
         }
 
+        [HttpGet]
         public async Task<IActionResult> ExportExcel(int? farmId = null, DateTime? from = null, DateTime? to = null)
         {
             var userId = GetUserId();
@@ -129,75 +133,41 @@ namespace CattleFarm.Controllers
                 .OrderByDescending(x => x.Total)
                 .ToList();
 
-            using var workbook = new XLWorkbook();
-            var summary = workbook.Worksheets.Add("Summary");
-            summary.Cell(1, 1).Value = "Smart Cattle Farm Report";
-            summary.Cell(2, 1).Value = "Farm";
-            summary.Cell(2, 2).Value = selectedFarm.Name;
-            summary.Cell(3, 1).Value = "From";
-            summary.Cell(3, 2).Value = dateFrom;
-            summary.Cell(4, 1).Value = "To";
-            summary.Cell(4, 2).Value = dateTo;
-
-            summary.Cell(6, 1).Value = "Metric";
-            summary.Cell(6, 2).Value = "Value";
-            var rows = new (string Metric, object Value)[]
+            var summaryRows = new List<IReadOnlyList<object?>>
             {
-                ("Total revenue", revenue),
-                ("Total expenses", expenses),
-                ("Net profit", profit),
-                ("Total milk yield (L)", milkTotal),
-                ("Total cattle", cattle.Count),
-                ("Active cattle", cattle.Count(c => c.Status == CattleStatus.Active)),
-                ("Sick/Critical cattle", cattle.Count(c => c.HealthStatus is HealthStatus.Sick or HealthStatus.Critical))
+                new object?[] { "Smart Cattle Farm Report" },
+                new object?[] { "Farm", selectedFarm.Name },
+                new object?[] { "From", dateFrom.ToString("yyyy-MM-dd") },
+                new object?[] { "To", dateTo.ToString("yyyy-MM-dd") },
+                Array.Empty<object?>(),
+                new object?[] { "Metric", "Value" },
+                new object?[] { "Total revenue", revenue },
+                new object?[] { "Total expenses", expenses },
+                new object?[] { "Net profit", profit },
+                new object?[] { "Total milk yield (L)", milkTotal },
+                new object?[] { "Total cattle", cattle.Count },
+                new object?[] { "Active cattle", cattle.Count(c => c.Status == CattleStatus.Active) },
+                new object?[] { "Sick/Critical cattle", cattle.Count(c => c.HealthStatus is HealthStatus.Sick or HealthStatus.Critical) }
             };
 
-            for (var i = 0; i < rows.Length; i++)
-            {
-                summary.Cell(7 + i, 1).Value = rows[i].Metric;
-                summary.Cell(7 + i, 2).Value = XLCellValue.FromObject(rows[i].Value);
-            }
+            var monthlyRows = new List<IReadOnlyList<object?>> { new object?[] { "Month", "Revenue", "Expenses" } };
+            monthlyRows.AddRange(trend.Select(t => new object?[] { t.Month, t.Revenue, t.Expense }));
 
-            var monthly = workbook.Worksheets.Add("Monthly Trend");
-            monthly.Cell(1, 1).Value = "Month";
-            monthly.Cell(1, 2).Value = "Revenue";
-            monthly.Cell(1, 3).Value = "Expenses";
-            for (var i = 0; i < trend.Count; i++)
-            {
-                monthly.Cell(2 + i, 1).Value = trend[i].Month;
-                monthly.Cell(2 + i, 2).Value = trend[i].Revenue;
-                monthly.Cell(2 + i, 3).Value = trend[i].Expense;
-            }
+            var expenseRows = new List<IReadOnlyList<object?>> { new object?[] { "Category", "Total" } };
+            expenseRows.AddRange(expenseBreakdown.Select(e => new object?[] { e.Category, e.Total }));
 
-            var expensesSheet = workbook.Worksheets.Add("Expenses");
-            expensesSheet.Cell(1, 1).Value = "Category";
-            expensesSheet.Cell(1, 2).Value = "Total";
-            for (var i = 0; i < expenseBreakdown.Count; i++)
-            {
-                expensesSheet.Cell(2 + i, 1).Value = expenseBreakdown[i].Category;
-                expensesSheet.Cell(2 + i, 2).Value = expenseBreakdown[i].Total;
-            }
+            var revenueRows = new List<IReadOnlyList<object?>> { new object?[] { "Source", "Total" } };
+            revenueRows.AddRange(revenueBreakdown.Select(r => new object?[] { r.Source, r.Total }));
 
-            var revenueSheet = workbook.Worksheets.Add("Revenue");
-            revenueSheet.Cell(1, 1).Value = "Source";
-            revenueSheet.Cell(1, 2).Value = "Total";
-            for (var i = 0; i < revenueBreakdown.Count; i++)
-            {
-                revenueSheet.Cell(2 + i, 1).Value = revenueBreakdown[i].Source;
-                revenueSheet.Cell(2 + i, 2).Value = revenueBreakdown[i].Total;
-            }
+            var excelBytes = BuildWorkbook(
+                ("Summary", summaryRows),
+                ("Monthly Trend", monthlyRows),
+                ("Expenses", expenseRows),
+                ("Revenue", revenueRows));
 
-            foreach (var sheet in workbook.Worksheets)
-            {
-                sheet.Row(1).Style.Font.Bold = true;
-                sheet.Columns().AdjustToContents();
-            }
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
             var fileName = $"farm-report-{selectedFarm.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx";
             return File(
-                stream.ToArray(),
+                excelBytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName);
         }
@@ -251,6 +221,78 @@ namespace CattleFarm.Controllers
             var fileName = $"financial-report-{selectedFarm.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
             return File(pdfBytes, "application/pdf", fileName);
         }
+
+        private static byte[] BuildWorkbook(params (string Name, IEnumerable<IReadOnlyList<object?>> Rows)[] worksheets)
+        {
+            using var stream = new MemoryStream();
+            using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
+            {
+                var workbookPart = document.AddWorkbookPart();
+                workbookPart.Workbook = new Workbook();
+                var sheets = workbookPart.Workbook.AppendChild(new Sheets());
+
+                for (var i = 0; i < worksheets.Length; i++)
+                {
+                    var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
+                    worksheetPart.Worksheet = new Worksheet(CreateSheetData(worksheets[i].Rows));
+
+                    sheets.Append(new Sheet
+                    {
+                        Id = workbookPart.GetIdOfPart(worksheetPart),
+                        SheetId = (uint)i + 1,
+                        Name = worksheets[i].Name
+                    });
+                }
+
+                workbookPart.Workbook.Save();
+            }
+
+            return stream.ToArray();
+        }
+
+        private static SheetData CreateSheetData(IEnumerable<IReadOnlyList<object?>> rows)
+        {
+            var sheetData = new SheetData();
+            foreach (var values in rows)
+            {
+                var row = new Row();
+                foreach (var value in values)
+                {
+                    row.Append(CreateCell(value));
+                }
+
+                sheetData.Append(row);
+            }
+
+            return sheetData;
+        }
+
+        private static Cell CreateCell(object? value)
+        {
+            if (value == null)
+                return new Cell { DataType = CellValues.String, CellValue = new CellValue(string.Empty) };
+
+            return value switch
+            {
+                decimal decimalValue => CreateNumberCell(decimalValue),
+                double doubleValue => CreateNumberCell(doubleValue),
+                int intValue => CreateNumberCell(intValue),
+                long longValue => CreateNumberCell(longValue),
+                float floatValue => CreateNumberCell(floatValue),
+                _ => new Cell
+                {
+                    DataType = CellValues.InlineString,
+                    InlineString = new InlineString(new Text(value.ToString() ?? string.Empty))
+                }
+            };
+        }
+
+        private static Cell CreateNumberCell<T>(T value) where T : IFormattable =>
+            new()
+            {
+                DataType = CellValues.Number,
+                CellValue = new CellValue(value.ToString(null, CultureInfo.InvariantCulture))
+            };
 
         private int GetUserId() =>
             int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;

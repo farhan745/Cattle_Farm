@@ -1,0 +1,93 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.yml — LOCAL DEVELOPMENT
+# ══════════════════════════════════════════════════════════════════════════════
+# Usage:
+#   1. Copy .env.example to .env and fill in your secrets
+#   2. docker compose up -d
+#   3. App runs at http://localhost:8080
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── SQL Server 2022 ──────────────────────────────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cattlefarm-db
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_SA_PASSWORD}
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${DB_SA_PASSWORD}' -Q 'SELECT 1' -No -C || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ── CattleFarm Web App ────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cattlefarm-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      # Database
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=CattleFarmDB;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True;Connect Timeout=60;"
+
+      # JWT
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: SmartCattleFarm
+      Jwt__Audience: SmartCattleFarm.Api
+
+      # Email (Gmail SMTP)
+      Email__Host: smtp.gmail.com
+      Email__Port: 587
+      Email__Username: ${EMAIL_USERNAME}
+      Email__Password: ${EMAIL_PASSWORD}
+      Email__FromName: Smart Cattle Farm
+      Email__FromAddress: ${EMAIL_USERNAME}
+
+      # SSLCommerz Payment
+      SSLCommerz__StoreId: ${SSLCOMMERZ_STORE_ID}
+      SSLCommerz__StorePassword: ${SSLCOMMERZ_STORE_PASSWORD}
+      SSLCommerz__IsSandbox: ${SSLCOMMERZ_IS_SANDBOX:-true}
+      SSLCommerz__BaseUrl: ${SSLCOMMERZ_BASE_URL:-https://sandbox.sslcommerz.com/gwprocess/v4/api.php}
+      SSLCommerz__ValidationUrl: ${SSLCOMMERZ_VALIDATION_URL:-https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php}
+
+      # Twilio SMS (optional)
+      Twilio__AccountSid: ${TWILIO_ACCOUNT_SID:-}
+      Twilio__AuthToken: ${TWILIO_AUTH_TOKEN:-}
+      Twilio__FromPhoneNumber: ${TWILIO_FROM_PHONE:-}
+
+      # Currency
+      CurrencySettings__DefaultCurrency: BDT
+      CurrencySettings__Symbol: "৳"
+      CurrencySettings__CultureCode: en-BD
+      CurrencySettings__DecimalPlaces: 2
+
+    volumes:
+      # Persist uploaded files (avatars, cattle images, etc.)
+      - uploads_data:/app/wwwroot/uploads
+      # Persist application logs
+      - logs_data:/app/logs
+
+volumes:
+  sqlserver_data:
+    driver: local
+  uploads_data:
+    driver: local
+  logs_data:
+    driver: local

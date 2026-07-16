@@ -41,6 +41,7 @@
           "AutoMapper": "16.1.1",
           "BCrypt.Net-Next": "4.2.0",
           "ClosedXML": "0.105.0",
+          "ExcelNumberFormat": "1.1.0",
           "MailKit": "4.17.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.5",
           "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation": "10.0.5",

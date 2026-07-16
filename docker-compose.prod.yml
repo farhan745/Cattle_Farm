@@ -1,0 +1,118 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.prod.yml — PRODUCTION SERVER
+# ══════════════════════════════════════════════════════════════════════════════
+# Usage on your server:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# This file uses the pre-built image from GitHub Container Registry (GHCR).
+# The GitHub Actions workflow builds and pushes this image automatically
+# whenever you push to the main branch.
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Nginx Reverse Proxy (HTTPS termination) ────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: cattlefarm-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - app
+
+  # ── SQL Server 2022 ──────────────────────────────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cattlefarm-db
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_SA_PASSWORD}
+      MSSQL_PID: Developer
+    # DO NOT expose port 1433 to the internet in production
+    expose:
+      - "1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${DB_SA_PASSWORD}' -Q 'SELECT 1' -No -C || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── CattleFarm Web App (Pre-built image from GHCR) ────────────────────────
+  app:
+    # Image pushed by GitHub Actions — replace GITHUB_USERNAME with your GitHub username
+    image: ghcr.io/${GITHUB_USERNAME}/cattlefarm:${IMAGE_TAG:-latest}
+    container_name: cattlefarm-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      # Database — connects to the 'db' service above
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=CattleFarmDB;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True;Connect Timeout=60;"
+
+      # JWT
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: SmartCattleFarm
+      Jwt__Audience: SmartCattleFarm.Api
+
+      # Email
+      Email__Host: ${EMAIL_HOST:-smtp.gmail.com}
+      Email__Port: ${EMAIL_PORT:-587}
+      Email__Username: ${EMAIL_USERNAME}
+      Email__Password: ${EMAIL_PASSWORD}
+      Email__FromName: Smart Cattle Farm
+      Email__FromAddress: ${EMAIL_USERNAME}
+
+      # SSLCommerz (Production)
+      SSLCommerz__StoreId: ${SSLCOMMERZ_STORE_ID}
+      SSLCommerz__StorePassword: ${SSLCOMMERZ_STORE_PASSWORD}
+      SSLCommerz__IsSandbox: "false"
+      SSLCommerz__BaseUrl: "https://securepay.sslcommerz.com/gwprocess/v4/api.php"
+      SSLCommerz__ValidationUrl: "https://securepay.sslcommerz.com/validator/api/validationserverAPI.php"
+
+      # Twilio SMS
+      Twilio__AccountSid: ${TWILIO_ACCOUNT_SID}
+      Twilio__AuthToken: ${TWILIO_AUTH_TOKEN}
+      Twilio__FromPhoneNumber: ${TWILIO_FROM_PHONE}
+
+      # Currency
+      CurrencySettings__DefaultCurrency: BDT
+      CurrencySettings__Symbol: "৳"
+      CurrencySettings__CultureCode: en-BD
+      CurrencySettings__DecimalPlaces: 2
+
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
+      - logs_data:/app/logs
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/Health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  sqlserver_data:
+    driver: local
+  uploads_data:
+    driver: local
+  logs_data:
+    driver: local
+  nginx_logs:
+    driver: local

@@ -112,7 +112,9 @@ namespace CattleFarm.Controllers
 
             var issuer = _configuration["Jwt:Issuer"] ?? "SmartCattleFarm";
             var audience = _configuration["Jwt:Audience"] ?? "SmartCattleFarm.Api";
-            var key = _configuration["Jwt:Key"] ?? "LOCAL_DEVELOPMENT_KEY_CHANGE_BEFORE_PRODUCTION_32_CHARS";
+            var key = _configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(key))
+                throw new InvalidOperationException("Missing required configuration value 'Jwt:Key'.");
             var expires = DateTime.UtcNow.AddHours(8);
 
             var claims = new[]
@@ -332,6 +334,7 @@ namespace CattleFarm.Controllers
 
         [Authorize]
         [HttpDelete("/account")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest model)
         {
             var userId = GetUserId();

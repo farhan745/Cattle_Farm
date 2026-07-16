@@ -25,6 +25,31 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
+static string RequiredConfig(IConfiguration configuration, string key, bool rejectPlaceholders = false)
+{
+    var value = configuration[key];
+    if (string.IsNullOrWhiteSpace(value))
+        throw new InvalidOperationException($"Missing required configuration value '{key}'.");
+
+    if (rejectPlaceholders &&
+        (value.Contains("CHANGE_THIS", StringComparison.OrdinalIgnoreCase) ||
+         value.Contains("LOCAL_DEVELOPMENT", StringComparison.OrdinalIgnoreCase) ||
+         value.Contains("YOUR_", StringComparison.OrdinalIgnoreCase) ||
+         value.Contains("configured-by-environment", StringComparison.OrdinalIgnoreCase)))
+    {
+        throw new InvalidOperationException($"Configuration value '{key}' is still a placeholder.");
+    }
+
+    return value;
+}
+
+var jwtKey = RequiredConfig(
+    builder.Configuration,
+    "Jwt:Key",
+    rejectPlaceholders: builder.Environment.IsProduction());
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    throw new InvalidOperationException("Configuration value 'Jwt:Key' must be at least 32 bytes for HMAC-SHA256 signing.");
+
 // ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContextPool<CattleFarmDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -101,7 +126,6 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        var jwtKey = builder.Configuration["Jwt:Key"] ?? "LOCAL_DEVELOPMENT_KEY_CHANGE_BEFORE_PRODUCTION_32_CHARS";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -190,5 +214,15 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<FarmDashboardHub>("/hubs/farm-dashboard");
+
+// ── Health Check Endpoint (used by Docker healthcheck) ────────────────────
+app.MapGet("/Health", () => Results.Ok(new
+{
+    status = "Healthy",
+    timestamp = DateTime.UtcNow,
+    environment = app.Environment.EnvironmentName,
+    version = System.Reflection.Assembly.GetExecutingAssembly()
+                  .GetName().Version?.ToString() ?? "1.0.0"
+})).AllowAnonymous();
 
 app.Run();

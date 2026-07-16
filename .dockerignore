@@ -1,0 +1,60 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# Logs
+**/logs/
+*.log
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Git
+.git/
+.gitignore
+
+# CI/CD agent dirs
+agents/
+get-shit-done/
+.augment/
+.codebuddy/
+.dotnet/
+.dotnet-build/
+.dotnet-build-app/
+.dotnet-build-app-verify/
+.hermes/
+.kilo/
+.opencode/
+.planning/
+.qwen/
+.trae/
+.windsurf/
+
+# Secrets / Local config
+appsettings.Development.json
+appsettings.Local.json
+*.Development.json
+.env
+.env.*
+secrets.json
+
+# Temporary files
+*.zip
+*.tmp
+tmp_*.txt
+build_err.txt
+build_output.txt
+test_out.txt
+
+# Test projects (not needed in prod image)
+CattleFarm.Tests/
+
+# Docker files themselves
+docker-compose*.yml
+Dockerfile*
+nginx/

@@ -299,13 +299,13 @@ namespace CattleFarm.Controllers
                 var row = 9 + i;
                 sheet.Cell(row, 1).Value = item.Product?.Name ?? "";
                 sheet.Cell(row, 2).Value = item.Quantity;
-                sheet.Cell(row, 3).Value = item.UnitPrice;
-                sheet.Cell(row, 4).Value = item.TotalPrice;
+                sheet.Cell(row, 3).Value = (double)item.UnitPrice;
+                sheet.Cell(row, 4).Value = (double)item.TotalPrice;
             }
 
             var totalRow = 10 + items.Count;
             sheet.Cell(totalRow, 3).Value = "Grand Total";
-            sheet.Cell(totalRow, 4).Value = order.TotalAmount;
+            sheet.Cell(totalRow, 4).Value = (double)order.TotalAmount;
 
             sheet.Range(8, 1, 8, 4).Style.Font.Bold = true;
             sheet.Cell(totalRow, 3).Style.Font.Bold = true;
