@@ -9,8 +9,10 @@ WORKDIR /src
 COPY CattleFarm.slnx ./
 COPY CattleFarm/CattleFarm.csproj CattleFarm/
 
-# Restore NuGet packages (cached unless .csproj changes)
-RUN dotnet restore CattleFarm.slnx
+# Restore only the web application project. The test project is intentionally
+# excluded from the container build context, so restoring the solution would
+# fail when it tries to resolve the test project.
+RUN dotnet restore CattleFarm/CattleFarm.csproj
 
 # Copy the rest of the source code
 COPY CattleFarm/ CattleFarm/
