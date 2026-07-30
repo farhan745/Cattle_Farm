@@ -1,0 +1,17 @@
+{
+  "name": "Smart Cattle Farm Management",
+  "short_name": "CattleFarm",
+  "description": "Industrial cattle farm operations, health, milk, feed, finance, staff, and smart monitoring.",
+  "start_url": "/Dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#14532d",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

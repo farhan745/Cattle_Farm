@@ -1,0 +1,624 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   ADVANCED ANIMATIONS & PREMIUM EFFECTS
+   Professional light-theme animations for CattleFarm
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3D EFFECTS & PERSPECTIVE
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Card flip effect on hover */
+.card-flip {
+    perspective: 1000px;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.card-flip:hover {
+    transform: rotateY(180deg);
+}
+
+.card-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.card-flip-front, .card-flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+}
+
+.card-flip-front {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.card-flip-back {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #ffffff;
+    transform: rotateY(180deg);
+    border: 1px solid var(--primary);
+}
+
+/* Parallax tilt effect (requires JS) */
+.tilt-card {
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+}
+
+.tilt-card:hover {
+    box-shadow: 0 20px 60px rgba(45, 106, 79, 0.18);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MOUSE-FOLLOWING ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Custom cursor dot */
+.cursor-dot {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.7;
+    mix-blend-mode: multiply;
+    box-shadow: 0 0 8px rgba(45, 106, 79, 0.3);
+}
+
+.cursor-dot.hidden {
+    opacity: 0;
+}
+
+/* Spotlight/glow following cursor */
+.spotlight-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.spotlight {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(45, 106, 79, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(40px);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.spotlight-container:hover .spotlight {
+    opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TEXT ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Typewriter effect */
+.typewriter {
+    display: inline-block;
+    overflow: hidden;
+    border-right: 3px solid var(--primary);
+    white-space: nowrap;
+    animation: typewriter 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typewriter {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret {
+    from, to {
+        border-right-color: var(--primary);
+    }
+    50% {
+        border-right-color: transparent;
+    }
+}
+
+/* Word-by-word fade-in */
+.word-fade-in {
+    display: inline;
+}
+
+.word-fade-in span {
+    display: inline;
+    animation: wordFadeIn 0.6s ease-out both;
+}
+
+.word-fade-in span:nth-child(1) { animation-delay: 0s; }
+.word-fade-in span:nth-child(2) { animation-delay: 0.1s; }
+.word-fade-in span:nth-child(3) { animation-delay: 0.2s; }
+.word-fade-in span:nth-child(4) { animation-delay: 0.3s; }
+.word-fade-in span:nth-child(5) { animation-delay: 0.4s; }
+.word-fade-in span:nth-child(6) { animation-delay: 0.5s; }
+.word-fade-in span:nth-child(7) { animation-delay: 0.6s; }
+.word-fade-in span:nth-child(8) { animation-delay: 0.7s; }
+
+@keyframes wordFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PAGE TRANSITIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Smooth page fade+slide transitions */
+.page-transition {
+    animation: pageTransitionIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageTransitionIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-transition-out {
+    animation: pageTransitionOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageTransitionOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BACKGROUND ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Animated gradient wave for footer */
+.gradient-wave {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+}
+
+.gradient-wave::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(45, 106, 79, 0.1) 25%,
+        rgba(45, 106, 79, 0.2) 50%,
+        rgba(45, 106, 79, 0.1) 75%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: waveFlow 6s ease-in-out infinite;
+}
+
+@keyframes waveFlow {
+    0%, 100% {
+        background-position: 0% 0%;
+    }
+    50% {
+        background-position: 100% 0%;
+    }
+}
+
+/* Floating particle effect container */
+.particle-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: float linear infinite;
+}
+
+.particle:nth-child(1) { width: 6px; height: 6px; left: 10%; animation-duration: 8s; animation-delay: 0s; }
+.particle:nth-child(2) { width: 4px; height: 4px; left: 20%; animation-duration: 10s; animation-delay: 1s; }
+.particle:nth-child(3) { width: 5px; height: 5px; left: 30%; animation-duration: 12s; animation-delay: 2s; }
+.particle:nth-child(4) { width: 4px; height: 4px; left: 40%; animation-duration: 9s; animation-delay: 0.5s; }
+.particle:nth-child(5) { width: 6px; height: 6px; left: 50%; animation-duration: 11s; animation-delay: 1.5s; }
+.particle:nth-child(6) { width: 5px; height: 5px; left: 60%; animation-duration: 10s; animation-delay: 2.5s; }
+.particle:nth-child(7) { width: 4px; height: 4px; left: 70%; animation-duration: 13s; animation-delay: 0.8s; }
+.particle:nth-child(8) { width: 6px; height: 6px; left: 80%; animation-duration: 9s; animation-delay: 1.2s; }
+.particle:nth-child(9) { width: 5px; height: 5px; left: 90%; animation-duration: 11s; animation-delay: 2s; }
+
+@keyframes float {
+    0% {
+        transform: translateY(300px) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.3;
+    }
+    90% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: translateY(-300px) translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* SVG blob morphing (requires SVG element) */
+.blob {
+    animation: blobMorph 8s ease-in-out infinite;
+}
+
+@keyframes blobMorph {
+    0%, 100% {
+        d: path('M 50,50 Q 80,20 100,50 Q 80,80 50,100 Q 20,80 0,50 Q 20,20 50,50 Z');
+    }
+    25% {
+        d: path('M 50,50 Q 90,30 110,60 Q 70,90 40,100 Q 10,70 20,40 Q 30,10 50,50 Z');
+    }
+    50% {
+        d: path('M 50,50 Q 70,10 100,30 Q 100,80 60,110 Q 20,90 10,50 Q 15,15 50,50 Z');
+    }
+    75% {
+        d: path('M 50,50 Q 85,35 95,65 Q 75,95 45,105 Q 15,75 25,35 Q 35,5 50,50 Z');
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MICROINTERACTIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Checkbox bounce on check */
+.checkbox-bounce {
+    position: relative;
+}
+
+.checkbox-bounce input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.checkbox-bounce input[type="checkbox"]:checked + label {
+    animation: checkboxBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkboxBounce {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Form shake on validation error */
+.form-shake {
+    animation: formShake 0.5s ease-in-out;
+}
+
+@keyframes formShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+/* Success checkmark draw animation */
+.checkmark-draw {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkmark-draw svg {
+    width: 100%;
+    height: 100%;
+}
+
+.checkmark-draw .checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: checkmarkCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-draw .checkmark-check {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: checkmarkCheck 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards;
+}
+
+@keyframes checkmarkCircle {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes checkmarkCheck {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Ripple effect on button click */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-span {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NEUMORPHISM
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Soft extruded shadow UI for dashboard widgets */
+.neumorphic {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    box-shadow: 
+        9px 9px 16px rgba(163, 177, 198, 0.6),
+        -9px -9px 16px rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all var(--transition);
+}
+
+.neumorphic:hover {
+    box-shadow: 
+        inset 9px 9px 16px rgba(163, 177, 198, 0.4),
+        inset -9px -9px 16px rgba(255, 255, 255, 0.8);
+}
+
+.neumorphic-button {
+    background: linear-gradient(145deg, #f5f7fa, #c3cfe2);
+    box-shadow: 
+        4px 4px 8px rgba(163, 177, 198, 0.5),
+        -4px -4px 8px rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.neumorphic-button:active {
+    box-shadow: 
+        inset 4px 4px 8px rgba(163, 177, 198, 0.5),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SHIMMER & HIGHLIGHT EFFECTS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Shimmer highlight on badges */
+.shimmer-highlight {
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer-highlight::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Glow pulse effect */
+.glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(45, 106, 79, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(45, 106, 79, 0.6);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOADING ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Circular CSS spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(45, 106, 79, 0.1);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Pulse animation for loading states */
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ENTRANCE ANIMATIONS (Enhanced)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Bounce entrance */
+.bounce-in {
+    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+@keyframes bounceIn {
+    from {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+/* Flip entrance */
+.flip-in {
+    animation: flipIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+@keyframes flipIn {
+    from {
+        opacity: 0;
+        transform: perspective(400px) rotateY(90deg);
+    }
+    to {
+        opacity: 1;
+        transform: perspective(400px) rotateY(0deg);
+    }
+}
+
+/* Rotate entrance */
+.rotate-in {
+    animation: rotateIn 0.6s ease-out both;
+}
+
+@keyframes rotateIn {
+    from {
+        opacity: 0;
+        transform: rotate(-200deg);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(0deg);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILITY ANIMATION CLASSES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Delay utilities */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Duration utilities */
+.duration-300 { animation-duration: 0.3s; }
+.duration-500 { animation-duration: 0.5s; }
+.duration-700 { animation-duration: 0.7s; }
+.duration-1000 { animation-duration: 1s; }
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

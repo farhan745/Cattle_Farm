@@ -298,8 +298,7 @@
               "RelativeToolTip": "CattleFarm\\Controllers\\ReportsController.cs",
               "ViewState": "AgIAAJ8AAAAAAAAAAAAIwKIAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-29T14:41:47.678Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-29T14:41:47.678Z"
             },
             {
               "$type": "Document",
@@ -1066,10 +1065,6 @@
               "ViewState": "AgIAAA4AAAAAAAAAAAAQwBsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-19T20:08:37.352Z"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             }
           ]
         }

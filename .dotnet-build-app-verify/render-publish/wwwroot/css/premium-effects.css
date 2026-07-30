@@ -1,0 +1,628 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   PREMIUM VISUAL EFFECTS
+   Advanced CSS effects for CattleFarm
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   1. GLASSMORPHISM PANELS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all var(--transition);
+}
+
+.glass-panel:hover {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.glass-panel.glass-sm {
+    padding: 16px;
+    backdrop-filter: blur(8px);
+}
+
+.glass-panel.glass-lg {
+    padding: 32px;
+    backdrop-filter: blur(16px);
+}
+
+.glass-panel.glass-dark {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.glass-panel.glass-dark:hover {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   2. ANIMATED GRADIENT BORDERS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.gradient-border {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    overflow: hidden;
+}
+
+.gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    background: conic-gradient(
+        from 0deg,
+        var(--primary),
+        var(--accent),
+        var(--primary)
+    );
+    border-radius: var(--radius-lg);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: rotateBorder 8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes rotateBorder {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.gradient-border > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Static gradient border variant */
+.gradient-border-static::before {
+    animation: none;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   3. SHIMMER HIGHLIGHT (Enhanced)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.shimmer-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    color: white;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+}
+
+.shimmer-badge::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmerSweep 2s infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmerSweep {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.shimmer-text {
+    position: relative;
+    background: linear-gradient(
+        90deg,
+        var(--text-primary) 0%,
+        var(--primary) 50%,
+        var(--text-primary) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmerText 3s ease-in-out infinite;
+}
+
+@keyframes shimmerText {
+    0%, 100% {
+        background-position: 200% 0;
+    }
+    50% {
+        background-position: -200% 0;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   4. NEUMORPHISM (Enhanced)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.neumorphic-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    box-shadow: 
+        9px 9px 16px rgba(163, 177, 198, 0.6),
+        -9px -9px 16px rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neumorphic-card:hover {
+    box-shadow: 
+        inset 9px 9px 16px rgba(163, 177, 198, 0.4),
+        inset -9px -9px 16px rgba(255, 255, 255, 0.8);
+    transform: scale(0.98);
+}
+
+.neumorphic-card:active {
+    box-shadow: 
+        inset 9px 9px 16px rgba(163, 177, 198, 0.6),
+        inset -9px -9px 16px rgba(255, 255, 255, 0.5);
+}
+
+.neumorphic-input {
+    background: linear-gradient(145deg, #f5f7fa, #c3cfe2);
+    box-shadow: 
+        inset 4px 4px 8px rgba(163, 177, 198, 0.5),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all var(--transition);
+}
+
+.neumorphic-input:focus {
+    outline: none;
+    box-shadow: 
+        inset 4px 4px 8px rgba(163, 177, 198, 0.3),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.9),
+        0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.neumorphic-button {
+    background: linear-gradient(145deg, #f5f7fa, #c3cfe2);
+    box-shadow: 
+        4px 4px 8px rgba(163, 177, 198, 0.5),
+        -4px -4px 8px rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neumorphic-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        6px 6px 12px rgba(163, 177, 198, 0.6),
+        -6px -6px 12px rgba(255, 255, 255, 0.8);
+}
+
+.neumorphic-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        inset 4px 4px 8px rgba(163, 177, 198, 0.5),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   5. GRADIENT TEXT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.gradient-text.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gradient-text.accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gradient-text.rainbow {
+    background: linear-gradient(
+        90deg,
+        var(--primary),
+        var(--accent),
+        var(--success),
+        var(--primary)
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientFlow 6s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0%, 100% {
+        background-position: 0% 0%;
+    }
+    50% {
+        background-position: 100% 0%;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   6. FLOATING CARDS WITH DEPTH
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.floating-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.floating-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(45, 106, 79, 0.05), transparent);
+    border-radius: var(--radius-lg);
+    pointer-events: none;
+}
+
+.floating-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 
+        0 20px 40px rgba(45, 106, 79, 0.12),
+        0 0 1px rgba(45, 106, 79, 0.1);
+    border-color: var(--primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   7. AURORA GLOW EFFECT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.aurora-glow {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.aurora-glow::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    background: linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(45, 106, 79, 0.1) 25%,
+        rgba(45, 106, 79, 0.2) 50%,
+        rgba(45, 106, 79, 0.1) 75%,
+        transparent 100%
+    );
+    animation: auroraFlow 8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes auroraFlow {
+    0% {
+        transform: rotate(0deg) translateX(-100%);
+    }
+    100% {
+        transform: rotate(0deg) translateX(100%);
+    }
+}
+
+.aurora-glow > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   8. BENTO GRID LAYOUT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 200px;
+    gap: 16px;
+}
+
+.bento-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.bento-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 12px 30px rgba(45, 106, 79, 0.12);
+    transform: translateY(-4px);
+}
+
+.bento-item.wide {
+    grid-column: span 2;
+}
+
+.bento-item.tall {
+    grid-row: span 2;
+}
+
+.bento-item.featured {
+    grid-column: span 2;
+    grid-row: span 2;
+    background: linear-gradient(135deg, var(--primary-light), #e8f5ee);
+    border-color: var(--primary);
+}
+
+@media (max-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 180px;
+    }
+    
+    .bento-item.wide,
+    .bento-item.featured {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 640px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+    }
+    
+    .bento-item,
+    .bento-item.wide,
+    .bento-item.tall,
+    .bento-item.featured {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   9. MORPHING GRADIENT BACKGROUND
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.morphing-bg {
+    position: relative;
+    background: linear-gradient(
+        -45deg,
+        var(--primary-light),
+        var(--primary),
+        var(--success),
+        var(--primary-light)
+    );
+    background-size: 400% 400%;
+    animation: morphingGradient 15s ease infinite;
+    overflow: hidden;
+}
+
+@keyframes morphingGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   10. BLUR-UP IMAGE LOADING
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.blur-up {
+    position: relative;
+    overflow: hidden;
+    background: var(--border);
+}
+
+.blur-up img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.blur-up img.blur {
+    filter: blur(20px);
+    transition: filter 0.3s ease-out;
+}
+
+.blur-up img.loaded {
+    filter: blur(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   11. SPOTLIGHT HOVER EFFECT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.spotlight-hover {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+}
+
+.spotlight-hover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle 200px at var(--x, 50%) var(--y, 50%),
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 80%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.spotlight-hover:hover::before {
+    opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   12. CARD STACK EFFECT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.card-stack {
+    position: relative;
+    display: inline-block;
+}
+
+.card-stack-item {
+    position: absolute;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-stack-item:nth-child(1) {
+    transform: translateY(0px) rotateZ(0deg);
+    z-index: 3;
+}
+
+.card-stack-item:nth-child(2) {
+    transform: translateY(8px) rotateZ(2deg);
+    z-index: 2;
+}
+
+.card-stack-item:nth-child(3) {
+    transform: translateY(16px) rotateZ(-2deg);
+    z-index: 1;
+}
+
+.card-stack:hover .card-stack-item:nth-child(1) {
+    transform: translateY(-8px) rotateZ(-2deg);
+}
+
+.card-stack:hover .card-stack-item:nth-child(2) {
+    transform: translateY(0px) rotateZ(1deg);
+}
+
+.card-stack:hover .card-stack-item:nth-child(3) {
+    transform: translateY(8px) rotateZ(-1deg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .glass-panel {
+        padding: 16px;
+        backdrop-filter: blur(8px);
+    }
+    
+    .neumorphic-card {
+        padding: 16px;
+    }
+    
+    .floating-card {
+        padding: 16px;
+    }
+    
+    .floating-card:hover {
+        transform: translateY(-4px);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ACCESSIBILITY
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .gradient-border::before,
+    .shimmer-badge::after,
+    .shimmer-text,
+    .floating-card,
+    .aurora-glow::before,
+    .morphing-bg,
+    .gradient-text.rainbow,
+    .card-stack-item {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .floating-card:hover {
+        transform: none;
+    }
+    
+    .card-stack:hover .card-stack-item {
+        transform: none;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRINT STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media print {
+    .glass-panel,
+    .gradient-border,
+    .neumorphic-card,
+    .floating-card,
+    .aurora-glow,
+    .morphing-bg {
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+}
