@@ -947,3 +947,4 @@ F:\VisualStudio\CattleFarm\.dotnet-build-report-export\refs\System.Xml.XmlSerial
 F:\VisualStudio\CattleFarm\.dotnet-build-report-export\refs\System.Xml.XPath.dll
 F:\VisualStudio\CattleFarm\.dotnet-build-report-export\refs\System.Xml.XPath.XDocument.dll
 F:\VisualStudio\CattleFarm\.dotnet-build-report-export\refs\WindowsBase.dll
+F:\VisualStudio\CattleFarm\CattleFarm\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CattleFarm")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a64ddd53ac36ee3da7022d8af9fec862389d60c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+79c3ef8b9e3c6425b37247af6397cf0733b82d39")]
 [assembly: System.Reflection.AssemblyProductAttribute("CattleFarm")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CattleFarm")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

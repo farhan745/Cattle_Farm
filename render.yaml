@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: cattlefarm-web
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: free
+    healthCheckPath: /Health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: SmartCattleFarm
+      - key: Jwt__Audience
+        value: SmartCattleFarm.Api
+      - key: Email__Host
+        value: smtp.gmail.com
+      - key: Email__Port
+        value: "587"
+      - key: Email__Username
+        value: cattlefarm.alerts@gmail.com
+      - key: Email__Password
+        sync: false
+      - key: Email__FromName
+        value: Smart Cattle Farm
+      - key: Email__FromAddress
+        value: cattlefarm.alerts@gmail.com
+      - key: SSLCommerz__IsSandbox
+        value: "true"
+      - key: CurrencySettings__DefaultCurrency
+        value: BDT
+      - key: CurrencySettings__Symbol
+        value: BDT
+      - key: CurrencySettings__CultureCode
+        value: en-BD
+      - key: CurrencySettings__DecimalPlaces
+        value: "2"
